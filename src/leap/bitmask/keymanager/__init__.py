@@ -673,7 +673,7 @@ class KeyManager(object):
         """
         Put raw key bound to address in local storage.
 
-        :param key: The ascii key to be stored
+        :param key: The key to be stored
         :type key: str
         :param address: address for which this key will be active
         :type address: str
@@ -727,10 +727,10 @@ class KeyManager(object):
         """
 
         logger.info("fetch key for %s from %s" % (address, uri))
-        ascii_content = yield self._get_with_combined_ca_bundle(uri)
+        key_content = yield self._get_with_combined_ca_bundle(uri)
 
         # XXX parse binary keys
-        pubkey, _ = self._openpgp.parse_key(ascii_content, address)
+        pubkey, _ = self._openpgp.parse_key(key_content, address)
         if pubkey is None:
             raise keymanager_errors.KeyNotFound(uri)
 
