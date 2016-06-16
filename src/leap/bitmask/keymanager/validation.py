@@ -121,9 +121,4 @@ def can_upgrade(new_key, old_key):
         return True
 
     # New key signed by the old key
-    # XXX: signatures are using key-ids instead of fingerprints
-    key_id = old_key.fingerprint[-16:]
-    if key_id in new_key.signatures:
-        return True
-
-    return False
+    return new_key.is_signed_by(old_key)

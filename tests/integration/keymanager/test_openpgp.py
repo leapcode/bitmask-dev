@@ -37,6 +37,9 @@ from common import (
     PUBLIC_KEY_2,
     PRIVATE_KEY,
     PRIVATE_KEY_2,
+    NEW_PUB_KEY,
+    OLD_AND_NEW_KEY_ADDRESS,
+    OLD_PUB_KEY
 )
 
 
@@ -338,6 +341,15 @@ class OpenPGPCryptoTestCase(KeyManagerWithSoledadTestCase):
     def _assert_key_not_found(self, pgp, address, private=False):
         d = pgp.get_key(address, private=private)
         return self.assertFailure(d, KeyNotFound)
+
+    def test_key_is_signed_by(self):
+        pgp = openpgp.OpenPGPScheme(
+            self._soledad, gpgbinary=self.gpg_binary_path)
+        old_pubkey, old_privkey = pgp.parse_key(
+            OLD_PUB_KEY, OLD_AND_NEW_KEY_ADDRESS)
+        new_pubkey, new_privkey = pgp.parse_key(
+            NEW_PUB_KEY, OLD_AND_NEW_KEY_ADDRESS)
+        self.assertTrue(new_pubkey.is_signed_by(old_pubkey))
 
     @inlineCallbacks
     def _insert_key_docs(self, refreshed_at):

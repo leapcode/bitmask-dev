@@ -23,15 +23,20 @@ from twisted.internet.defer import inlineCallbacks
 
 from leap.bitmask.keymanager.errors import KeyNotValidUpgrade
 from leap.bitmask.keymanager.validation import ValidationLevels
+from leap.bitmask.keymanager.testing import KeyManagerWithSoledadTestCase
 
-from leap.bitmask.keymanager.testing import (
-    KeyManagerWithSoledadTestCase,
+from common import (
     ADDRESS,
     PUBLIC_KEY,
     ADDRESS_2,
     PUBLIC_KEY_2,
     PRIVATE_KEY_2,
-    KEY_FINGERPRINT
+    KEY_FINGERPRINT,
+    NEW_PUB_KEY,
+    NEW_PUB_KEY_FINGERPRINT,
+    OLD_AND_NEW_KEY_ADDRESS,
+    OLD_PUB_KEY_FINGERPRINT,
+    OLD_PUB_KEY
 )
 
 
@@ -79,6 +84,19 @@ class ValidationLevelsTestCase(KeyManagerWithSoledadTestCase):
             UNRELATED_KEY, ADDRESS,
             validation=ValidationLevels.Provider_Trust)
         yield self.assertFailure(d, KeyNotValidUpgrade)
+
+    @inlineCallbacks
+    def test_can_upgrade_key(self):
+        km = self._key_manager()
+
+        yield km.put_raw_key(OLD_PUB_KEY, OLD_AND_NEW_KEY_ADDRESS)
+        old_key = yield km.get_key(OLD_AND_NEW_KEY_ADDRESS, fetch_remote=False)
+        self.assertEquals(old_key.fingerprint, OLD_PUB_KEY_FINGERPRINT)
+
+        yield km.put_raw_key(NEW_PUB_KEY, OLD_AND_NEW_KEY_ADDRESS)
+
+        new_key = yield km.get_key(OLD_AND_NEW_KEY_ADDRESS, fetch_remote=False)
+        self.assertEquals(new_key.fingerprint, NEW_PUB_KEY_FINGERPRINT)
 
     @inlineCallbacks
     def test_roll_back(self):

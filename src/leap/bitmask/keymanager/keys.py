@@ -160,6 +160,28 @@ class OpenPGPKey(object):
 
         return []
 
+    def is_signed_by(self, other_key):
+        """
+        Checks if current key was signed by another key. Rather than just
+        relying on the fingerprint being there, we use gpg's --check-sigs with
+        both keys being present in the keychain to check the signature
+        validity. By doing so, relying on the long key id instead of the
+        fingerprint is fine.
+
+        :param other_key: the other key.
+        :return: True if valid signature could be found.
+        :rtype: bool
+        """
+        keys = [self, other_key]
+        with TempGPGWrapper(keys=keys, gpgbinary=self._gpgbinary) as gpg:
+            certs = gpg.check_sigs(str(self.fingerprint)).certs
+            for uid, cur_certs in certs.iteritems():
+                if (parse_address(uid) in other_key.uids and
+                        other_key.fingerprint[-16:] in cur_certs):
+                    return True
+
+            return False
+
     def merge(self, newkey):
         if newkey.fingerprint != self.fingerprint:
             logger.critical(
