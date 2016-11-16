@@ -88,6 +88,12 @@ class GPGError(Exception):
     pass
 
 
+class KeyExpiryExtensionError(Exception):
+    """
+    Error during key expiry date extension
+    """
+
+
 class SignFailed(Exception):
     """
     Raised when failed to sign.

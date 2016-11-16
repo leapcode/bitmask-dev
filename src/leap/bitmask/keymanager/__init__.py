@@ -38,7 +38,6 @@ from leap.bitmask.keymanager.openpgp import OpenPGPScheme
 
 
 class KeyManager(object):
-
     #
     # server's key storage constants
     #
@@ -110,7 +109,7 @@ class KeyManager(object):
         leap_ca_bundle = ca_bundle.where()
 
         if self._ca_cert_path == leap_ca_bundle:
-            return self._ca_cert_path   # don't merge file with itself
+            return self._ca_cert_path  # don't merge file with itself
         elif not self._ca_cert_path:
             return leap_ca_bundle
 
@@ -710,6 +709,26 @@ class KeyManager(object):
 
         pubkey.validation = validation
         yield self.put_key(pubkey)
+
+    @defer.inlineCallbacks
+    def extend_key(self, validity='1y', passphrase=None):
+        """
+        extend the expiration date of the key pair bound to the user's address
+        by the validity period, from the key's creation date.
+
+        :param validity: new validity from creation date 'n','nw','nm' or 'ny'
+                        where n is a number
+        :type validity: str
+
+        :return: The updated secret key, with new expiry date
+        :rtype: OpenPGPKey
+
+        :raise KeyExpiryExtensionError: if invalid validity period
+        """
+        my_secret_key = yield self.get_key(self._address, private=True)
+        renewed_key = yield self._openpgp.extend_key(my_secret_key, validity,
+                                                     passphrase)
+        defer.returnValue(renewed_key)
 
 
 def _split_email(address):

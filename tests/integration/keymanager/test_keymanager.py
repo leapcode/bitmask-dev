@@ -21,7 +21,7 @@ import json
 import urllib
 import tempfile
 import pkg_resources
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from twisted.internet import defer
 from twisted.trial import unittest
@@ -31,6 +31,7 @@ import mock
 
 from leap.common import ca_bundle
 from leap.bitmask.keymanager import errors
+from leap.bitmask.keymanager.errors import KeyExpiryExtensionError
 from leap.bitmask.keymanager.keys import (
     OpenPGPKey,
     is_address,
@@ -47,10 +48,12 @@ from common import (
     PUBLIC_KEY_2,
     PRIVATE_KEY,
     PRIVATE_KEY_2,
+    ADDRESS_EXPIRING,
+    KEY_EXPIRING_CREATION_DATE,
+    PRIVATE_EXPIRING_KEY,
     NEW_PUB_KEY,
     OLD_AND_NEW_KEY_ADDRESS
 )
-
 
 NICKSERVER_URI = "http://leap.se/"
 REMOTE_KEY_URL = "http://site.domain/key"
@@ -58,7 +61,6 @@ INVALID_MAIL_ADDRESS = "notexistingemail@example.org"
 
 
 class KeyManagerUtilTestCase(unittest.TestCase):
-
     def test_is_address(self):
         self.assertTrue(
             is_address('user@leap.se'),
@@ -131,7 +133,6 @@ class KeyManagerUtilTestCase(unittest.TestCase):
 
 
 class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
-
     @defer.inlineCallbacks
     def _test_gen_key(self):
         km = self._key_manager()
@@ -497,8 +498,8 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
                 self.assertEqual(expected, self._slurp_file(tmp_output.name))
 
     def _dump_to_file(self, filename, content):
-            with open(filename, 'w') as out:
-                out.write(content)
+        with open(filename, 'w') as out:
+            out.write(content)
 
     def _slurp_file(self, filename):
         with open(filename) as f:
@@ -552,9 +553,50 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         yield km.put_raw_key(PRIVATE_KEY, ADDRESS)
         km.send_key.assert_called_once_with()
 
+    @defer.inlineCallbacks
+    def test_keymanager_extend_key_expiry_date_for_key_pair(self):
+        km = self._key_manager(user=ADDRESS_EXPIRING)
+
+        yield km._openpgp.put_raw_key(PRIVATE_EXPIRING_KEY, ADDRESS_EXPIRING)
+        key = yield km.get_key(ADDRESS_EXPIRING)
+
+        yield km.extend_key(validity='1w')
+
+        new_expiry_date = datetime.strptime(
+            KEY_EXPIRING_CREATION_DATE, '%Y-%m-%d')
+        new_expiry_date += timedelta(weeks=1)
+        renewed_public_key = yield km.get_key(ADDRESS_EXPIRING)
+        renewed_private_key = yield km.get_key(ADDRESS_EXPIRING, private=True)
+
+        self.assertEqual(new_expiry_date.date(),
+                         renewed_public_key.expiry_date.date())
+        self.assertEqual(new_expiry_date.date(),
+                         renewed_private_key.expiry_date.date())
+        self.assertEqual(key.fingerprint, renewed_public_key.fingerprint)
+        self.assertEqual(key.fingerprint, renewed_private_key.fingerprint)
+
+    @defer.inlineCallbacks
+    def test_key_extension_with_invalid_period_throws_exception(self):
+        km = self._key_manager(user=ADDRESS_EXPIRING)
+
+        yield km._openpgp.put_raw_key(PRIVATE_EXPIRING_KEY, ADDRESS_EXPIRING)
+        key = yield km.get_key(ADDRESS_EXPIRING)
+
+        invalid_validity_option = '2xw'
+
+        with self.assertRaises(KeyExpiryExtensionError):
+            yield km.extend_key(validity=invalid_validity_option)
+
+        renewed_public_key = yield km.get_key(ADDRESS_EXPIRING)
+        renewed_private_key = yield km.get_key(ADDRESS_EXPIRING, private=True)
+
+        self.assertEqual(key.expiry_date, renewed_public_key.expiry_date)
+        self.assertEqual(key.expiry_date, renewed_private_key.expiry_date)
+        self.assertEqual(key.fingerprint, renewed_public_key.fingerprint)
+        self.assertEqual(key.fingerprint, renewed_private_key.fingerprint)
+
 
 class KeyManagerCryptoTestCase(KeyManagerWithSoledadTestCase):
-
     RAW_DATA = 'data'
 
     @defer.inlineCallbacks
@@ -645,6 +687,7 @@ class KeyManagerCryptoTestCase(KeyManagerWithSoledadTestCase):
 
 if __name__ == "__main__":
     import unittest
+
     unittest.main()
 
 # key 0F91B402: someone@somedomain.org

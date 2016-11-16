@@ -617,6 +617,47 @@ class OpenPGPScheme(object):
                 raise errors.EncryptError()
 
     @defer.inlineCallbacks
+    def extend_key(self, seckey, validity='1y', passphrase=None):
+        """
+        Extend C{key} key pair, expiration date for C{validity} period,
+        from its creation date.
+
+        :param seckey: The secret key of the key pair to be extended.
+        :type seckey: OpenPGPKey
+        :param validity: new validity from creation date 'n','nw','nm' or 'ny'
+                         where n is a number
+        :type validity: str
+
+        :return: The updated secret key, with new expiry date
+        :rtype: OpenPGPKey
+
+        :raise KeyExpiryExtensionError: Raised if failed to extend key
+                                        for some reason.
+        """
+        leap_assert_type(seckey, OpenPGPKey)
+        leap_assert(seckey.private is True, 'Key is not private.')
+        keys = [seckey]
+        try:
+            with TempGPGWrapper(keys, self._gpgbinary) as gpg:
+                result = yield from_thread(gpg.extend_key, seckey.address,
+                                           validity=validity,
+                                           passphrase=passphrase)
+                if result.status == 'ok':
+                    for secret in [False, True]:
+                        fetched_key = gpg.list_keys(secret=secret).pop()
+                        key_data = gpg.export_keys(seckey.fingerprint,
+                                                   secret=secret)
+                        renewed_key = self._build_key_from_gpg(
+                            fetched_key,
+                            key_data,
+                            seckey.address)
+                        yield self.put_key(renewed_key)
+                    defer.returnValue(renewed_key)
+        except Exception as e:
+            logger.warn('Failed to Extend Key: %s expiration date.' % str(e))
+            raise errors.KeyExpiryExtensionError(str(e))
+
+    @defer.inlineCallbacks
     def decrypt(self, data, privkey, passphrase=None, verify=None):
         """
         Decrypt C{data} using private @{privkey} and verify with C{verify} key.
