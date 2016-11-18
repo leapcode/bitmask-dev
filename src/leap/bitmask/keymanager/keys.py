@@ -283,6 +283,9 @@ class OpenPGPKey(object):
             value = str(value)
         return key, value
 
+    def has_expired(self):
+        return self.expiry_date < datetime.now()
+
     def __iter__(self):
         return self
 

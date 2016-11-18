@@ -21,7 +21,7 @@ import json
 import urllib
 import tempfile
 import pkg_resources
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from twisted.internet import defer
 from twisted.trial import unittest
@@ -554,26 +554,27 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         km.send_key.assert_called_once_with()
 
     @defer.inlineCallbacks
-    def test_keymanager_extend_key_expiry_date_for_key_pair(self):
+    def test_key_regenerate_gets_new_expiry_date_and_signed_by_old_key(self):
         km = self._key_manager(user=ADDRESS_EXPIRING)
 
         yield km._openpgp.put_raw_key(PRIVATE_EXPIRING_KEY, ADDRESS_EXPIRING)
-        key = yield km.get_key(ADDRESS_EXPIRING)
+        old_key = yield km.get_key(ADDRESS_EXPIRING)
 
-        yield km.extend_key(validity='1w')
+        new_key = yield km.regenerate_key()
 
-        new_expiry_date = datetime.strptime(
-            KEY_EXPIRING_CREATION_DATE, '%Y-%m-%d')
-        new_expiry_date += timedelta(weeks=1)
+        today = datetime.now()
+        new_expiry_date = date(today.year + 1, today.month, today.day)
         renewed_public_key = yield km.get_key(ADDRESS_EXPIRING)
         renewed_private_key = yield km.get_key(ADDRESS_EXPIRING, private=True)
 
-        self.assertEqual(new_expiry_date.date(),
+        self.assertEqual(new_expiry_date,
                          renewed_public_key.expiry_date.date())
-        self.assertEqual(new_expiry_date.date(),
+        self.assertEqual(new_expiry_date,
                          renewed_private_key.expiry_date.date())
-        self.assertEqual(key.fingerprint, renewed_public_key.fingerprint)
-        self.assertEqual(key.fingerprint, renewed_private_key.fingerprint)
+        self.assertNotEqual(old_key.fingerprint,
+                            renewed_public_key.fingerprint)
+        self.assertEqual(new_key.fingerprint, renewed_public_key.fingerprint)
+        self.assertIn(old_key.fingerprint[-16:], renewed_public_key.signatures)
 
     @defer.inlineCallbacks
     def test_key_extension_with_invalid_period_throws_exception(self):

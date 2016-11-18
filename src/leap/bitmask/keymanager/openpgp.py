@@ -22,9 +22,7 @@ Infrastructure for using OpenPGP keys in Key Manager.
 import os
 import re
 import tempfile
-import traceback
 import io
-
 
 from datetime import datetime
 from multiprocessing import cpu_count
@@ -162,6 +160,41 @@ class OpenPGPScheme(object):
     #
     # Keys management
     #
+    @defer.inlineCallbacks
+    def regenerate_key(self, address):
+        """
+        Deactivate Current keypair,
+        Generate a new OpenPGP keypair bound to C{address},
+        and sign the new key with the old key.
+
+        :param address: The address bound to the key.
+        :type address: str
+
+        :return: A Deferred which fires with the new key bound to address.
+        :rtype: Deferred
+        """
+        leap_assert(is_address(address), 'Not an user address: %s' % address)
+        current_sec_key = yield self.get_key(address, private=True)
+        with TempGPGWrapper([current_sec_key], self._gpgbinary) as gpg:
+            if current_sec_key.has_expired():
+                temporary_extension_period = '1'  # extend for 1 extra day
+                gpg.extend_key(current_sec_key.fingerprint,
+                               validity=temporary_extension_period)
+            yield self.unactivate_key(address)
+            new_key = yield self.gen_key(address)
+            gpg.import_keys(new_key.key_data)
+            key_signing = yield from_thread(gpg.sign_key, new_key.fingerprint)
+            if key_signing.status == 'ok':
+                fetched_keys = gpg.list_keys(secret=False)
+                fetched_key = filter(lambda k: k['fingerprint'] ==
+                                     new_key.fingerprint, fetched_keys)[0]
+                key_data = gpg.export_keys(new_key.fingerprint, secret=False)
+                renewed_key = self._build_key_from_gpg(
+                    fetched_key,
+                    key_data,
+                    new_key.address)
+                yield self.put_key(renewed_key)
+        defer.returnValue(new_key)
 
     def gen_key(self, address):
         """
@@ -382,6 +415,7 @@ class OpenPGPScheme(object):
         :return: A Deferred which fires when the key is in the storage.
         :rtype: Deferred
         """
+
         def merge_and_put((keydoc, activedoc)):
             if not keydoc:
                 return put_new_key(activedoc)
@@ -440,6 +474,7 @@ class OpenPGPScheme(object):
                  (keydoc, activedoc) or None if it does not exist.
         :rtype: Deferred
         """
+
         def get_key_from_active_doc(activedoc):
             if not activedoc:
                 return (None, None)
@@ -654,7 +689,7 @@ class OpenPGPScheme(object):
                         yield self.put_key(renewed_key)
                     defer.returnValue(renewed_key)
         except Exception as e:
-            logger.warn('Failed to Extend Key: %s expiration date.' % str(e))
+            log.warn('Failed to Extend Key: %s expiration date.' % str(e))
             raise errors.KeyExpiryExtensionError(str(e))
 
     @defer.inlineCallbacks
@@ -844,6 +879,7 @@ class OpenPGPScheme(object):
                  the deletions are completed
         :rtype: Deferred
         """
+
         def log_key_doc(doc):
             self.log.error("\t%s: %s" % (doc.content[KEY_UIDS_KEY],
                                          doc.content[KEY_FINGERPRINT_KEY]))
