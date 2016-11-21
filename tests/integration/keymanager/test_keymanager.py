@@ -577,6 +577,18 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         self.assertIn(old_key.fingerprint[-16:], renewed_public_key.signatures)
 
     @defer.inlineCallbacks
+    def test_key_regenerate_resets_all_public_key_sign_used(self):
+        km = self._key_manager(user=ADDRESS_EXPIRING)
+
+        yield km._openpgp.put_raw_key(PRIVATE_EXPIRING_KEY, ADDRESS_EXPIRING)
+        yield km._openpgp.put_raw_key(PUBLIC_KEY_2, ADDRESS_2)
+        km._openpgp.reset_all_keys_sign_used = mock.Mock()
+
+        yield km.regenerate_key()
+
+        km._openpgp.reset_all_keys_sign_used.assert_called_once()
+
+    @defer.inlineCallbacks
     def test_key_extension_with_invalid_period_throws_exception(self):
         km = self._key_manager(user=ADDRESS_EXPIRING)
 

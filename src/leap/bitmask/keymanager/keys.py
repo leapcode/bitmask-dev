@@ -184,7 +184,7 @@ class OpenPGPKey(object):
 
             return False
 
-    def merge(self, newkey):
+    def merge(self, newkey, key_renewal=False):
         if newkey.fingerprint != self.fingerprint:
             self.log.critical(
                 "Can't put a key whith the same key_id and different "
@@ -216,7 +216,8 @@ class OpenPGPKey(object):
         if newkey.last_audited_at > self.last_audited_at:
             self.validation = newkey.last_audited_at
         self.encr_used = newkey.encr_used or self.encr_used
-        self.sign_used = newkey.sign_used or self.sign_used
+        if not key_renewal:
+            self.sign_used = newkey.sign_used or self.sign_used
         self.refreshed_at = datetime.now()
 
     def get_json(self):

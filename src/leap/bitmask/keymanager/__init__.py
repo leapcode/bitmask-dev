@@ -330,6 +330,7 @@ class KeyManager(object):
         d.addCallback(signal_finished)
         return d
 
+    @defer.inlineCallbacks
     def regenerate_key(self):
         """
         Regenerate a key bound to the user's address.
@@ -345,9 +346,12 @@ class KeyManager(object):
         self.log.info('Regenerating key for %s.' % self._address)
         emit_async(catalog.KEYMANAGER_STARTED_KEY_GENERATION, self._address)
 
-        d = self._openpgp.regenerate_key(self._address)
-        d.addCallback(signal_finished)
-        return d
+        new_key = yield self._openpgp.regenerate_key(self._address)
+        yield self._openpgp.reset_all_keys_sign_used()
+        emit_async(
+            catalog.KEYMANAGER_FINISHED_KEY_GENERATION, self._address)
+
+        defer.returnValue(new_key)
 
     #
     # Setters/getters

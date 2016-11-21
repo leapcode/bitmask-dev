@@ -30,6 +30,7 @@ from twisted.internet import defer
 from twisted.internet.threads import deferToThread
 from twisted.logger import Logger
 
+from leap.bitmask.keymanager.migrator import KeyDocumentsMigrator
 from leap.common.check import leap_assert, leap_assert_type, leap_check
 from leap.bitmask.keymanager import errors
 from leap.bitmask.keymanager.wrapper import TempGPGWrapper
@@ -120,7 +121,6 @@ class OpenPGPScheme(object):
         self._wait_indexes("get_key", "put_key", "get_all_keys")
 
     def _migrate_documents_schema(self, _):
-        from leap.bitmask.keymanager.migrator import KeyDocumentsMigrator
         migrator = KeyDocumentsMigrator(self._soledad)
         return migrator.migrate()
 
@@ -149,6 +149,7 @@ class OpenPGPScheme(object):
                 d.addCallback(lambda _: self.stored[method](*args, **kw))
                 self.waiting.append(d)
                 return d
+
             return wrapper
 
         for method in methods:
@@ -175,12 +176,14 @@ class OpenPGPScheme(object):
         """
         leap_assert(is_address(address), 'Not an user address: %s' % address)
         current_sec_key = yield self.get_key(address, private=True)
+        current_pub_key = yield self.get_key(address, private=False)
         with TempGPGWrapper([current_sec_key], self._gpgbinary) as gpg:
             if current_sec_key.has_expired():
                 temporary_extension_period = '1'  # extend for 1 extra day
                 gpg.extend_key(current_sec_key.fingerprint,
                                validity=temporary_extension_period)
-            yield self.unactivate_key(address)
+            yield self.unactivate_key(address)  # only one priv key allowed
+            yield self.delete_key(current_pub_key)
             new_key = yield self.gen_key(address)
             gpg.import_keys(new_key.key_data)
             key_signing = yield from_thread(gpg.sign_key, new_key.fingerprint)
@@ -405,7 +408,7 @@ class OpenPGPScheme(object):
             d.addCallback(put_key, openpgp_privkey)
         return d
 
-    def put_key(self, key):
+    def put_key(self, key, key_renewal=False):
         """
         Put C{key} in local storage.
 
@@ -425,7 +428,7 @@ class OpenPGPScheme(object):
                 active_content = activedoc.content
             oldkey = build_key_from_dict(keydoc.content, active_content)
 
-            key.merge(oldkey)
+            key.merge(oldkey, key_renewal)
             keydoc.set_json(key.get_json())
             d = self._soledad.put_doc(keydoc)
             d.addCallback(put_active, activedoc)
@@ -577,6 +580,27 @@ class OpenPGPScheme(object):
         """
         active_doc = yield self._get_active_doc_from_address(address, False)
         yield self._soledad.delete_doc(active_doc)
+
+    @defer.inlineCallbacks
+    def reset_all_keys_sign_used(self):
+        """
+        Reset sign_used flag for all keys in storage, to False...
+        to indicate that the key pair has not interacted with all
+        keys in the key ring yet.
+        This should only be used when regenerating the key pair.
+
+        """
+        all_keys = yield self.get_all_keys(private=False)
+        deferreds = []
+
+        @defer.inlineCallbacks
+        def reset_sign_used(key):
+            key.sign_used = False
+            yield self.put_key(key, key_renewal=True)
+
+        for open_pgp_key in all_keys:
+            deferreds.append(reset_sign_used(open_pgp_key))
+        yield defer.gatherResults(deferreds)
 
     #
     # Data encryption, decryption, signing and verifying
