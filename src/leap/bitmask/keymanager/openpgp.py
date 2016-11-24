@@ -332,10 +332,13 @@ class OpenPGPScheme(object):
             else:
                 key = yield self._repair_key_docs(fp_keys)
             key.content[HAS_ACTIVE] = True
-            keys.append(build_key_from_dict(key.content, active.content))
+            keys.append(build_key_from_dict(key.content, active.content,
+                                            gpgbinary=self._gpgbinary))
 
         unactive_keys = filter(lambda k: HAS_ACTIVE not in k.content, key_docs)
-        keys += map(lambda k: build_key_from_dict(k.content), unactive_keys)
+        keys += map(lambda k: build_key_from_dict(k.content,
+                                                  gpgbinary=self._gpgbinary),
+                    unactive_keys)
         defer.returnValue(keys)
 
     def parse_key(self, key_data, address=None):

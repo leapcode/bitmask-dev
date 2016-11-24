@@ -49,7 +49,7 @@ def is_address(address):
     return bool(re.match('[\w.-]+@[\w.-]+', address))
 
 
-def build_key_from_dict(key, active=None):
+def build_key_from_dict(key, active=None, gpgbinary=None):
     """
     Build an OpenPGPKey key based on info in C{kdict}.
 
@@ -57,6 +57,9 @@ def build_key_from_dict(key, active=None):
     :type key: dict
     :param active: Dictionary with active data.
     :type active: dict
+    :param gpgbinary: Name for GnuPG binary executable.
+    :type gpgbinary: C{str}
+
     :return: An instance of the key.
     :rtype: C{kClass}
     """
@@ -94,6 +97,7 @@ def build_key_from_dict(key, active=None):
         validation=validation,
         encr_used=encr_used,
         sign_used=sign_used,
+        gpgbinary=gpgbinary,
     )
 
 
