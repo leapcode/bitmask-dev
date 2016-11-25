@@ -52,8 +52,8 @@ from common import (
     KEY_EXPIRING_CREATION_DATE,
     PRIVATE_EXPIRING_KEY,
     NEW_PUB_KEY,
-    OLD_AND_NEW_KEY_ADDRESS
-)
+    OLD_AND_NEW_KEY_ADDRESS,
+    DIFFERENT_PRIVATE_KEY, DIFFERENT_KEY_FPR)
 
 NICKSERVER_URI = "http://leap.se/"
 REMOTE_KEY_URL = "http://site.domain/key"
@@ -193,6 +193,25 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         self.assertEqual(
             key.fingerprint.lower(), KEY_FINGERPRINT.lower())
         self.assertTrue(key.private)
+
+    @defer.inlineCallbacks
+    def test_create_and_get_two_private_keys_sets_first_key_inactive(self):
+        km = self._key_manager()
+        yield km._openpgp.put_raw_key(PRIVATE_KEY, ADDRESS)
+        yield km._openpgp.put_raw_key(DIFFERENT_PRIVATE_KEY, ADDRESS)
+        # get the key
+        inactive_key = yield km.get_key(ADDRESS, private=True,
+                                        active=False, fetch_remote=False)
+        active_key = yield km.get_key(ADDRESS, private=True,
+                                      active=True, fetch_remote=False)
+        self.assertEqual(
+            inactive_key.fingerprint.lower(), KEY_FINGERPRINT.lower())
+        self.assertEqual(
+            active_key.fingerprint.lower(), DIFFERENT_KEY_FPR.lower())
+        self.assertTrue(inactive_key.private)
+        self.assertTrue(active_key.private)
+        self.assertFalse(inactive_key.is_active())
+        self.assertTrue(active_key.is_active())
 
     @defer.inlineCallbacks
     def test_send_key(self):
@@ -577,6 +596,25 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         self.assertIn(old_key.fingerprint[-16:], renewed_public_key.signatures)
 
     @defer.inlineCallbacks
+    def test_key_regenerate_deactivate_the_old_private_key(self):
+        km = self._key_manager(user=ADDRESS_EXPIRING)
+
+        yield km._openpgp.put_raw_key(PRIVATE_EXPIRING_KEY, ADDRESS_EXPIRING)
+        old_key = yield km.get_key(ADDRESS_EXPIRING)
+
+        new_key = yield km.regenerate_key()
+        retrieved_old_key = yield km.get_key(ADDRESS_EXPIRING,
+                                             private=True, active=False)
+        renewed_public_key = yield km.get_key(ADDRESS_EXPIRING, private=False)
+
+        self.assertEqual(old_key.fingerprint,
+                         retrieved_old_key.fingerprint)
+        self.assertNotEqual(old_key.fingerprint,
+                            new_key.fingerprint)
+        self.assertEqual(new_key.fingerprint, renewed_public_key.fingerprint)
+        self.assertIn(old_key.fingerprint[-16:], renewed_public_key.signatures)
+
+    @defer.inlineCallbacks
     def test_key_regenerate_resets_all_public_key_sign_used(self):
         km = self._key_manager(user=ADDRESS_EXPIRING)
 
@@ -622,6 +660,27 @@ class KeyManagerCryptoTestCase(KeyManagerWithSoledadTestCase):
         encdata = yield km.encrypt(self.RAW_DATA, ADDRESS, sign=ADDRESS_2,
                                    fetch_remote=False)
         self.assertNotEqual(self.RAW_DATA, encdata)
+        # decrypt
+        rawdata, signingkey = yield km.decrypt(
+            encdata, ADDRESS, verify=ADDRESS_2, fetch_remote=False)
+        self.assertEqual(self.RAW_DATA, rawdata)
+        key = yield km.get_key(ADDRESS_2, private=False, fetch_remote=False)
+        self.assertEqual(signingkey.fingerprint, key.fingerprint)
+
+    @defer.inlineCallbacks
+    def test_keymanager_openpgp_decryption_tries_inactive_valid_key(self):
+        km = self._key_manager()
+        # put raw private key
+        yield km._openpgp.put_raw_key(PRIVATE_KEY, ADDRESS)
+        yield km._openpgp.put_raw_key(PRIVATE_KEY_2, ADDRESS_2)
+        # encrypt
+        encdata = yield km.encrypt(self.RAW_DATA, ADDRESS, sign=ADDRESS_2,
+                                   fetch_remote=False)
+        self.assertNotEqual(self.RAW_DATA, encdata)
+
+        # renew key
+        new_key = yield km.regenerate_key()
+
         # decrypt
         rawdata, signingkey = yield km.decrypt(
             encdata, ADDRESS, verify=ADDRESS_2, fetch_remote=False)
