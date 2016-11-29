@@ -195,22 +195,22 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         self.assertTrue(key.private)
 
     @defer.inlineCallbacks
-    def test_create_and_get_two_private_keys_sets_first_key_inactive(self):
+    def test_get_inactive_private_key(self):
         km = self._key_manager()
         yield km._openpgp.put_raw_key(PRIVATE_KEY, ADDRESS)
         yield km._openpgp.put_raw_key(DIFFERENT_PRIVATE_KEY, ADDRESS)
         # get the key
-        inactive_key = yield km.get_key(ADDRESS, private=True,
-                                        active=False, fetch_remote=False)
-        active_key = yield km.get_key(ADDRESS, private=True,
-                                      active=True, fetch_remote=False)
+        inactive_keys = yield km.get_inactive_private_keys()
+        active_key = yield km.get_key(
+            ADDRESS, private=True, fetch_remote=False)
+        self.assertEqual(1, len(inactive_keys))
         self.assertEqual(
-            inactive_key.fingerprint.lower(), KEY_FINGERPRINT.lower())
+            inactive_keys[0].fingerprint.lower(), KEY_FINGERPRINT.lower())
         self.assertEqual(
             active_key.fingerprint.lower(), DIFFERENT_KEY_FPR.lower())
-        self.assertTrue(inactive_key.private)
+        self.assertTrue(inactive_keys[0].private)
         self.assertTrue(active_key.private)
-        self.assertFalse(inactive_key.is_active())
+        self.assertFalse(inactive_keys[0].is_active())
         self.assertTrue(active_key.is_active())
 
     @defer.inlineCallbacks
@@ -603,10 +603,11 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         old_key = yield km.get_key(ADDRESS_EXPIRING)
 
         new_key = yield km.regenerate_key()
-        retrieved_old_key = yield km.get_key(ADDRESS_EXPIRING,
-                                             private=True, active=False)
+        inactive_private_keys = yield km.get_inactive_private_keys()
         renewed_public_key = yield km.get_key(ADDRESS_EXPIRING, private=False)
 
+        self.assertEqual(1, len(inactive_private_keys))
+        retrieved_old_key = inactive_private_keys[0]
         self.assertEqual(old_key.fingerprint,
                          retrieved_old_key.fingerprint)
         self.assertNotEqual(old_key.fingerprint,
@@ -668,7 +669,7 @@ class KeyManagerCryptoTestCase(KeyManagerWithSoledadTestCase):
         self.assertEqual(signingkey.fingerprint, key.fingerprint)
 
     @defer.inlineCallbacks
-    def test_keymanager_openpgp_decryption_tries_inactive_valid_key(self):
+    def test_keymanager_decryption_tries_inactive_valid_key(self):
         km = self._key_manager()
         # put raw private key
         yield km._openpgp.put_raw_key(PRIVATE_KEY, ADDRESS)
@@ -687,6 +688,21 @@ class KeyManagerCryptoTestCase(KeyManagerWithSoledadTestCase):
         self.assertEqual(self.RAW_DATA, rawdata)
         key = yield km.get_key(ADDRESS_2, private=False, fetch_remote=False)
         self.assertEqual(signingkey.fingerprint, key.fingerprint)
+
+    @defer.inlineCallbacks
+    def test_decrypt_throws_error_when_all_keys_fails(self):
+        km = self._key_manager()
+        # put raw private key
+        yield km._openpgp.put_raw_key(PRIVATE_KEY, ADDRESS)
+        yield km._openpgp.put_raw_key(PRIVATE_KEY_2, ADDRESS_2)
+
+        # renew key -- deactivate current key
+        yield km.regenerate_key()
+
+        # decrypt
+        with self.assertRaises(errors.DecryptError):
+            yield km.decrypt(ENCRYPTED_MESSAGE_FOR_DIFFERENT_KEY,
+                             ADDRESS, verify=ADDRESS_2, fetch_remote=False)
 
     @defer.inlineCallbacks
     def test_keymanager_openpgp_encrypt_decrypt_wrong_sign(self):
@@ -796,4 +812,22 @@ XrO8VHz9foOpY+rJnWj+6QAozxorzZYShu6H0GR1nIuqWMwli1nrx6BeIJAVz5cg
 QzEd9yAN+81fkIBaa6Y8LCBxV03JCc2J4eCUKXd1gg==
 =gDzy
 -----END PGP PUBLIC KEY BLOCK-----
+"""
+
+ENCRYPTED_MESSAGE_FOR_DIFFERENT_KEY = """
+-----BEGIN PGP MESSAGE-----
+
+hQEMAyIGRJSVjm17AQf/fyQrbcUKhy4Zv0UBsMFNdLj3h6YYkhkDecupmNeJzgSc
+IeW8E5Un5thGpJRCF1iC3XirzybQxCEDCqVZdibXY/K0D5eQAE95m3Bc2euZN3sm
+br4Ro/ybf/+0mt+cyPrvoaU/c/RKCWAXGDrTNCLe9f4UkwdiRj5tBpdC6WNEgsTD
+SJfpZF5xP+NMc0cBRmSnUZHMgspbBK1OYmQurxn8vjyxDXwJuJ9sWl+FrWop3WMW
+l/IMSSgyaJUjHvau6WNzRhKLujhuqyZKWo0WuJdBT0lPM0aQCJls4QVpDwE9mTZy
+Vm2M4VnrxP9/IMqCrevwJXQTIKgIz9ANif+iZdHWYNLALAGgnH+45wXeguhFP1vD
+x3SVIgOp8aAW7Plf5IO/bRQBs/LTvS1HWkD07WW14NJ29eMTPgoSR/lTGNMbHGYH
+EgqRxJIsH93A+fN+CQoPboaEW/0hhQVf0WO/b8soxhVwZDDPMI3qGAQBwrBD3N9z
+ksEUD5XNT+6mtMpTSpPr/0j0W7LjqR5QT+Bf2lUiFLH8XwekO0JK/vq5XkTydiAw
+ZZBCPpoBxM/gH3cMuFafZNbqE6KDd7UziKxZCR17SrDFjrK/BLMrRKXRSnZOQNsb
+WuLF0jIGxN6NiaduJ77gmrOieuBu0wKqv0iAvo8s
+=G2sp
+-----END PGP MESSAGE-----
 """

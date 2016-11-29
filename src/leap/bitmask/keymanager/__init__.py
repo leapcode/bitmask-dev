@@ -208,46 +208,24 @@ class KeyManager(object):
             raw_key, address=address, validation=validation_level)
 
     @defer.inlineCallbacks
-    def get_key(self, address, private=False, active=True, fetch_remote=True):
+    def get_inactive_private_keys(self):
         """
-        Return a key bound to address.
+        Return all inactive private keys bound to address, that can are
+        stored locally.
+        This can be used to attempt decryption from multiple keys.
 
-        For an active key: first, search for the key in local storage.
-        If it is not available, then try to fetch from nickserver.
-        The inactive key is fetched locally, for the case of multiple keys
-        for the same address. This can be used to attempt decryption
-        from multiple keys.
-
-        :param address: The address bound to the key.
-        :type address: str
-        :param private: Look for a private key instead of a public one?
-        :type private: bool
-        :param active: Look for the current active key
-        :type private: bool
-        :param fetch_remote: If key not found in local storage try to fetch
-                             from nickserver
-        :type fetch_remote: bool
-
-        :return: A Deferred which fires with an EncryptionKey bound to address,
-                 or which fails with KeyNotFound if no key was found neither
-                 locally or in keyserver or fail with KeyVersionError if the
-                 key has a format not supported by this version of KeyManager
+        :return: A Deferred which fires the list of inactive keys sorted
+                 according to their expiry dates.
         :rtype: Deferred
-
-        :raise UnsupportedKeyTypeError: if invalid key type
         """
-
-        if active:
-            key = yield self._get_key(address, private, fetch_remote)
-            defer.returnValue(key)
-        all_keys = yield self.get_all_keys(private)
+        all_keys = yield self.get_all_keys(private=True)
         inactive_keys = filter(lambda _key: not _key.is_active(), all_keys)
-        if inactive_keys:
-            inactive_keys = sorted(inactive_keys,
-                                   key=lambda _key: _key.expiry_date)
-            defer.returnValue(inactive_keys[-1])
 
-    def _get_key(self, address, private=False, fetch_remote=True):
+        inactive_keys = \
+            sorted(inactive_keys, key=lambda _key: _key.expiry_date)
+        defer.returnValue(inactive_keys)
+
+    def get_key(self, address, private=False, fetch_remote=True):
         """
         Return a key bound to address.
 
@@ -549,21 +527,30 @@ class KeyManager(object):
             defer.returnValue((decrypted, signature))
 
         @defer.inlineCallbacks
-        def decrypt_with_inactive_key(keys, original_decrypt_error):
-            verify_key, active_key = keys
-            inactive_key = yield self.get_key(address, private=True,
-                                              active=False)
-            if inactive_key:
+        def decrypt_with_inactive_keys(inactive_keys, verify_key,
+                                       original_decrypt_err):
+            if not inactive_keys:
+                # when there are no more keys to go through
+                raise original_decrypt_err
+
+            try:
+                inactive_key = inactive_keys.pop()
                 result = yield _decrypt([verify_key, inactive_key])
-                defer.returnValue(result)
-            raise original_decrypt_error
+            except keymanager_errors.DecryptError:
+                result = yield decrypt_with_inactive_keys(inactive_keys,
+                                                          verify_key,
+                                                          original_decrypt_err)
+            defer.returnValue(result)
 
         @defer.inlineCallbacks
         def decrypt(keys):
             try:
                 result = yield _decrypt(keys)
             except keymanager_errors.DecryptError as e:
-                result = yield decrypt_with_inactive_key(keys, e)
+                verify_key, active_key = keys
+                inactive_keys = yield self.get_inactive_private_keys()
+                result = yield decrypt_with_inactive_keys(inactive_keys,
+                                                          verify_key, e)
             defer.returnValue(result)
 
         dpriv = self.get_key(address, private=True)
