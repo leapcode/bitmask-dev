@@ -49,11 +49,13 @@ from common import (
     PRIVATE_KEY,
     PRIVATE_KEY_2,
     ADDRESS_EXPIRING,
-    KEY_EXPIRING_CREATION_DATE,
     PRIVATE_EXPIRING_KEY,
     NEW_PUB_KEY,
     OLD_AND_NEW_KEY_ADDRESS,
-    DIFFERENT_PRIVATE_KEY, DIFFERENT_KEY_FPR)
+    DIFFERENT_PRIVATE_KEY,
+    DIFFERENT_KEY_FPR,
+    DIFFERENT_PUBLIC_KEY,
+)
 
 NICKSERVER_URI = "http://leap.se/"
 REMOTE_KEY_URL = "http://site.domain/key"
@@ -168,6 +170,28 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         self.assertTrue(ADDRESS in key.uids)
         self.assertEqual(
             key.fingerprint.lower(), KEY_FINGERPRINT.lower())
+        self.assertFalse(key.private)
+
+    @defer.inlineCallbacks
+    def test_get_public_key_fetches_remotely_if_key_expired(self):
+        km = self._key_manager()
+        nicknym_response = {'address': ADDRESS,
+                            'openpgp': DIFFERENT_PUBLIC_KEY}
+        km._nicknym.fetch_key_with_address = mock.Mock(
+            return_value=nicknym_response)
+        # put key
+        yield km._openpgp.put_raw_key(PUBLIC_KEY, ADDRESS)
+
+        # get the key
+        with mock.patch('leap.bitmask.keymanager.keys.OpenPGPKey.is_expired',
+                        return_value=True):
+            key = yield km.get_key(ADDRESS, private=False,
+                                   fetch_remote=True)
+
+        km._nicknym.fetch_key_with_address.assert_called_once_with(ADDRESS)
+        self.assertTrue(key is not None)
+        self.assertEqual(
+            key.fingerprint.lower(), DIFFERENT_KEY_FPR.lower())
         self.assertFalse(key.private)
 
     @defer.inlineCallbacks
@@ -577,13 +601,14 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         km = self._key_manager(user=ADDRESS_EXPIRING)
 
         yield km._openpgp.put_raw_key(PRIVATE_EXPIRING_KEY, ADDRESS_EXPIRING)
-        old_key = yield km.get_key(ADDRESS_EXPIRING)
+        old_key = yield km.get_key(ADDRESS_EXPIRING, fetch_remote=False)
 
         new_key = yield km.regenerate_key()
 
         today = datetime.now()
         new_expiry_date = date(today.year + 1, today.month, today.day)
-        renewed_public_key = yield km.get_key(ADDRESS_EXPIRING)
+        renewed_public_key = yield km.get_key(ADDRESS_EXPIRING,
+                                              fetch_remote=False)
         renewed_private_key = yield km.get_key(ADDRESS_EXPIRING, private=True)
 
         self.assertEqual(new_expiry_date,
@@ -600,11 +625,12 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         km = self._key_manager(user=ADDRESS_EXPIRING)
 
         yield km._openpgp.put_raw_key(PRIVATE_EXPIRING_KEY, ADDRESS_EXPIRING)
-        old_key = yield km.get_key(ADDRESS_EXPIRING)
+        old_key = yield km.get_key(ADDRESS_EXPIRING, fetch_remote=False)
 
         new_key = yield km.regenerate_key()
         inactive_private_keys = yield km.get_inactive_private_keys()
-        renewed_public_key = yield km.get_key(ADDRESS_EXPIRING, private=False)
+        renewed_public_key = yield km.get_key(ADDRESS_EXPIRING, private=False,
+                                              fetch_remote=False)
 
         self.assertEqual(1, len(inactive_private_keys))
         retrieved_old_key = inactive_private_keys[0]
@@ -632,14 +658,15 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         km = self._key_manager(user=ADDRESS_EXPIRING)
 
         yield km._openpgp.put_raw_key(PRIVATE_EXPIRING_KEY, ADDRESS_EXPIRING)
-        key = yield km.get_key(ADDRESS_EXPIRING)
+        key = yield km.get_key(ADDRESS_EXPIRING, fetch_remote=False)
 
         invalid_validity_option = '2xw'
 
         with self.assertRaises(KeyExpiryExtensionError):
             yield km.extend_key(validity=invalid_validity_option)
 
-        renewed_public_key = yield km.get_key(ADDRESS_EXPIRING)
+        renewed_public_key = yield km.get_key(ADDRESS_EXPIRING,
+                                              fetch_remote=False)
         renewed_private_key = yield km.get_key(ADDRESS_EXPIRING, private=True)
 
         self.assertEqual(key.expiry_date, renewed_public_key.expiry_date)

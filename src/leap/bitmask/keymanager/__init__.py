@@ -229,8 +229,9 @@ class KeyManager(object):
         """
         Return a key bound to address.
 
-        First, search for the key in local storage. If it is not available,
-        then try to fetch from nickserver.
+        First, search for the key in local storage. When it is available
+        locally but is expired or when it is not available locally,
+        then a fetch from nickserver is tried.
 
         :param address: The address bound to the key.
         :type address: str
@@ -244,6 +245,8 @@ class KeyManager(object):
                  or which fails with KeyNotFound if no key was found neither
                  locally or in keyserver or fail with KeyVersionError if the
                  key has a format not supported by this version of KeyManager
+                 or KeyNotValidUpgrade if the key is renewed remotely but fails
+                 the validation rule
         :rtype: Deferred
 
         :raise UnsupportedKeyTypeError: if invalid key type
@@ -255,17 +258,27 @@ class KeyManager(object):
             emit_async(catalog.KEYMANAGER_KEY_FOUND, address)
             return key
 
+        def ensure_valid(key):
+            if key.is_expired():
+                logger.info('Found expired key for %s.' % self._address)
+                return _fetch_remotely(key)
+            key_found(key)
+            return key
+
         def key_not_found(failure):
             if not failure.check(keymanager_errors.KeyNotFound):
                 return failure
 
             emit_async(catalog.KEYMANAGER_KEY_NOT_FOUND, address)
+            return _fetch_remotely(failure)
 
+        def _fetch_remotely(passthru):
             # we will only try to fetch a key from nickserver if fetch_remote
             # is True and the key is not private.
             if fetch_remote is False or private is True:
-                return failure
+                return passthru
 
+            logger.debug('Fetching remotely key for %s.' % self._address)
             emit_async(catalog.KEYMANAGER_LOOKING_FOR_KEY, address)
             d = self._fetch_keys_from_server_and_store_local(address)
             d.addCallback(
@@ -275,7 +288,7 @@ class KeyManager(object):
 
         # return key if it exists in local database
         d = self._openpgp.get_key(address, private=private)
-        d.addCallbacks(key_found, key_not_found)
+        d.addCallbacks(ensure_valid, key_not_found)
         return d
 
     @defer.inlineCallbacks
