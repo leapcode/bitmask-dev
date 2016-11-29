@@ -330,7 +330,7 @@ class OpenPGPKey(object):
     def needs_renewal(self, pre_expiration_threshold=DEFAULT_THRESHOLD):
         """
         Indicates if the key is inside the renewal period. For ease of
-        transition keys should be renewed before they expire.
+        transition keys should be renewed/extended before they expire.
 
         :param pre_expiration_threshold: the amount of days before expiry date
                 whereby the key should be renewed -- default value is 60 days

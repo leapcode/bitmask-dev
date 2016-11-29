@@ -590,7 +590,7 @@ class OpenPGPScheme(object):
         Reset sign_used flag for all keys in storage, to False...
         to indicate that the key pair has not interacted with all
         keys in the key ring yet.
-        This should only be used when regenerating the key pair.
+        This should only be used when regenerating/extending the key pair.
 
         """
         all_keys = yield self.get_all_keys(private=False)

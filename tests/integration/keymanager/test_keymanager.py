@@ -55,7 +55,7 @@ from common import (
     DIFFERENT_PRIVATE_KEY,
     DIFFERENT_KEY_FPR,
     DIFFERENT_PUBLIC_KEY,
-)
+    KEY_EXPIRING_CREATION_DATE)
 
 NICKSERVER_URI = "http://leap.se/"
 REMOTE_KEY_URL = "http://site.domain/key"
@@ -658,14 +658,15 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         km = self._key_manager(user=ADDRESS_EXPIRING)
 
         yield km._openpgp.put_raw_key(PRIVATE_EXPIRING_KEY, ADDRESS_EXPIRING)
-        key = yield km.get_key(ADDRESS_EXPIRING)
+        key = yield km.get_key(ADDRESS_EXPIRING, fetch_remote=False)
 
         yield km.extend_key_expiration(validity='1w')
 
         new_expiry_date = datetime.strptime(
             KEY_EXPIRING_CREATION_DATE, '%Y-%m-%d')
         new_expiry_date += timedelta(weeks=1)
-        renewed_public_key = yield km.get_key(ADDRESS_EXPIRING)
+        renewed_public_key = yield km.get_key(ADDRESS_EXPIRING,
+                                              fetch_remote=False)
         renewed_private_key = yield km.get_key(ADDRESS_EXPIRING, private=True)
 
         self.assertEqual(new_expiry_date.date(),

@@ -210,7 +210,7 @@ class KeyManager(object):
     @defer.inlineCallbacks
     def get_inactive_private_keys(self):
         """
-        Return all inactive private keys bound to address, that can are
+        Return all inactive private keys bound to address, that are
         stored locally.
         This can be used to attempt decryption from multiple keys.
 
@@ -494,7 +494,8 @@ class KeyManager(object):
         """
         Decrypt data using private key from address and verify with public key
         bound to verify address. If the decryption using the active private
-        key fails, then decription using the inactive key, if any, is tried.
+        key fails, then decryption with inactive keys, if any, is recursively
+        tried.
 
         :param data: The data to be decrypted.
         :type data: str
