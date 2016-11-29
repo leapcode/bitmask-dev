@@ -178,7 +178,7 @@ class OpenPGPScheme(object):
         current_sec_key = yield self.get_key(address, private=True)
         current_pub_key = yield self.get_key(address, private=False)
         with TempGPGWrapper([current_sec_key], self._gpgbinary) as gpg:
-            if current_sec_key.has_expired():
+            if current_sec_key.is_expired():
                 temporary_extension_period = '1'  # extend for 1 extra day
                 gpg.extend_key(current_sec_key.fingerprint,
                                validity=temporary_extension_period)
