@@ -654,6 +654,39 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         km._openpgp.reset_all_keys_sign_used.assert_called_once()
 
     @defer.inlineCallbacks
+    def test_keymanager_extend_key_expiry_date_for_key_pair(self):
+        km = self._key_manager(user=ADDRESS_EXPIRING)
+
+        yield km._openpgp.put_raw_key(PRIVATE_EXPIRING_KEY, ADDRESS_EXPIRING)
+        key = yield km.get_key(ADDRESS_EXPIRING)
+
+        yield km.extend_key_expiration(validity='1w')
+
+        new_expiry_date = datetime.strptime(
+            KEY_EXPIRING_CREATION_DATE, '%Y-%m-%d')
+        new_expiry_date += timedelta(weeks=1)
+        renewed_public_key = yield km.get_key(ADDRESS_EXPIRING)
+        renewed_private_key = yield km.get_key(ADDRESS_EXPIRING, private=True)
+
+        self.assertEqual(new_expiry_date.date(),
+                         renewed_public_key.expiry_date.date())
+        self.assertEqual(new_expiry_date.date(),
+                         renewed_private_key.expiry_date.date())
+        self.assertEqual(key.fingerprint, renewed_public_key.fingerprint)
+        self.assertEqual(key.fingerprint, renewed_private_key.fingerprint)
+
+    @defer.inlineCallbacks
+    def test_key_extension_resets_all_public_key_sign_used(self):
+        km = self._key_manager(user=ADDRESS_EXPIRING)
+
+        yield km._openpgp.put_raw_key(PRIVATE_EXPIRING_KEY, ADDRESS_EXPIRING)
+        km._openpgp.reset_all_keys_sign_used = mock.Mock()
+
+        yield km.extend_key_expiration(validity='1w')
+
+        km._openpgp.reset_all_keys_sign_used.assert_called_once()
+
+    @defer.inlineCallbacks
     def test_key_extension_with_invalid_period_throws_exception(self):
         km = self._key_manager(user=ADDRESS_EXPIRING)
 
@@ -663,7 +696,7 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         invalid_validity_option = '2xw'
 
         with self.assertRaises(KeyExpiryExtensionError):
-            yield km.extend_key(validity=invalid_validity_option)
+            yield km.extend_key_expiration(validity=invalid_validity_option)
 
         renewed_public_key = yield km.get_key(ADDRESS_EXPIRING,
                                               fetch_remote=False)

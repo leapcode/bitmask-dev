@@ -793,7 +793,7 @@ class KeyManager(object):
         yield self.put_key(pubkey)
 
     @defer.inlineCallbacks
-    def extend_key(self, validity='1y', passphrase=None):
+    def extend_key_expiration(self, validity='1y', passphrase=None):
         """
         extend the expiration date of the key pair bound to the user's address
         by the validity period, from the key's creation date.
@@ -810,6 +810,7 @@ class KeyManager(object):
         my_secret_key = yield self.get_key(self._address, private=True)
         renewed_key = yield self._openpgp.extend_key(my_secret_key, validity,
                                                      passphrase)
+        yield self._openpgp.reset_all_keys_sign_used()
         defer.returnValue(renewed_key)
 
 
