@@ -30,8 +30,8 @@ from leap.bitmask.keymanager.wrapper import TempGPGWrapper
 from leap.bitmask.keymanager.validation import ValidationLevels
 from leap.bitmask.keymanager import documents as doc
 
-TWO_MONTHS = 60
-DEFAULT_THRESHOLD = TWO_MONTHS
+TWO_MONTHS = 60  # 60 days
+DEFAULT_THRESHOLD = TWO_MONTHS  # extend or renew key, 2months prior to expiry
 
 log = Logger()
 
@@ -327,21 +327,21 @@ class OpenPGPKey(object):
         return False if self.expiry_date is None \
             else self.expiry_date < datetime.now()
 
-    def should_be_renewed(self, before_expiry_threshold=DEFAULT_THRESHOLD):
+    def needs_renewal(self, pre_expiration_threshold=DEFAULT_THRESHOLD):
         """
-        Indicates if the key reaches the renewal period. For ease of transition
-        keys should be renewed before they expire.
+        Indicates if the key is inside the renewal period. For ease of
+        transition keys should be renewed before they expire.
 
-        :param before_expiry_threshold: the amount of days before expiry date
+        :param pre_expiration_threshold: the amount of days before expiry date
                 whereby the key should be renewed -- default value is 60 days
-        :type before_expiry_threshold: int
+        :type pre_expiration_threshold: int
 
         :return: True if the current date is within the threshold
         :rtype: Boolean
         """
 
         days_till_expiry = (self.expiry_date - datetime.now())
-        return days_till_expiry.days < before_expiry_threshold
+        return days_till_expiry.days < pre_expiration_threshold
 
 
 def parse_address(address):
