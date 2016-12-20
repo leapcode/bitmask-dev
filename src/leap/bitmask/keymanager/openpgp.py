@@ -701,7 +701,7 @@ class OpenPGPScheme(object):
         keys = [seckey]
         try:
             with TempGPGWrapper(keys, self._gpgbinary) as gpg:
-                result = yield from_thread(gpg.extend_key, seckey.address,
+                result = yield from_thread(gpg.extend_key, seckey.fingerprint,
                                            validity=validity,
                                            passphrase=passphrase)
                 if result.status == 'ok':
