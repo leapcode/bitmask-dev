@@ -662,16 +662,15 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
 
         yield km.extend_key_expiration(validity='1w')
 
-        new_expiry_date = datetime.strptime(
-            KEY_EXPIRING_CREATION_DATE, '%Y-%m-%d')
-        new_expiry_date += timedelta(weeks=1)
+        new_expiry_date = date.today() + timedelta(weeks=1)
+
         renewed_public_key = yield km.get_key(ADDRESS_EXPIRING,
                                               fetch_remote=False)
         renewed_private_key = yield km.get_key(ADDRESS_EXPIRING, private=True)
 
-        self.assertEqual(new_expiry_date.date(),
+        self.assertEqual(new_expiry_date,
                          renewed_public_key.expiry_date.date())
-        self.assertEqual(new_expiry_date.date(),
+        self.assertEqual(new_expiry_date,
                          renewed_private_key.expiry_date.date())
         self.assertEqual(key.fingerprint, renewed_public_key.fingerprint)
         self.assertEqual(key.fingerprint, renewed_private_key.fingerprint)
