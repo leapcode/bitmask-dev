@@ -34,6 +34,7 @@ from twisted.internet import task
 from twisted.logger import Logger
 
 from leap.common.files import check_and_fix_urw_only
+from leap.bitmask import pix
 from leap.bitmask.hooks import HookableService
 from leap.bitmask.bonafide import config
 from leap.bitmask.keymanager import KeyManager
@@ -499,6 +500,7 @@ class StandardMailService(service.MultiService, HookableService):
         d = soledad.get_or_create_service_token('mail_auth')
         d.addCallback(registerToken)
         d.addCallback(self._write_tokens_file, userid)
+        d.addCallback(self._maybe_start_pixelated, userid, soledad, keymanager)
         return d
 
     # hooks
@@ -621,6 +623,8 @@ class StandardMailService(service.MultiService, HookableService):
     def get_keymanager_session(self, userid):
         return self._keymanager_sessions.get(userid)
 
+    # other helpers
+
     def _write_tokens_file(self, token, userid):
         tokens_folder = os.path.join(tempfile.gettempdir(), "bitmask_tokens")
         if os.path.exists(tokens_folder):
@@ -637,6 +641,13 @@ class StandardMailService(service.MultiService, HookableService):
         token_dict = {'mail_auth': self._service_tokens[userid]}
         with open(tokens_path, 'w') as ftokens:
             json.dump(token_dict, ftokens)
+
+    def _maybe_start_pixelated(self, passthrough, userid, soledad, keymanager):
+        if pix.HAS_PIXELATED:
+            reactor.callFromThread(
+                pix.start_pixelated_user_agent,
+                userid, soledad, keymanager)
+        return passthrough
 
 
 class IMAPService(service.Service):

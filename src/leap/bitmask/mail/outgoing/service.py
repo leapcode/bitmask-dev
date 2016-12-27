@@ -129,9 +129,9 @@ class OutgoingMail(object):
         leap_assert(host != '')
         leap_assert_type(port, int)
         leap_assert(port is not 0)
-        leap_assert_type(cert, unicode)
+        leap_assert_type(cert, basestring)
         leap_assert(cert != '')
-        leap_assert_type(key, unicode)
+        leap_assert_type(key, basestring)
         leap_assert(key != '')
 
         self._port = port

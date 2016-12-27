@@ -45,13 +45,16 @@ if platform.system() == 'Windows':
 else:
     from PyQt5 import QtCore, QtGui
     from PyQt5 import QtWebKit
+    from PyQt5.QtCore import QSize
+    from PyQt5.QtCore import QObject, pyqtSlot
     from PyQt5.QtWidgets import QDialog
     from PyQt5.QtWidgets import QApplication
     from PyQt5.QtWebKitWidgets import QWebView
-    from PyQt5.QtCore import QSize
+    from PyQt5.QtWebKit import QWebSettings
 
 
 BITMASK_URI = 'http://localhost:7070/'
+PIXELATED_URI = 'http://localhost:9090/'
 
 IS_WIN = platform.system() == "Windows"
 DEBUG = os.environ.get("DEBUG", False)
@@ -60,51 +63,40 @@ qApp = None
 bitmaskd = None
 
 
-class BrowserWindow(QDialog):
-
-    def __init__(self, parent):
-        super(BrowserWindow, self).__init__(parent)
-        if IS_WIN:
-            self.view = QWebView(self)
-            win_size = QSize(1024, 600)
-            self.setMinimumSize(win_size)
-            self.view.page().setViewportSize(win_size)
-            self.view.page().setPreferredContentsSize(win_size)
-        else:
-            self.view = QWebView(self)
-            win_size = QSize(800, 600)
-        self.win_size = win_size
-        self.resize(win_size)
-
-        if DEBUG:
-            self.view.settings().setAttribute(
-                QtWebKit.QWebSettings.WebAttribute.DeveloperExtrasEnabled,
-                True)
-            self.inspector = QtWebKit.QWebInspector(self)
-            self.inspector.setPage(self.view.page())
-            self.inspector.show()
-            self.splitter = QtGui.QSplitter()
-            self.splitter.addWidget(self.view)
-            self.splitter.addWidget(self.inspector)
-            # TODO add layout also in non-DEBUG mode
-            layout = QtGui.QVBoxLayout(self)
-            layout.addWidget(self.splitter)
-
-        icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/mask-icon.png"),
-                       QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.setWindowIcon(icon)
-
-        self.setWindowTitle('Bitmask')
-        self.load_app()
+class BrowserWindow(QWebView):
+    def __init__(self, *args, **kw):
+        url = kw.pop('url', None)
+        first = False
+        if not url:
+            url = "http://localhost:7070"
+            path = os.path.join(get_path_prefix(), 'leap', 'authtoken')
+            token = open(path).read().strip()
+            url += '#' + token
+            first = True
+        self.url = url
         self.closing = False
 
-    def load_app(self):
-        path = os.path.join(get_path_prefix(), 'leap', 'authtoken')
-        global_token = open(path).read().strip()
-        anchored_uri = BITMASK_URI + 'index.html#' + global_token
-        print('[bitmask] opening Browser with {0}'.format(anchored_uri))
-        self.view.load(QtCore.QUrl(anchored_uri))
+        super(QWebView, self).__init__(*args, **kw)
+        self.bitmask_browser = NewPageConnector(self) if first else None
+        self.loadPage(self.url)
+
+    def loadPage(self, web_page):
+        self.settings().setAttribute(
+            QWebSettings.DeveloperExtrasEnabled, True)
+
+        if os.environ.get('DEBUG'):
+            self.inspector = QWebInspector(self)
+            self.inspector.setPage(self.page())
+            self.inspector.show()
+
+        if os.path.isabs(web_page):
+            web_page = os.path.relpath(web_page)
+
+        url = QtCore.QUrl(web_page)
+        self.load(url)
+        self.frame = self.page().mainFrame()
+        self.frame.addToJavaScriptWindowObject(
+            "bitmaskBrowser", self.bitmask_browser)
 
     def shutdown(self, *args):
         if self.closing:
@@ -119,7 +111,13 @@ class BrowserWindow(QDialog):
             os.kill(pidno, signal.SIGTERM)
         print('[bitmask] shutting down gui...')
         try:
-            self.view.stop()
+            self.stop()
+            try:
+                global pixbrowser
+                pixbrowser.stop()
+                del pixbrowser
+            except:
+                pass
             QtCore.QTimer.singleShot(0, qApp.deleteLater)
 
         except Exception as ex:
@@ -127,10 +125,25 @@ class BrowserWindow(QDialog):
             sys.exit(1)
 
 
+pixbrowser = None
+
+
+class NewPageConnector(QObject):
+
+    @pyqtSlot()
+    def openPixelated(self):
+        global pixbrowser
+        pixbrowser = BrowserWindow(url=PIXELATED_URI)
+        pixbrowser.show()
+
+
 def _handle_kill(*args, **kw):
     win = kw.get('win')
     if win:
         QtCore.QTimer.singleShot(0, win.close)
+    global pixbrowser
+    if pixbrowser:
+        QtCore.QTimer.singleShot(0, pixbrowser.close)
 
 
 def launch_gui():
@@ -164,6 +177,7 @@ def launch_gui():
 
 def start_app():
     from leap.bitmask.util import STANDALONE
+    os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
     # Allow the frozen binary in the bundle double as the cli entrypoint
     # Why have only a user interface when you can have two?
