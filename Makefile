@@ -37,3 +37,11 @@ qt-resources:
 
 doc:
 	cd docs && make html
+
+docker_container:
+	cd pkg/docker_bundle && docker build -t mybundle
+
+bundle_in_docker:
+	# needs a docker container called 'mybundle', created with 'make docker_container'
+	cat pkg/docker_build | docker run -i -v ~/leap/bitmask-dev:/dist -w /dist -u `id -u` mybundle bash
+	mkdir -p dist && cp -r bitmaskbuild/dist/* dist
