@@ -10,13 +10,9 @@ class Application {
   // main entry point for the application
   //
   initialize() {
-    window.addEventListener("error", this.handleError.bind(this))
-    window.addEventListener("unhandledrejection", this.handleError.bind(this))
-    if (this.debugging()) {
-      this.show(this.debug_panel)
-    } else {
-      this.start()
-    }
+    window.addEventListener("error", this.showError.bind(this))
+    window.addEventListener("unhandledrejection", this.showError.bind(this))
+    this.start()
   }
 
   start() {
@@ -30,10 +26,10 @@ class Application {
           this.show('main', {initialAccount: account})
         }
       }, error => {
-        this.show('error', {error: error})
+        this.showError(error)
       })
     }, error => {
-      this.show('error', {error: error})
+      this.showError(error)
     })
   }
 
@@ -41,13 +37,14 @@ class Application {
     this.switcher.show(panel, properties)
   }
 
-  debugging() {
-    this.debug_panel = window.location.hash.replace('#', '')
-    return this.debug_panel && this.debug_panel != 'main'
+  showError(e) {
+    this.switcher.showError(e)
+    return true
   }
 
-  handleError(e) {
-    this.show('error', {error: e})
+  hideError() {
+    this.switcher.hideError()
+    return true
   }
 }
 

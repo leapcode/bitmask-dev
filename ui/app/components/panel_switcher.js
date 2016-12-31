@@ -19,9 +19,18 @@ export default class PanelSwitcher extends React.Component {
     this.state = {
       panel: null,
       panel_properties: null,
-      debug: true
+      debug: true,
+      error: null
     }
     App.switcher = this
+  }
+
+  showError(error) {
+    this.setState({error: error})
+  }
+
+  hideError() {
+    this.setState({error: null})
   }
 
   show(component_name, properties={}) {
@@ -30,6 +39,11 @@ export default class PanelSwitcher extends React.Component {
 
   render() {
     let elems = []
+    if (this.state.error) {
+      elems.push(
+        <ErrorPanel error={this.state.error} key="error" />
+      )
+    }
     if (this.panelExist(this.state.panel)) {
       elems.push(
         this.panelRender(this.state.panel, this.state.panel_properties)

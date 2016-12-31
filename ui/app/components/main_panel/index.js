@@ -68,6 +68,7 @@ export default class MainPanel extends React.Component {
   render() {
     let emailSection = null
     let vpnSection = null
+    let sidePanel = null
 
     if (this.state.account.authenticated) {
       if (this.state.account.hasEmail) {
@@ -75,12 +76,18 @@ export default class MainPanel extends React.Component {
       }
     }
 
-    return (
-      <div className="main-panel">
+    if (false) {
+      sidePanel = (
         <AccountList account={this.state.account}
           accounts={this.state.accounts}
           onSelect={this.activateAccount}
           onRemove={this.removeAccount}/>
+      )
+    }
+
+    return (
+      <div className="main-panel">
+        {sidePanel}
         <div className="body">
           <UserSection account={this.state.account} onLogin={this.activateAccount} onLogout={this.activateAccount}/>
           {vpnSection}

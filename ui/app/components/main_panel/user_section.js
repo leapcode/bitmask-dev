@@ -9,6 +9,8 @@ import Account from 'models/account'
 
 import bitmask from 'lib/bitmask'
 
+import App from 'app'
+
 export default class UserSection extends React.Component {
 
   static get defaultProps() {return{
@@ -87,11 +89,16 @@ export default class UserSection extends React.Component {
       address = this.props.account.address
     }
     let header = (
-      <Login
-        onLogin={this.props.onLogin}
-        domain={this.props.account.domain}
-        address={address}
-      />
+      <div>
+        <Login
+          onLogin={this.props.onLogin}
+          domain={this.props.account.domain}
+          address={address}
+        />
+        <br />
+        <Glyphicon glyph="user" />&nbsp;
+        <a href="#" onClick={App.show.bind(App, 'wizard')}>Create a new account...</a>
+      </div>
     )
     return (
       <SectionLayout icon="user" className="wide-margin" header={header}/>
