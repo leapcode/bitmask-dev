@@ -449,6 +449,7 @@ class StandardMailService(service.MultiService, HookableService):
         self._sendmail_opts = {}
         self._service_tokens = {}
         self._active_user = None
+        self._status = {}
         super(StandardMailService, self).__init__()
         self.initializeChildrenServices()
 
@@ -560,9 +561,41 @@ class StandardMailService(service.MultiService, HookableService):
 
     # commands
 
-    def do_status(self):
-        status = 'running' if self.running else 'disabled'
-        return {'mail': status}
+    @defer.inlineCallbacks
+    def do_status(self, userid=None):
+        smtp = self.getServiceNamed('smtp')
+        imap = self.getServiceNamed('imap')
+        childrenStatus = {
+            'smtp': smtp.status(),
+            'imap': imap.status()
+        }
+        if userid is not None:
+            incoming = self.getServiceNamed('incoming_mail')
+            childrenStatus['incoming'] = yield incoming.status(userid)
+
+        def key(service):
+            status = childrenStatus[service]
+            level = {
+                "on": 0,
+                "starting": 1,
+                "off": 10,
+                "stopping": 11,
+                "failure": 100
+            }
+            return level.get(status["status"], -1)
+
+        service = max(childrenStatus, key=key)
+
+        status = childrenStatus[service]["status"]
+        error = childrenStatus[service]["error"]
+
+        res = {}
+        for s in childrenStatus.values():
+            res.update(s)
+        res['status'] = status
+        res['error'] = error
+        res['childrenStatus'] = childrenStatus
+        defer.returnValue(res)
 
     def get_token(self):
         active_user = self._active_user
@@ -624,6 +657,12 @@ class IMAPService(service.Service):
             self._factory.doStop()
         super(IMAPService, self).stopService()
 
+    def status(self):
+        return {
+            'status': 'on' if self.running else 'off',
+            'error': None
+        }
+
 
 class SMTPService(service.Service):
 
@@ -660,6 +699,12 @@ class SMTPService(service.Service):
             self._factory.doStop()
         super(SMTPService, self).stopService()
 
+    def status(self):
+        return {
+            'status': 'on' if self.running else 'off',
+            'error': None
+        }
+
 
 class IncomingMailService(service.MultiService):
     """
@@ -671,6 +716,7 @@ class IncomingMailService(service.MultiService):
     def __init__(self, mail_service):
         super(IncomingMailService, self).__init__()
         self._mail = mail_service
+        self._status = {}
 
     def startService(self):
         logger.info('starting incoming mail service')
@@ -682,12 +728,23 @@ class IncomingMailService(service.MultiService):
     # Individual accounts
 
     def startInstance(self, userid):
+        self._status[userid] = {"status": "starting", "error": None}
         soledad = self._mail.get_soledad_session(userid)
         keymanager = self._mail.get_keymanager_session(userid)
 
         logger.info('setting up incoming mail service for %s' % userid)
         self._start_incoming_mail_instance(
             keymanager, soledad, userid)
+
+    @defer.inlineCallbacks
+    def status(self, userid):
+        if userid not in self._status:
+            defer.returnValue({'status': 'off', 'error': None, 'unread': None})
+
+        status = self._status[userid]
+        incoming = self.getServiceNamed(userid)
+        status['unread'] = yield incoming.unread()
+        defer.returnValue(status)
 
     def _start_incoming_mail_instance(self, keymanager, soledad,
                                       userid, start_sync=True):
@@ -701,12 +758,21 @@ class IncomingMailService(service.MultiService):
             incoming_mail.setName(userid)
             self.addService(incoming_mail)
 
+        def setStatusOn(res):
+            self._status[userid]["status"] = "on"
+            return res
+
         acc = Account(soledad, userid)
         d = acc.callWhenReady(
             lambda _: acc.get_collection_by_mailbox(INBOX_NAME))
         d.addCallback(setUpIncomingMail)
-        d.addErrback(lambda r: logger.error(str(r)))
+        d.addCallback(setStatusOn)
+        d.addErrback(self._errback, userid)
         return d
+
+    def _errback(self, failure, userid):
+        self._status[userid] = {"status": "failure", "error": str(failure)}
+        logger.error(str(failure))
 
 # --------------------------------------------------------------------
 #

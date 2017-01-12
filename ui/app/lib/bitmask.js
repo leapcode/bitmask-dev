@@ -223,10 +223,15 @@ var bitmask = function(){
             /**
              * Check the status of the email service
              *
+             * @param {string} uid The uid to get status about
+             *
              * @return {Promise<string>} User readable status
              */
-            status: function() {
-                return call(['mail', 'status']);
+            status: function(uid) {
+                if (typeof uid !== 'string') {
+                    uid = null
+                }
+                return call(['mail', 'status', uid]);
             },
 
             /**

@@ -17,6 +17,11 @@
 """
 Bitmask Command Line interface: mail
 """
+import argparse
+import sys
+
+from colorama import Fore
+
 from leap.bitmask.cli import command
 
 
@@ -35,4 +40,26 @@ SUBCOMMANDS:
 
 '''.format(name=command.appname)
 
-    commands = ['enable', 'disable', 'status', 'get_token']
+    commands = ['enable', 'disable', 'get_token']
+
+    def status(self, raw_args):
+        parser = argparse.ArgumentParser(
+            description='Bitmask email status',
+            prog='%s %s %s' % tuple(sys.argv[:3]))
+        parser.add_argument('uid', nargs='?', default=None,
+                            help='uid to check the status of')
+        subargs = parser.parse_args(raw_args)
+
+        self.data.append('status')
+        if subargs.uid:
+            self.data.append(subargs.uid)
+        return self._send(self._print_status)
+
+    def _print_status(self, status, depth=0):
+        spaces = depth * "  "
+        for k, v in status.items():
+            if type(v) == dict:
+                print(spaces + k + ":")
+                self._print_status(v, depth + 1)
+            else:
+                print(spaces + k + ": " + Fore.GREEN + str(v) + Fore.RESET)

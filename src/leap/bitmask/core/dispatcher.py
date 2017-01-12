@@ -229,7 +229,10 @@ class MailCmd(SubCommand):
 
     @register_method('dict')
     def do_STATUS(self, mail, *parts, **kw):
-        d = mail.do_status()
+        userid = None
+        if len(parts) > 2:
+            userid = parts[2]
+        d = mail.do_status(userid)
         return d
 
     @register_method('dict')

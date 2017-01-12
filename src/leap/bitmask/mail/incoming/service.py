@@ -205,6 +205,13 @@ class IncomingMail(Service):
             self._loop = None
         Service.stopService(self)
 
+    def unread(self):
+        """
+        :returns: a deferred that will be fired with the number of unread
+                  messages
+        """
+        return self._inbox_collection.count_unseen()
+
     #
     # Private methods.
     #
