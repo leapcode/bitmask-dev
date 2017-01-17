@@ -92,11 +92,17 @@ class HTTPDispatcherService(service.Service):
             jsapi = File(os.path.abspath(jspath))
 
         api = Api(CommandDispatcher(self._core))
-        protected_api = protectedResourceFactory(
-            api, self._core.tokens, self.API_WHITELIST)
+        # protected_api = protectedResourceFactory(
+        #    api, self._core.tokens, self.API_WHITELIST)
 
         root = File(webdir)
-        root.putChild(u'API', protected_api)
+
+        # FIXME -- switching off the protected api, due to
+        # https://0xacab.org/leap/bitmask-dev/issues/9
+        # root.putChild(u'API', protected_api)
+        # -------------------------------------------------
+
+        root.putChild(u'API', api)
         if not HAS_WEB_UI:
             root.putChild('bitmask.js', jsapi)
 
