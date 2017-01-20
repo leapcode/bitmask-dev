@@ -459,8 +459,7 @@ class IncomingMail(Service):
             return decrmsg.as_string()
 
         if msg.get_content_type() == MULTIPART_ENCRYPTED:
-            d = self._decrypt_multipart_encrypted_msg(
-                msg, encoding, senderAddress)
+            d = self._decrypt_multipart_encrypted_msg(msg, senderAddress)
         elif msg.get_content_type() == MULTIPART_SIGNED:
             d = self._verify_signature_not_encrypted_msg(msg, senderAddress)
         else:
@@ -479,14 +478,12 @@ class IncomingMail(Service):
         msg.add_header(self.LEAP_ENCRYPTION_HEADER,
                        self.LEAP_ENCRYPTION_DECRYPTED)
 
-    def _decrypt_multipart_encrypted_msg(self, msg, encoding, senderAddress):
+    def _decrypt_multipart_encrypted_msg(self, msg, senderAddress):
         """
         Decrypt a message with content-type 'multipart/encrypted'.
 
         :param msg: The original encrypted message.
         :type msg: Message
-        :param encoding: The encoding of the email message.
-        :type encoding: str
         :param senderAddress: The email address of the sender of the message.
         :type senderAddress: str
 
