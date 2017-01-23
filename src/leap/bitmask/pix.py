@@ -47,6 +47,10 @@ except ImportError:
 log = Logger()
 
 
+# TODO
+# [ ] pre-authenticate
+
+
 def start_pixelated_user_agent(userid, soledad, keymanager):
 
     leap_session = LeapSessionAdapter(

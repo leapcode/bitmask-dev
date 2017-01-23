@@ -94,6 +94,15 @@ export default class EmailSection extends React.Component {
     App.show('addressbook', {account: this.props.account})
   }
 
+  openPixelated() {
+    if (bitmaskBrowser) {
+      // we are inside a qtwebkit page that exports the object
+      bitmaskBrowser.openPixelated();
+    } else {
+      window.open("http://localhost:9090");
+    }
+  }
+
   openApp() {}
 
   openPrefs() {}
@@ -114,7 +123,7 @@ export default class EmailSection extends React.Component {
     let body = null
     let header = <h1>Mail</h1>
     if (this.state.status == 'on') {
-      // button = <Button onClick={this.openKeys}>Addressbook</Button>
+      button = <Button onClick={this.openKeys}>Addressbook</Button>
     }
     if (this.state.status == 'disabled') {
       header = <h1>Mail Disabled</h1>
@@ -123,8 +132,8 @@ export default class EmailSection extends React.Component {
       body = (<div>
         {message}
         <ButtonToolbar>
+          <Button onClick={this.openPixelated}>Open Mail</Button>
           <IMAPButton account={this.props.account} />
-          <Button onClick={this.openKeys}>Addressbook</Button>
         </ButtonToolbar>
       </div>)
     }
