@@ -531,7 +531,7 @@ class IncomingMail(Service):
         d = self._keymanager.decrypt(
             encdata, self._userid, verify=senderAddress)
         d.addCallbacks(build_msg, self._decryption_error, errbackArgs=(msg,))
-        d.addCallbacks(verify_signature_after_decrypt_an_email)
+        d.addCallbacks(verify_signature_after_decrypt_an_email, self._errback)
         return d
 
     def _maybe_decrypt_inline_encrypted_msg(self, origmsg, encoding,
