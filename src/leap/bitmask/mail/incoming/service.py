@@ -458,6 +458,11 @@ class IncomingMail(Service):
                                                     signkey.fingerprint)
             return decrmsg.as_string()
 
+        d = self._decrypt_by_content_type(msg, senderAddress, encoding)
+        d.addCallback(add_leap_header)
+        return d
+
+    def _decrypt_by_content_type(self, msg, senderAddress, encoding):
         if msg.get_content_type() == MULTIPART_ENCRYPTED:
             d = self._decrypt_multipart_encrypted_msg(msg, senderAddress)
         elif msg.get_content_type() == MULTIPART_SIGNED:
@@ -465,7 +470,7 @@ class IncomingMail(Service):
         else:
             d = self._maybe_decrypt_inline_encrypted_msg(
                 msg, encoding, senderAddress)
-        d.addCallback(add_leap_header)
+        d.addErrback(self._errback)
         return d
 
     def _add_verified_signature_header(self, decrmsg, fingerprint):
