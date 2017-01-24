@@ -260,7 +260,7 @@ class KeyManager(object):
 
         def ensure_valid(key):
             if key.is_expired():
-                logger.info('Found expired key for %s.' % self._address)
+                self.log.info('Found expired key for %s.' % address)
                 return _fetch_remotely(key)
             key_found(key)
             return key
@@ -278,7 +278,7 @@ class KeyManager(object):
             if fetch_remote is False or private is True:
                 return passthru
 
-            logger.debug('Fetching remotely key for %s.' % self._address)
+            self.log.debug('Fetching remotely key for %s.' % address)
             emit_async(catalog.KEYMANAGER_LOOKING_FOR_KEY, address)
             d = self._fetch_keys_from_server_and_store_local(address)
             d.addCallback(
