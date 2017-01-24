@@ -345,7 +345,7 @@ class IncomingMail(Service):
 
     def _process_decrypted_doc(self, doc, data):
         """
-        Process a document containing a succesfully decrypted message.
+        Process a document containing a successfully decrypted message.
 
         :param doc: the incoming message
         :type doc: SoledadDocument
@@ -643,7 +643,7 @@ class IncomingMail(Service):
             return failure
 
     @defer.inlineCallbacks
-    def _maybe_extract_keys(self, data_signkey, encrypted_msg, senderAddress,
+    def _maybe_extract_keys(self, data_signkey, origmsg, senderAddress,
                             encoding):
         """
         Retrieve attached keys to the mesage and parse message headers for an
@@ -652,13 +652,19 @@ class IncomingMail(Service):
         only urls with https and the same hostname than the email are supported
         for security reasons.
 
-        :param msgtuple: a tuple consisting of a SoledadDocument
-                         instance containing the incoming message
-                         and data, the json-encoded, decrypted content of the
-                         incoming message
-        :type msgtuple: (SoledadDocument, str)
+        :param data_signkey: a tuple consisting of a decrypted Message and the
+                            signing OpenPGPKey if the signature is valid or
+                            InvalidSignature or KeyNotFound.
+        :type data_signkey: (Message, OpenPGPKey or InvalidSignature or
+                            KeyNotFound)
+        :param origmsg: The original, possibly encrypted message.
+        :type origmsg: Message
+        :param encoding: The encoding of the email message.
+        :type encoding: str
+        :param senderAddress: The email address of the sender of the message.
+        :type senderAddress: str
 
-        :return: A Deferred that will be fired with msgtuple when key
+        :return: A Deferred that will be fired with data_signkey when key
                  extraction finishes
         :rtype: Deferred
         """
@@ -690,7 +696,7 @@ class IncomingMail(Service):
         if previous_verify_failed() and key_imported:
             logger.info('Decrypting again to verify with new key')
             data_signkey = yield self._decrypt_by_content_type(
-                encrypted_msg, senderAddress, encoding)
+                origmsg, senderAddress, encoding)
 
         defer.returnValue(data_signkey)
 
@@ -703,7 +709,8 @@ class IncomingMail(Service):
         :param address: email address in the from header
         :type address: str
 
-        :return: A Deferred that will be fired when header extraction is done
+        :return: A Deferred that will be fired with a boolean, indicating True
+        if the key was successfully imported, or False otherwise.
         :rtype: Deferred
         """
         fields = dict([f.strip(' ').split('=') for f in header.split(';')])
