@@ -301,7 +301,6 @@ class IncomingMail(Service):
             elif self._is_msg(keys):
                 # TODO this pipeline is a bit obscure!
                 d = self._decrypt_doc(doc)
-                d.addCallback(self._maybe_extract_keys)
                 d.addCallbacks(self._add_message_locally, self._errback)
                 deferreds.append(d)
 
@@ -459,6 +458,7 @@ class IncomingMail(Service):
             return decrmsg.as_string()
 
         d = self._decrypt_by_content_type(msg, senderAddress, encoding)
+        d.addCallback(self._maybe_extract_keys, msg, senderAddress, encoding)
         d.addCallback(add_leap_header)
         return d
 
@@ -643,7 +643,8 @@ class IncomingMail(Service):
             return failure
 
     @defer.inlineCallbacks
-    def _maybe_extract_keys(self, msgtuple):
+    def _maybe_extract_keys(self, data_signkey, encrypted_msg, senderAddress,
+                            encoding):
         """
         Retrieve attached keys to the mesage and parse message headers for an
         *OpenPGP* header as described on the `IETF draft
@@ -662,7 +663,8 @@ class IncomingMail(Service):
         :rtype: Deferred
         """
         OpenPGP_HEADER = 'OpenPGP'
-        doc, data = msgtuple
+        data, signkey = data_signkey
+        data = data.as_string()
 
         # XXX the parsing of the message is done in mailbox.addMessage, maybe
         #     we should do it in this module so we don't need to parse it again
@@ -681,7 +683,16 @@ class IncomingMail(Service):
                 key_imported = yield self._maybe_extract_openpgp_header(
                     header, fromAddress)
 
-        defer.returnValue(msgtuple)
+        def previous_verify_failed():
+            return (isinstance(signkey, keymanager_errors.KeyNotFound) or
+                    isinstance(signkey, keymanager_errors.InvalidSignature))
+
+        if previous_verify_failed() and key_imported:
+            logger.info('Decrypting again to verify with new key')
+            data_signkey = yield self._decrypt_by_content_type(
+                encrypted_msg, senderAddress, encoding)
+
+        defer.returnValue(data_signkey)
 
     def _maybe_extract_openpgp_header(self, header, address):
         """
