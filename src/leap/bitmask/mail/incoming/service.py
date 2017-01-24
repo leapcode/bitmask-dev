@@ -670,15 +670,16 @@ class IncomingMail(Service):
         msg = self._parser.parsestr(data)
         _, fromAddress = parseaddr(msg['from'])
 
-        valid_attachment = False
+        key_imported = False
         if msg.is_multipart():
-            valid_attachment = yield self._maybe_extract_attached_key(
+            key_imported = yield self._maybe_extract_attached_key(
                 msg.get_payload(), fromAddress)
 
-        if not valid_attachment:
+        if not key_imported:
             header = msg.get(OpenPGP_HEADER, None)
             if header is not None:
-                yield self._maybe_extract_openpgp_header(header, fromAddress)
+                key_imported = yield self._maybe_extract_openpgp_header(
+                    header, fromAddress)
 
         defer.returnValue(msgtuple)
 
@@ -694,7 +695,6 @@ class IncomingMail(Service):
         :return: A Deferred that will be fired when header extraction is done
         :rtype: Deferred
         """
-        d = defer.succeed(None)
         fields = dict([f.strip(' ').split('=') for f in header.split(';')])
         if 'url' in fields:
             url = shlex.split(fields['url'])[0]  # remove quotations
@@ -704,6 +704,11 @@ class IncomingMail(Service):
                 urlparts.scheme == 'https' and
                 urlparts.hostname == addressHostname
             ):
+                def log_key_added(ignored):
+                    logger.debug("Imported key from OpenPGP header %s"
+                                 % (url,))
+                    return True
+
                 def fetch_error(failure):
                     if failure.check(keymanager_errors.KeyNotFound):
                         logger.warn("Url from OpenPGP header %s failed"
@@ -713,19 +718,20 @@ class IncomingMail(Service):
                                     "match the from address %s"
                                     % (url, address))
                     else:
-                        return failure
+                        logger.warn("An error has ocurred adding key from "
+                                    "OpenPGP header url %s for %s: %s" %
+                                    (url, address, failure.getErrorMessage()))
+                    return False
 
                 d = self._keymanager.fetch_key(address, url)
-                d.addCallback(
-                    lambda _:
-                    logger.info("Imported key from header %s" % (url,)))
-                d.addErrback(fetch_error)
+                d.addCallbacks(log_key_added, fetch_error)
+                return d
             else:
                 logger.debug("No valid url on OpenPGP header %s" % (url,))
         else:
             logger.debug("There is no url on the OpenPGP header: %s"
                          % (header,))
-        return d
+        return False
 
     def _maybe_extract_attached_key(self, attachments, address):
         """
