@@ -458,7 +458,9 @@ class IncomingMail(Service):
             return decrmsg.as_string()
 
         d = self._decrypt_by_content_type(msg, senderAddress, encoding)
-        d.addCallback(self._maybe_extract_keys, msg, senderAddress, encoding)
+        d.addCallback(self._maybe_extract_keys)
+        d.addCallback(self._maybe_re_decrypt_with_new_key, msg, senderAddress,
+                      encoding)
         d.addCallback(add_leap_header)
         return d
 
@@ -642,8 +644,7 @@ class IncomingMail(Service):
             return failure
 
     @defer.inlineCallbacks
-    def _maybe_extract_keys(self, data_signkey, origmsg, senderAddress,
-                            encoding):
+    def _maybe_extract_keys(self, data_signkey):
         """
         Retrieve attached keys to the mesage and parse message headers for an
         *OpenPGP* header as described on the `IETF draft
@@ -652,19 +653,13 @@ class IncomingMail(Service):
         for security reasons.
 
         :param data_signkey: a tuple consisting of a decrypted Message and the
-                            signing OpenPGPKey if the signature is valid or
-                            InvalidSignature or KeyNotFound.
+                             signing OpenPGPKey if the signature is valid or
+                             InvalidSignature or KeyNotFound.
         :type data_signkey: (Message, OpenPGPKey or InvalidSignature or
                             KeyNotFound)
-        :param origmsg: The original, possibly encrypted message.
-        :type origmsg: Message
-        :param encoding: The encoding of the email message.
-        :type encoding: str
-        :param senderAddress: The email address of the sender of the message.
-        :type senderAddress: str
 
-        :return: A Deferred that will be fired with data_signkey when key
-                 extraction finishes
+        :return: A Deferred that will be fired with data_signkey and
+                 key_imported (boolean) when key extraction finishes
         :rtype: Deferred
         """
         OpenPGP_HEADER = 'OpenPGP'
@@ -687,6 +682,39 @@ class IncomingMail(Service):
             if header is not None:
                 key_imported = yield self._maybe_extract_openpgp_header(
                     header, fromAddress)
+
+        defer.returnValue((data_signkey, key_imported))
+
+    @defer.inlineCallbacks
+    def _maybe_re_decrypt_with_new_key(self, datasignkey_keyimported,
+                                       origmsg, senderAddress, encoding):
+
+        """
+        Repeat the decrypt call with a new key, in case the previous signature
+        verification failed and a new key was imported.
+
+        :param datasignkey_keyimported: a tuple consisting of another tuple
+                                        with a decrypted Message and the
+                                        signing OpenPGPKey if the signature is
+                                        valid or InvalidSignature or
+                                        KeyNotFound, and key_imported, a
+                                        boolean, indicating if the key was
+                                        successfully imported
+        :type datasignkey_keyimported:  ((Message, OpenPGPKey or
+                                        InvalidSignature or KeyNotFound),
+                                        key_imported)
+        :param origmsg: The original, possibly encrypted message.
+        :type origmsg: Message
+        :param senderAddress: The email address of the sender of the message.
+        :type senderAddress: str
+        :param encoding: The encoding of the email message.
+        :type encoding: str
+
+        :return: A Deferred that will be fired with data_signkey
+        :rtype: Deferred
+        """
+        data_signkey, key_imported = datasignkey_keyimported
+        data, signkey = data_signkey
 
         def previous_verify_failed():
             return (isinstance(signkey, keymanager_errors.KeyNotFound) or
