@@ -82,7 +82,7 @@ class Command(object):
         # if command is in the default list, send the bare command
         # and use the default printer
         if args.command in self.commands:
-            self.data += [args.command]
+            self.data += [args.command] + raw_args[1:]
             return self._send(printer=default_dict_printer)
 
         elif (args.command == 'execute' or
