@@ -166,9 +166,7 @@ class BitmaskBackend(configurable.ConfigurableService):
         self._maybe_init_service('mail', service, self.basedir)
 
     def _init_eip(self):
-        # FIXME -- land EIP into leap.vpn
-        pass
-        # self._maybe_init_service('eip', EIPService)
+        self._maybe_init_service('eip', EIPService)
 
     def _init_zmq(self):
         zs = _zmq.ZMQServerService(self)

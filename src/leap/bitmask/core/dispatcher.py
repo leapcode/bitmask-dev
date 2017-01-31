@@ -406,7 +406,7 @@ class CommandDispatcher(object):
             return _format_result({'eip': 'disabled'})
         subcmd = parts[1]
 
-        dispatch = self._subcommand_eip.dispatch
+        dispatch = self.subcommand_eip.dispatch
         if subcmd in ('enable', 'disable'):
             d = dispatch(self.core, *parts)
         else:
