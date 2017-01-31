@@ -27,7 +27,7 @@ from twisted.python import log
 
 from leap.bitmask.hooks import HookableService
 from leap.bitmask.vpn import EIPManager
-from leap.bitmask.vpn.utils import get_path_prefix
+from leap.common.config import get_path_prefix
 
 
 class EIPService(HookableService):

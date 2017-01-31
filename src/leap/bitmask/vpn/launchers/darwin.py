@@ -26,7 +26,7 @@ from twisted.logger import Logger
 
 from leap.bitmask.vpn.launcher import VPNLauncher
 from leap.bitmask.vpn.launcher import VPNLauncherException
-from leap.bitmask.vpn.utils import get_path_prefix
+from leap.common.config import get_path_prefix
 
 
 logger = Logger()

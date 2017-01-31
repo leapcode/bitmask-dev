@@ -21,29 +21,6 @@ Common utils
 
 import os
 
-
-def get_path_prefix(standalone=False):
-    """
-    Returns the platform dependent path prefix.
-
-    :param standalone: if True it will return the prefix for a standalone
-                       application.
-                       Otherwise, it will return the system default for
-                       configuration storage.
-    :type standalone: bool
-    """
-    return os.path.expanduser("~/.config")  # hardcoded Linux XDG config path
-
-    # TODO: this is to use XDG specifications
-    # commented temporarily to avoid that extra dependency
-
-    # config_home = get_xdg_config_home()
-    # if standalone:
-    #     config_home = os.path.join(os.getcwd(), "config")
-    #
-    # return config_home
-
-
 def force_eval(items):
     """
     Return a sequence that evaluates any callable in the sequence,
