@@ -20,7 +20,7 @@ from colorama import Fore
 
 from leap.bitmask.vpn import VPNManager
 from leap.bitmask.vpn.fw.firewall import FirewallManager
-from leap.bitmask.vpn.statusqueue import StatusQueue
+from leap.bitmask.vpn.status import StatusQueue
 from leap.bitmask.vpn.zmq_pub import ZMQPublisher
 
 
