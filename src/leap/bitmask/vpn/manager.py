@@ -22,42 +22,9 @@ VPN Manager
 import os
 import tempfile
 
-from leap.bitmask.vpn import process
+from leap.bitmask.vpn import process, _config
 from leap.bitmask.vpn.constants import IS_WIN
 
-
-class _TempEIPConfig(object):
-    """Current EIP code on bitmask depends on EIPConfig object, this temporary
-    implementation helps on the transition."""
-
-    def __init__(self, flags, path, ports):
-        self._flags = flags
-        self._path = path
-        self._ports = ports
-
-    def get_gateway_ports(self, idx):
-        return self._ports
-
-    def get_openvpn_configuration(self):
-        return self._flags
-
-    def get_client_cert_path(self, providerconfig):
-        return self._path
-
-
-class _TempProviderConfig(object):
-    """Current EIP code on bitmask depends on ProviderConfig object, this
-    temporary implementation helps on the transition."""
-
-    def __init__(self, domain, path):
-        self._domain = domain
-        self._path = path
-
-    def get_domain(self):
-        return self._domain
-
-    def get_ca_cert_path(self):
-        return self._path
 
 
 class VPNManager(object):
@@ -78,8 +45,8 @@ class VPNManager(object):
         domain = "demo.bitmask.net"
         self._remotes = remotes
 
-        self._eipconfig = _TempEIPConfig(extra_flags, cert_path, ports)
-        self._providerconfig = _TempProviderConfig(domain, ca_path)
+        self._eipconfig = _config._TempEIPConfig(extra_flags, cert_path, ports)
+        self._providerconfig = _config._TempProviderConfig(domain, ca_path)
         # signaler = None  # XXX handle signaling somehow...
         signaler = mock_signaler
         self._vpn = process.VPN(remotes=remotes, signaler=signaler)
@@ -93,7 +60,7 @@ class VPNManager(object):
         * gateway, port
         * domain name
         """
-        host, port = self._get_management()
+        host, port = self._get_management_location()
 
         # TODO need gateways here
         # sorting them doesn't belong in here
@@ -140,7 +107,7 @@ class VPNManager(object):
         """
         pass
 
-    def _get_management(self):
+    def _get_management_location(self):
         """
         Return a tuple with the host (socket) and port to be used for VPN.
 
