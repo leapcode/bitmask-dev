@@ -46,7 +46,7 @@ class ConfigurableService(service.MultiService):
 DEFAULT_CONFIG = """
 [services]
 mail = True
-eip = True
+eip = False
 zmq = True
 web = True
 onion = False

@@ -32,8 +32,8 @@ from leap.bitmask.core import _zmq
 from leap.bitmask.core import flags
 from leap.bitmask.core import _session
 from leap.bitmask.core.web.service import HTTPDispatcherService
+from leap.bitmask.vpn import EIPService
 from leap.common.events import server as event_server
-# from leap.vpn import EIPService
 
 logger = Logger()
 
