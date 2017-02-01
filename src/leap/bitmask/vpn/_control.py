@@ -1,3 +1,21 @@
+
+import os
+
+from twisted.internet.task import LoopingCall
+from twisted.internet import reactor
+from twisted.logger import Logger
+
+from .process import VPNProcess
+from .constants import IS_MAC
+
+logger = Logger()
+
+# NOTE: We need to set a bigger poll time in OSX because it seems
+# openvpn malfunctions when you ask it a lot of things in a short
+# amount of time.
+POLL_TIME = 2.5 if IS_MAC else 1.0
+
+
 class VPNControl(object):
     """
     This is the high-level object that the service is dealing with.
@@ -181,7 +199,7 @@ class VPNControl(object):
         and start the looping call for them.
         """
         for poller in self._pollers:
-            poller.start(VPNManager.POLL_TIME)
+            poller.start(POLL_TIME)
 
 
     def _stop_pollers(self):

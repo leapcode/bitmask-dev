@@ -1,4 +1,24 @@
-from leap.bitmask.vpn.constants import IS_MAC
+import os
+import shutil
+import socket
+
+from twisted.internet import defer, reactor
+from twisted.logger import Logger
+
+import psutil
+try:
+    # psutil < 2.0.0
+    from psutil.error import AccessDenied as psutil_AccessDenied
+    PSUTIL_2 = False
+except ImportError:
+    # psutil >= 2.0.0
+    from psutil import AccessDenied as psutil_AccessDenied
+    PSUTIL_2 = True
+
+from ._telnet import UDSTelnet
+
+
+logger = Logger()
 
 
 class OpenVPNAlreadyRunning(Exception):
@@ -23,10 +43,6 @@ class VPNManagement(object):
     """
 
     # Timers, in secs
-    # NOTE: We need to set a bigger poll time in OSX because it seems
-    # openvpn malfunctions when you ask it a lot of things in a short
-    # amount of time.
-    POLL_TIME = 2.5 if IS_MAC else 1.0
     CONNECTION_RETRY_TIME = 1
 
     def __init__(self, signaler=None):
@@ -81,7 +97,7 @@ class VPNManagement(object):
         except socket.error:
             # XXX should get a counter and repeat only
             # after mod X times.
-            logger.warning('socket error (command was: "%s")' % (command,))
+            logger.warn('socket error (command was: "%s")' % (command,))
             self._close_management_socket(announce=False)
             logger.debug('trying to connect to management again')
             self.try_to_connect_to_management(max_retries=5)
@@ -89,8 +105,8 @@ class VPNManagement(object):
 
         # XXX should move this to a errBack!
         except Exception as e:
-            logger.warning("Error sending command %s: %r" %
-                           (command, e))
+            logger.warn("Error sending command %s: %r" %
+                        (command, e))
         return []
 
     def _close_management_socket(self, announce=True):
@@ -135,7 +151,7 @@ class VPNManagement(object):
 
         # XXX move this to the Errback
         except Exception as e:
-            logger.warning("Could not connect to OpenVPN yet: %r" % (e,))
+            logger.warn("Could not connect to OpenVPN yet: %r" % (e,))
             self._tn = None
 
     def _connectCb(self, *args):
@@ -155,7 +171,7 @@ class VPNManagement(object):
 
         :param failure: Failure
         """
-        logger.warning(failure)
+        logger.warn(failure)
 
     def connect_to_management(self, host, port):
         """
@@ -192,8 +208,8 @@ class VPNManagement(object):
         :type retry: int
         """
         if max_retries and retry > max_retries:
-            logger.warning("Max retries reached while attempting to connect "
-                           "to management. Aborting.")
+            logger.warn("Max retries reached while attempting to connect "
+                        "to management. Aborting.")
             self.aborted = True
             return
 
@@ -230,7 +246,8 @@ class VPNManagement(object):
             state = status_step
             if state != self._last_state:
                 if self._signaler is not None:
-                    self._signaler.signal(self._signaler.eip_state_changed, state)
+                    self._signaler.signal(
+                        self._signaler.eip_state_changed, state)
                 self._last_state = state
 
     def _parse_status_and_notify(self, output):
@@ -269,7 +286,8 @@ class VPNManagement(object):
         status = (tun_tap_read, tun_tap_write)
         if status != self._last_status:
             if self._signaler is not None:
-                self._signaler.signal(self._signaler.eip_status_changed, status)
+                self._signaler.signal(
+                    self._signaler.eip_status_changed, status)
             self._last_status = status
 
     def get_state(self):
@@ -313,7 +331,7 @@ class VPNManagement(object):
         """
         if self._socket_port == "unix":
             logger.debug('cleaning socket file temp folder')
-            tempfolder = first(os.path.split(self._socket_host))
+            tempfolder = _first(os.path.split(self._socket_host))
             if tempfolder and os.path.isdir(tempfolder):
                 try:
                     shutil.rmtree(tempfolder)
@@ -371,12 +389,16 @@ class VPNManagement(object):
         cmdline = process.cmdline
 
         manag_flag = "--management"
+
         if isinstance(cmdline, list) and manag_flag in cmdline:
+
             # we know that our invocation has this distinctive fragment, so
             # we use this fingerprint to tell other invocations apart.
             # this might break if we change the configuration path in the
             # launchers
-            smellslikeleap = lambda s: "leap" in s and "providers" in s
+
+            def smellslikeleap(s):
+                return "leap" in s and "providers" in s
 
             if not any(map(smellslikeleap, cmdline)):
                 logger.debug("We cannot stop this instance since we do not "
@@ -401,8 +423,8 @@ class VPNManagement(object):
                 self._send_command("signal SIGTERM")
                 self._close_management_socket(announce=True)
             except (Exception, AssertionError) as e:
-                logger.warning("Problem trying to terminate OpenVPN: %r"
-                               % (e,))
+                logger.warn("Problem trying to terminate OpenVPN: %r"
+                            % (e,))
         else:
             logger.debug("Could not find the expected openvpn command line.")
 
@@ -412,5 +434,12 @@ class VPNManagement(object):
                          "openvpn process.")
             return True
         else:
-            logger.warning("Unable to terminate OpenVPN")
+            logger.warn("Unable to terminate OpenVPN")
             raise OpenVPNAlreadyRunning
+
+
+def _first(things):
+    try:
+        return things[0]
+    except (IndexError, TypeError):
+        return None

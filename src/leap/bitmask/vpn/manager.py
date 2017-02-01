@@ -22,14 +22,14 @@ VPN Manager
 import os
 import tempfile
 
-from .process import VPNProcess
-from ._config import _TempEIPConfig
+from ._control import VPNControl
+from ._config import _TempEIPConfig, _TempProviderConfig
 from .constants import IS_WIN
 
 
 
 # TODO this is very badly named. There is another class that is called
-# manager!!!
+# manager. This 
 
 class VPNManager(object):
 
@@ -50,10 +50,9 @@ class VPNManager(object):
         self._remotes = remotes
 
         self._eipconfig = _TempEIPConfig(extra_flags, cert_path, ports)
-        self._providerconfig = _config._TempProviderConfig(domain, ca_path)
-        # signaler = None  # XXX handle signaling somehow...
-        signaler = mock_signaler
-        self._vpn = VPNProcess(remotes=remotes, signaler=signaler)
+        self._providerconfig = _TempProviderConfig(domain, ca_path)
+        signaler = None  # XXX handle signaling somehow...
+        self._vpn = VPNControl(remotes=remotes, signaler=signaler)
 
 
     def start(self):

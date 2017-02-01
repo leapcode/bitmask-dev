@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# udstelnet.py
-# Copyright (C) 2013 LEAP
+# _telnet.py
+# Copyright (C) 2013-2017 LEAP
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

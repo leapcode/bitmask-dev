@@ -29,16 +29,6 @@ import sys
 
 from itertools import chain, repeat
 
-import psutil
-try:
-    # psutil < 2.0.0
-    from psutil.error import AccessDenied as psutil_AccessDenied
-    PSUTIL_2 = False
-except ImportError:
-    # psutil >= 2.0.0
-    from psutil import AccessDenied as psutil_AccessDenied
-    PSUTIL_2 = True
-
 from twisted.internet import defer, protocol, reactor
 from twisted.internet import error as internet_error
 from twisted.internet.task import LoopingCall
@@ -90,7 +80,7 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
                              openvpn invocation
         :type openvpn_verb: int
         """
-        VPNManagement.__init__(self, signaler=signaler)
+        _management.VPNManagement.__init__(self, signaler=signaler)
 
         self._eipconfig = eipconfig
         self._providerconfig = providerconfig
