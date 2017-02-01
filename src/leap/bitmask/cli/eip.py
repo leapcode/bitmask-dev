@@ -30,11 +30,12 @@ SUBCOMMANDS:
 
    enable     Enable EIP Service
    disable    Disable EIP Service
-   check      Check whether EIP service is properly configured
-   get_cert   Get EIP Certificate from provider
    start      Start EIP
    stop       Stop EIP
    status     Display status about service
+   check      Check whether EIP service is properly configured
+   get_cert   Get EIP Certificate from provider
+   install    Install helpers (need superuser)
 
 '''.format(name=command.appname)
 

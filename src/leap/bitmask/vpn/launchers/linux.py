@@ -59,8 +59,14 @@ class LinuxVPNLauncher(VPNLauncher):
 
     class BITMASK_ROOT(object):
         def __call__(self):
-            return ("/usr/local/sbin/bitmask-root" if flags_STANDALONE else
-                    "/usr/sbin/bitmask-root")
+            _global = '/usr/sbin/bitmask-root'
+            _local = '/usr/local/sbin/bitmask-root'
+            if os.path.isfile(_global):
+                return _global
+            elif os.path.isfile(_local):
+                return _local
+            else:
+                return 'bitmask-root'
 
     class OPENVPN_BIN_PATH(object):
         def __call__(self):
