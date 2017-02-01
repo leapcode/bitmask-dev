@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from .process import OpenVPNAlreadyRunning, AlienOpenVPNAlreadyRunning
+from ._management import OpenVPNAlreadyRunning, AlienOpenVPNAlreadyRunning
 from .launcher import OpenVPNNotFoundException, VPNLauncherException
 from leap.bitmask.vpn.launchers.linux import (
     EIPNoPolkitAuthAgentAvailable, EIPNoPkexecAvailable)

@@ -1,3 +1,6 @@
+from leap.bitmask.vpn.constants import IS_MAC
+
+
 class OpenVPNAlreadyRunning(Exception):
     message = ("Another openvpn instance is already running, and could "
                "not be stopped.")
@@ -36,15 +39,7 @@ class VPNManagement(object):
         """
         self._tn = None
         self._signaler = signaler
-        self._aborted = False
-
-    @property
-    def aborted(self):
-        return self._aborted
-
-    @aborted.setter
-    def aborted(self, value):
-        self._aborted = value
+        self.aborted = False
 
     def _seek_to_eof(self):
         """
@@ -419,4 +414,3 @@ class VPNManagement(object):
         else:
             logger.warning("Unable to terminate OpenVPN")
             raise OpenVPNAlreadyRunning
-

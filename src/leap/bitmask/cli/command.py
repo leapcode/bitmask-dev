@@ -116,7 +116,11 @@ class Command(object):
         if self.print_json:
             print(json.dumps(obj, indent=2))
         elif not obj['error']:
-            return printer(obj['result'])
+            if not obj['result']:
+                print (Fore.RED + 'ERROR: malformed response, expected'
+                       ' obj["result"]' + Fore.RESET)
+            else:
+                return printer(obj['result'])
         else:
             print Fore.RED + 'ERROR:' + '%s' % obj['error'] + Fore.RESET
 

@@ -16,7 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-VPN Manager, spawned in a custom processProtocol.
+VPN Process management.
+A custom processProtocol launches the VPNProcess and connects to its management
+interface.
 """
 
 import os
@@ -48,6 +50,7 @@ from leap.bitmask.vpn.utils import get_vpn_launcher
 from leap.bitmask.vpn.launchers import linux
 from leap.bitmask.vpn.udstelnet import UDSTelnet
 from leap.bitmask.vpn import _observer
+from leap.bitmask.vpn import _management
 
 logger = Logger()
 
@@ -56,7 +59,7 @@ logger = Logger()
 OPENVPN_VERBOSITY = 1
 
 
-class VPNProcess(protocol.ProcessProtocol, VPNManager):
+class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
     """
     A ProcessProtocol class that can be used to spawn a process that will
     launch openvpn and connect to its management interface to control it

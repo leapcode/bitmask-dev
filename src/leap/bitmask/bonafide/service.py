@@ -120,7 +120,21 @@ class BonafideService(HookableService):
     def do_provider_list(self, seeded=False):
         return self._bonafide.do_provider_list(seeded)
 
-    def do_get_smtp_cert(self, username):
+    # TODO make username mandatory
+    # and move active_user to the cli machinery
+    def do_get_vpn_cert(self, username=None):
+        if not username:
+            username = self._active_user
+        if not username:
+            return defer.fail(
+                RuntimeError('No active user, cannot get VPN cert.'))
+        d = self._bonafide.do_get_vpn_cert(username)
+        d.addCallback(lambda response: (username, response))
+        return d
+
+    def do_get_smtp_cert(self, username=None):
+        if not username:
+            username = self._active_user
         if not username:
             return defer.fail(
                 RuntimeError('No username, cannot get SMTP cert.'))

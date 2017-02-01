@@ -192,9 +192,12 @@ class BonafideProtocol(object):
         d = self._sessions[full_id].get_smtp_cert()
         return d
 
-    def do_get_vpn_cert(self):
-        # FIXME to be implemented
-        pass
+    def do_get_vpn_cert(self, full_id):
+        if (full_id not in self._sessions or
+                not self._sessions[full_id].is_authenticated):
+            return fail(RuntimeError("There is no session for such user"))
+        d = self._sessions[full_id].get_vpn_cert()
+        return d
 
     def do_update_user(self):
         # FIXME to be implemented

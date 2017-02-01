@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # eip
-# Copyright (C) 2016 LEAP
+# Copyright (C) 2016-2017 LEAP
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,14 +24,18 @@ class Eip(command.Command):
     service = 'eip'
     usage = '''{name} eip <subcommand>
 
-Bitmask Encrypted Internet Service
+Bitmask Encrypted Internet Proxy Service
 
 SUBCOMMANDS:
 
-   start      Start service
-   stop       Stop service
+   enable     Enable EIP Service
+   disable    Disable EIP Service
+   check      Check whether EIP service is properly configured
+   get_cert   Get EIP Certificate from provider
+   start      Start EIP
+   stop       Stop EIP
    status     Display status about service
 
 '''.format(name=command.appname)
 
-    commands = ['start', 'stop', 'status']
+    commands = ['start', 'stop', 'status', 'check', 'get_cert']

@@ -14,11 +14,8 @@ class VPNControl(object):
     OPENVPN_VERB = "openvpn_verb"
 
     def __init__(self, **kwargs):
-        """
-        Instantiate empty attributes and get a copy
-        of a QObject containing the QSignals that we will pass along
-        to the VPNManager.
-        """
+        # TODO what the fuck this is doing that is different from
+        # the manager?
         self._vpnproc = None
         self._pollers = []
 
