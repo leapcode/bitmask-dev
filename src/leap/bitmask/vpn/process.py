@@ -38,7 +38,7 @@ from leap.bitmask.vpn.constants import IS_MAC
 from leap.bitmask.vpn.utils import first, force_eval
 from leap.bitmask.vpn.utils import get_vpn_launcher
 from leap.bitmask.vpn.launchers import linux
-from leap.bitmask.vpn.udstelnet import UDSTelnet
+from leap.bitmask.vpn._telnet import UDSTelnet
 from leap.bitmask.vpn import _observer
 from leap.bitmask.vpn import _management
 

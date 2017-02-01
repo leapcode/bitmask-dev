@@ -62,6 +62,7 @@ DOWNLOAD_URL = DOWNLOAD_BASE % VERSION
 # Entry points
 gui_launcher = 'bitmask=leap.bitmask.gui.app:start_app'
 bitmask_cli = 'bitmaskctl=leap.bitmask.cli.bitmask_cli:main'
+bitmask_helpers = 'bitmask_helpers=leap.bitmask.vpn.helpers:main'
 bitmaskd = 'bitmaskd=leap.bitmask.core.launcher:run_bitmaskd'
 
 
@@ -87,7 +88,10 @@ setup(
     include_package_data=True,
     zip_safe=False,
     entry_points={
-        'console_scripts': [gui_launcher, bitmask_cli, bitmaskd]
+        'console_scripts': [
+            gui_launcher, bitmask_cli,
+            bitmaskd,
+            bitmask_helpers]
     },
     install_requires=required,
     extras_require=extras,

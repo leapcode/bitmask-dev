@@ -224,6 +224,16 @@ class EIPCmd(SubCommand):
         d = eip.do_get_cert(provider)
         return d
 
+    @register_method('install')
+    def do_INSTALL(self, eip, *parts):
+        d = eip.do_install()
+        return d
+
+    @register_method('install')
+    def do_UNINSTALL(self, eip, *parts):
+        d = eip.do_uninstall()
+        return d
+
 
 class MailCmd(SubCommand):
 

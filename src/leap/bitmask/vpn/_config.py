@@ -1,3 +1,17 @@
+import pkg_resources
+from .constants import IS_LINUX
+
+
+if IS_LINUX:
+
+    def get_bitmask_helper_path():
+        return pkg_resources.resource_filename(
+            'leap.bitmask.vpn.helpers.linux', 'bitmask-root')
+
+    def get_bitmask_polkit_policy_path():
+        return pkg_resources.resource_filename(
+            'leap.bitmask.vpn.helpers.linux', 'se.leap.bitmask.bundle.policy')
+
 
 class _TempEIPConfig(object):
     """Current EIP code on bitmask depends on EIPConfig object, this temporary

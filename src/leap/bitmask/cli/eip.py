@@ -35,8 +35,10 @@ SUBCOMMANDS:
    status     Display status about service
    check      Check whether EIP service is properly configured
    get_cert   Get EIP Certificate from provider
-   install    Install helpers (need superuser)
+   install    Install helpers (needs root)
+   uninstall  Uninstall helpers (needs root)
 
 '''.format(name=command.appname)
 
-    commands = ['start', 'stop', 'status', 'check', 'get_cert']
+    commands = ['start', 'stop', 'status', 'check',
+                'get_cert', 'install', 'uninstall']

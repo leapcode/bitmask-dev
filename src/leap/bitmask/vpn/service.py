@@ -27,6 +27,9 @@ from twisted.internet import defer
 from leap.bitmask.hooks import HookableService
 from leap.bitmask.vpn.eip import EIPManager
 from leap.bitmask.vpn._checks import is_service_ready, get_eip_cert_path
+from leap.bitmask.vpn._config import get_bitmask_helper_path
+from leap.bitmask.vpn._config import get_bitmask_polkit_policy_path
+from leap.bitmask.vpn import privilege
 from leap.common.config import get_path_prefix
 from leap.common.files import check_and_fix_urw_only
 
@@ -81,7 +84,11 @@ class EIPService(HookableService):
         and can be started"""
         # TODO either pass a provider, or set a given provider
         _ready = is_service_ready('demo.bitmask.net')
-        return {'eip_ready': 'ok'}
+        if _ready:
+            result = 'ok'
+        else:
+            result = 'no'
+        return {'eip_ready': result}
 
     @defer.inlineCallbacks
     def do_get_cert(self, provider):
@@ -98,13 +105,21 @@ class EIPService(HookableService):
         check_and_fix_urw_only(cert_path)
         defer.returnValue({'get_cert': 'ok'})
 
+    def do_install(self):
+        ask = privilege.install_helpers()
+        return {'install': 'ok'}
+
+    def do_uninstall(self):
+        ask = privilege.uninstall_helpers()
+        return {'uninstall': 'ok'}
+
     def _setup(self, provider):
         """Set up EIPManager for a specified provider.
 
         :param provider: the provider to use, e.g. 'demo.bitmask.net'
         :type provider: str"""
 
-        # FIXME
+        # FIXME ---------------------------------------------------------
         # XXX picked manually from eip-service.json
         remotes = (
             ("198.252.153.84", "1194"),

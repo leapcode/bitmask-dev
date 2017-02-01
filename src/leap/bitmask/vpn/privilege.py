@@ -37,6 +37,14 @@ logger = Logger()
 flags_STANDALONE = False
 
 
+def install_helpers():
+    commands.getoutput('pkexec bitmask_helpers install')
+
+
+def uninstall_helpers():
+    commands.getoutput('pkexec bitmask_helpers uninstall')
+
+
 class NoPolkitAuthAgentAvailable(Exception):
     pass
 
