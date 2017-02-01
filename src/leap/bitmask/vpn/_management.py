@@ -241,7 +241,10 @@ class VPNManagement(object):
             parts = stripped.split(",")
             if len(parts) < 5:
                 continue
-            ts, status_step, ok, ip, remote = parts
+            try:
+                ts, status_step, ok, ip, remote, port, _, _, _ = parts
+            except ValueError:
+                ts, status_step, ok, ip, remote, port, _, _ = parts
 
             state = status_step
             if state != self._last_state:

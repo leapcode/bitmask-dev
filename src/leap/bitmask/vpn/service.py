@@ -103,11 +103,12 @@ class EIPService(HookableService):
 
         :param provider: the provider to use, e.g. 'demo.bitmask.net'
         :type provider: str"""
+
         # FIXME
         # XXX picked manually from eip-service.json
         remotes = (
-            ("198.252.153.84", "1194 "),
-            ("46.165.242.169", "1194 "),
+            ("198.252.153.84", "1194"),
+            ("46.165.242.169", "1194"),
         )
 
         prefix = os.path.join(self._basepath,
@@ -122,7 +123,6 @@ class EIPService(HookableService):
             "cipher": "AES-128-CBC",
             "keepalive": "10 30",
             "tls-cipher": "DHE-RSA-AES128-SHA",
-            "tun-ipv6": "true",
         }
 
         self._eip = EIPManager(remotes, cert_path, key_path, ca_path,

@@ -141,7 +141,7 @@ def execute():
 
     cli = BitmaskCLI(cfg)
     cli.data = ['core', 'version']
-    args = ['--verbose'] if '--verbose' in sys.argv else None
+    args = None if '--noverbose' in sys.argv else ['--verbose']
     yield cli._send(
         timeout=0.1, printer=_null_printer,
         errb=lambda: cli.start(args))

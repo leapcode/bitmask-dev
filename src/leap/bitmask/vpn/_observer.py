@@ -1,3 +1,4 @@
+from itertools import chain, repeat
 from twisted.logger import Logger
 
 logger = Logger()
@@ -70,4 +71,3 @@ class VPNObserver(object):
             "initialization_completed": sig.eip_connected
         }
         return signals.get(event.lower())
-
