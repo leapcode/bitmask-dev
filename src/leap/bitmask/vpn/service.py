@@ -65,15 +65,13 @@ class EIPService(HookableService):
         self._setup(domain)
         self._eip.start()
         self._started = True
-        return "Starting"
+        return {'result': 'started'}
 
     def stop_vpn(self):
         if self._started:
             self._eip.stop()
             self._started = False
-            return "Stopping"
-        else:
-            return "Not started"
+            return {'result': 'stopped'}
 
     def do_status(self):
         # TODO -- get status from a dedicated STATUS CLASS

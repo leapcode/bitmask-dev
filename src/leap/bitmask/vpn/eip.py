@@ -44,6 +44,7 @@ class EIPManager(object):
         print(Fore.BLUE + "Firewall: starting..." + Fore.RESET)
         fw_ok = self._firewall.start()
         if not fw_ok:
+            print(Fore.RED + "Firewall: problem!")
             return False
 
         print(Fore.GREEN + "Firewall: started" + Fore.RESET)
