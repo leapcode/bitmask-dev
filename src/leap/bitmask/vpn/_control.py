@@ -98,6 +98,10 @@ class VPNControl(object):
             return 'OFFLINE'
         return self._vpnproc.status
 
+    @property
+    def traffic_status(self):
+        return self._vpnproc.traffic_status
+
 
     def stop(self, shutdown=False, restart=False):
         """

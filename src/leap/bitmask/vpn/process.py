@@ -103,6 +103,10 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
     def status(self):
         return self._status.status
 
+    @property
+    def traffic_status(self):
+        return self._status.get_traffic_status()
+
     # processProtocol methods
 
     def connectionMade(self):

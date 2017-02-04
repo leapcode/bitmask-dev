@@ -89,6 +89,10 @@ class VPNManager(object):
     def status(self):
         return self._vpn.status
 
+    @property
+    def traffic_status(self):
+        return self._vpn.traffic_status
+
 
     def _get_management_location(self):
         """

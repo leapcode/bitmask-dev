@@ -1,7 +1,9 @@
 from itertools import chain, repeat
 from twisted.logger import Logger
+from ._human import bytes2human
 
 logger = Logger()
+
 
 
 # TODO implement a state machine in this class
@@ -49,20 +51,18 @@ class VPNStatus(object):
         status, errcode = self._status_codes(event)
         self.set_status(status, errcode)
 
-
     def set_status(self, status, errcode):
         self.status = status
         self.errcode = errcode
 
     def set_traffic_status(self, status):
-        down, up = status
+        up, down = status
         self._traffic_up = up
         self._traffic_down = down
 
     def get_traffic_status(self):
-        # XXX return Human readable too
-        return {'down': self._traffic_down,
-                'up': self._traffic_up}
+        return {'down': bytes2human(self._traffic_down),
+                'up': bytes2human(self._traffic_up)}
 
     def _status_codes(self, event):
         # TODO check good transitions

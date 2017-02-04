@@ -265,7 +265,11 @@ class VPNManagement(object):
             if len(parts) < 2:
                 continue
 
-            text, value = parts
+            try:
+                text, value = parts
+            except ValueError:
+                logger.debug("Could not parse %s" % parts)
+                return
             # text can be:
             #   "TUN/TAP read bytes"
             #   "TUN/TAP write bytes"
