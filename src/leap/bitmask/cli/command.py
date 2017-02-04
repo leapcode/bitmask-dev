@@ -44,7 +44,11 @@ def default_dict_printer(result):
     for key, value in result.items():
         if value is None:
             value = str(value)
-        print(Fore.RESET + key.ljust(10) + Fore.GREEN + value + Fore.RESET)
+        if value in ('OFF', 'OFFLINE', 'ABORTED'):
+            color = Fore.RED
+        else:
+            color = Fore.GREEN
+        print(Fore.RESET + key.ljust(10) + color + value + Fore.RESET)
 
 
 class Command(object):

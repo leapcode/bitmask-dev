@@ -19,7 +19,6 @@
 Common utils
 """
 
-import os
 
 def force_eval(items):
     """

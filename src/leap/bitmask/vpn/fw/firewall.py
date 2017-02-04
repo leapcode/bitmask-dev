@@ -13,7 +13,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# alng with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 Firewall Manager
@@ -44,6 +44,7 @@ class FirewallManager(object):
         :param remotes: the gateway(s) that we will allow
         :type remotes: list
         """
+        self.status = 'OFF'
         self._remotes = remotes
 
     def start(self, restart=False):
@@ -65,7 +66,13 @@ class FirewallManager(object):
 
         # FIXME -- use a processprotocol
         exitCode = subprocess.call(cmd + gateways)
-        return True if exitCode is 0 else False
+
+        if exitCode == 0:
+            self.status = 'ON'
+            return True
+        else:
+            self.status = 'OFF'
+            return False
 
     # def tear_down_firewall(self):
     def stop(self):
@@ -78,9 +85,13 @@ class FirewallManager(object):
 
         exitCode = subprocess.call(["pkexec", self.BITMASK_ROOT,
                                     "firewall", "stop"])
-        return True if exitCode is 0 else False
+        if exitCode == 0:
+            self.status = 'OFF'
+            return True
+        else:
+            self.status = 'ON'
+            return False
 
-    # def is_fw_down(self):
     def is_up(self):
         """
         Return whether the firewall is up or not.

@@ -17,6 +17,7 @@
 
 """
 VPN Process management.
+
 A custom processProtocol launches the VPNProcess and connects to its management
 interface.
 """
@@ -39,7 +40,7 @@ from leap.bitmask.vpn.utils import first, force_eval
 from leap.bitmask.vpn.utils import get_vpn_launcher
 from leap.bitmask.vpn.launchers import linux
 from leap.bitmask.vpn._telnet import UDSTelnet
-from leap.bitmask.vpn import _observer
+from leap.bitmask.vpn import _status
 from leap.bitmask.vpn import _management
 
 logger = Logger()
@@ -57,7 +58,7 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
     """
 
     def __init__(self, eipconfig, providerconfig, socket_host, socket_port,
-                 signaler, openvpn_verb, remotes):
+                 openvpn_verb, remotes):
         """
         :param eipconfig: eip configuration object
         :type eipconfig: EIPConfig
@@ -72,15 +73,11 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
                             socket, or port otherwise
         :type socket_port: str
 
-        :param signaler: Signaler object used to receive notifications to the
-                         backend
-        :type signaler: backend.Signaler
-
         :param openvpn_verb: the desired level of verbosity in the
                              openvpn invocation
         :type openvpn_verb: int
         """
-        _management.VPNManagement.__init__(self, signaler=signaler)
+        _management.VPNManagement.__init__(self)
 
         self._eipconfig = eipconfig
         self._providerconfig = providerconfig
@@ -97,10 +94,14 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         # the parameter around.
         self._openvpn_verb = openvpn_verb
 
-        self._vpn_observer = _observer.VPNObserver(signaler)
+        self._status = _status.VPNStatus()
         self.is_restart = False
 
         self._remotes = remotes
+
+    @property
+    def status(self):
+        return self._status.status
 
     # processProtocol methods
 
@@ -125,20 +126,27 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         # truncate the newline
         line = data[:-1]
         logger.info(line)
-        self._vpn_observer.watch(line)
+        self._status.watch(line)
 
-    def processExited(self, reason):
+    def processExited(self, failure):
         """
         Called when the child process exits.
 
         .. seeAlso: `http://twistedmatrix.com/documents/13.0.0/api/twisted.internet.protocol.ProcessProtocol.html` # noqa
         """
-        exit_code = reason.value.exitCode
-        if isinstance(exit_code, int):
-            logger.debug("processExited, status %d" % (exit_code,))
-        if self._signaler is not None:
-            self._signaler.signal(
-                self._signaler.eip_process_finished, exit_code)
+        err = failure.trap(
+            internet_error.ProcessDone, internet_error.ProcessTerminated)
+
+        if err == internet_error.ProcessDone:
+            status, errmsg = 'OFFLINE', None
+        elif err == internet_error.ProcessTerminated:
+            status, errmsg = 'ABORTED', failure.value.exitCode
+            if errmsg:
+                logger.debug("processExited, status %d" % (errmsg,))
+            else:
+                logger.warn('%r' % failure.value)
+
+        self._status.set_status(status, errmsg)
         self._alive = False
 
     def processEnded(self, reason):

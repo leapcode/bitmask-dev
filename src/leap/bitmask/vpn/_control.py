@@ -1,5 +1,5 @@
-
 import os
+import subprocess
 
 from twisted.internet.task import LoopingCall
 from twisted.internet import reactor
@@ -18,7 +18,7 @@ POLL_TIME = 2.5 if IS_MAC else 1.0
 
 class VPNControl(object):
     """
-    This is the high-level object that the service is dealing with.
+    This is the high-level object that the service knows about.
     It exposes the start and terminate methods.
 
     On start, it spawns a VPNProcess instance that will use a vpnlauncher
@@ -37,10 +37,8 @@ class VPNControl(object):
         self._vpnproc = None
         self._pollers = []
 
-        self._signaler = kwargs['signaler']
         # self._openvpn_verb = flags.OPENVPN_VERBOSITY
         self._openvpn_verb = None
-
         self._user_stopped = False
         self._remotes = kwargs['remotes']
 
@@ -58,7 +56,6 @@ class VPNControl(object):
         self._user_stopped = False
         self._stop_pollers()
         kwargs['openvpn_verb'] = self._openvpn_verb
-        kwargs['signaler'] = self._signaler
         kwargs['remotes'] = self._remotes
 
         # start the main vpn subprocess
@@ -72,15 +69,7 @@ class VPNControl(object):
         # errors here are catched, since we currently handle them
         # at the frontend layer. This *should* move to be handled entirely
         # in the backend.
-        # exception is indeed technically catched in backend, then converted
-        # into a signal, that is catched in the eip_status widget in the
-        # frontend, and converted into a signal to abort the connection that is
-        # sent to the backend again.
 
-        # the whole exception catching should be done in the backend, without
-        # the ping-pong to the frontend, and without adding any logical checks
-        # in the frontend. We should just communicate UI changes to frontend,
-        # and abstract us away from anything else.
         try:
             cmd = vpnproc.getCommand()
         except Exception as e:
@@ -103,9 +92,14 @@ class VPNControl(object):
         self._pollers.extend(poll_list)
         self._start_pollers()
 
+    @property
+    def status(self):
+        if not self._vpnproc:
+            return 'OFFLINE'
+        return self._vpnproc.status
 
-    # TODO -- rename to stop ??
-    def terminate(self, shutdown=False, restart=False):
+
+    def stop(self, shutdown=False, restart=False):
         """
         Stops the openvpn subprocess.
 
@@ -136,20 +130,6 @@ class VPNControl(object):
         else:
             logger.debug("VPN is not running.")
 
-
-    # TODO should this be public??
-    def killit(self):
-        """
-        Sends a kill signal to the process.
-        """
-        self._stop_pollers()
-        if self._vpnproc is None:
-            logger.debug("There's no vpn process running to kill.")
-        else:
-            self._vpnproc.aborted = True
-            self._vpnproc.killProcess()
-
-
     def bitmask_root_vpn_down(self):
         """
         Bring openvpn down using the privileged wrapper.
@@ -163,6 +143,18 @@ class VPNControl(object):
         exitCode = subprocess.call(["pkexec",
                                     BM_ROOT, "openvpn", "stop"])
         return True if exitCode is 0 else False
+
+    def _killit(self):
+        """
+        Sends a kill signal to the process.
+        """
+        self._stop_pollers()
+        if self._vpnproc is None:
+            logger.debug("There's no vpn process running to kill.")
+        else:
+            self._vpnproc.aborted = True
+            self._vpnproc.killProcess()
+
 
 
     def _kill_if_left_alive(self, tries=0):
@@ -188,7 +180,7 @@ class VPNControl(object):
         # after running out of patience, we try a killProcess
         logger.debug("Process did not died. Sending a SIGKILL.")
         try:
-            self.killit()
+            self._killit()
         except OSError:
             logger.error("Could not kill process!")
 

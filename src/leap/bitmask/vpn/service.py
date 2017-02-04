@@ -45,6 +45,7 @@ class EIPService(HookableService):
         super(EIPService, self).__init__()
 
         self._started = False
+        self._eip = None
 
         if basepath is None:
             self._basepath = get_path_prefix()
@@ -74,8 +75,11 @@ class EIPService(HookableService):
             return {'result': 'stopped'}
 
     def do_status(self):
-        # TODO -- get status from a dedicated STATUS CLASS
-        return {'result': 'running'}
+        if self._eip:
+            status = self._eip.get_status()
+        else:
+            status = {'EIP': 'OFF'}
+        return status
 
     def do_check(self):
         """Check whether the EIP Service is properly configured,
@@ -100,7 +104,7 @@ class EIPService(HookableService):
             os.makedirs(cert_dir, mode=0700)
         with open(cert_path, 'w') as outf:
             outf.write(cert_str)
-        check_and_fix_urw_only(cert_path)
+        heck_and_fix_urw_only(cert_path)
         defer.returnValue({'get_cert': 'ok'})
 
     def do_install(self):

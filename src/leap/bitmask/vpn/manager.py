@@ -33,8 +33,7 @@ from .constants import IS_WIN
 
 class VPNManager(object):
 
-    def __init__(self, remotes, cert_path, key_path, ca_path, extra_flags,
-                 mock_signaler):
+    def __init__(self, remotes, cert_path, key_path, ca_path, extra_flags):
         """
         Initialize the VPNManager object.
 
@@ -51,8 +50,7 @@ class VPNManager(object):
 
         self._eipconfig = _TempEIPConfig(extra_flags, cert_path, ports)
         self._providerconfig = _TempProviderConfig(domain, ca_path)
-        signaler = None  # XXX handle signaling somehow...
-        self._vpn = VPNControl(remotes=remotes, signaler=signaler)
+        self._vpn = VPNControl(remotes=remotes)
 
 
     def start(self):
@@ -82,34 +80,15 @@ class VPNManager(object):
         :returns: True if succeeded, False otherwise.
         :rtype: bool
         """
-        self._vpn.terminate(False, False)  # TODO review params
-
         # TODO how to return False if this fails
+        self._vpn.stop(False, False)  # TODO review params
         return True
 
-    def is_up(self):
-        """
-        Return whether the VPN is up or not.
 
-        :rtype: bool
-        """
-        pass
+    @property
+    def status(self):
+        return self._vpn.status
 
-    def kill(self):
-        """
-        Sends a kill signal to the openvpn process.
-        """
-        pass
-        # self._vpn.killit()
-
-    def terminate(self):
-        """
-        Stop the openvpn subprocess.
-
-        Attempts to send a SIGTERM first, and after a timeout it sends a
-        SIGKILL.
-        """
-        pass
 
     def _get_management_location(self):
         """

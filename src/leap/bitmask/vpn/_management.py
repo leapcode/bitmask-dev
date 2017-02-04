@@ -45,16 +45,8 @@ class VPNManagement(object):
     # Timers, in secs
     CONNECTION_RETRY_TIME = 1
 
-    def __init__(self, signaler=None):
-        """
-        Initializes the VPNManager.
-
-        :param signaler: Signaler object used to send notifications to the
-                         backend
-        :type signaler: backend.Signaler
-        """
+    def __init__(self):
         self._tn = None
-        self._signaler = signaler
         self.aborted = False
 
     def _seek_to_eof(self):
@@ -227,8 +219,8 @@ class VPNManagement(object):
 
     def _parse_state_and_notify(self, output):
         """
-        Parses the output of the state command and emits state_changed
-        signal when the state changes.
+        Parses the output of the state command, and trigger a state transition
+        when the state changes.
 
         :param output: list of lines that the state command printed as
                        its output
@@ -248,9 +240,9 @@ class VPNManagement(object):
 
             state = status_step
             if state != self._last_state:
-                if self._signaler is not None:
-                    self._signaler.signal(
-                        self._signaler.eip_state_changed, state)
+                # XXX this status object is the vpn status observer
+                if self._status:
+                    self._status.set_status(state, None)
                 self._last_state = state
 
     def _parse_status_and_notify(self, output):
@@ -286,12 +278,12 @@ class VPNManagement(object):
             elif text == "TUN/TAP write bytes":
                 tun_tap_write = value  # upload
 
-        status = (tun_tap_read, tun_tap_write)
-        if status != self._last_status:
-            if self._signaler is not None:
-                self._signaler.signal(
-                    self._signaler.eip_status_changed, status)
-            self._last_status = status
+        traffic_status = (tun_tap_read, tun_tap_write)
+        if traffic_status != self._last_status:
+            # XXX this status object is the vpn status observer
+            if self._status:
+                self._status.set_traffic_status(traffic_status)
+            self._last_status = traffic_status
 
     def get_state(self):
         """

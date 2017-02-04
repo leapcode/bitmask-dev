@@ -20,19 +20,15 @@ from colorama import Fore
 
 from leap.bitmask.vpn.manager import VPNManager
 from leap.bitmask.vpn.fw.firewall import FirewallManager
-from leap.bitmask.vpn.status import StatusQueue
-from leap.bitmask.vpn.zmq_pub import ZMQPublisher
 
 
 class EIPManager(object):
 
     def __init__(self, remotes, cert, key, ca, flags):
 
+        self._vpn = VPNManager(
+            remotes, cert, key, ca, flags)
         self._firewall = FirewallManager(remotes)
-        self._status_queue = StatusQueue()
-        self._pub = ZMQPublisher(self._status_queue)
-        self._vpn = VPNManager(remotes, cert, key, ca, flags,
-                               self._status_queue)
 
     def start(self):
         """
@@ -40,7 +36,6 @@ class EIPManager(object):
 
         This may raise exceptions, see errors.py
         """
-        # self._pub.start()
         print(Fore.BLUE + "Firewall: starting..." + Fore.RESET)
         fw_ok = self._firewall.start()
         if not fw_ok:
@@ -59,10 +54,6 @@ class EIPManager(object):
         print(Fore.GREEN + "VPN: started" + Fore.RESET)
 
     def stop(self):
-        """
-        Stop EIP service
-        """
-        # self._pub.stop()
         print(Fore.BLUE + "Firewall: stopping..." + Fore.RESET)
         fw_ok = self._firewall.stop()
 
@@ -81,8 +72,10 @@ class EIPManager(object):
         print(Fore.GREEN + "VPN: stopped." + Fore.RESET)
         return True
 
-    def get_state(self):
-        pass
-
     def get_status(self):
-        pass
+        vpn_status = self._vpn.status
+        fw_status = self._firewall.status
+        result = {'EIP': vpn_status,
+                  'firewall': fw_status}
+        return result
+
