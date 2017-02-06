@@ -261,13 +261,6 @@ class IncomingMail(Service):
                        str(num_mails), str(fetched_ts))
             return doclist
 
-    def _signal_unread_to_ui(self, *args):
-        """
-        Sends unread event to ui.
-        """
-        emit_async(catalog.MAIL_UNREAD_MESSAGES, self._userid,
-                   str(self._inbox_collection.count_unseen()))
-
     def _process_incoming_mail(self, doclist):
         """
         Iterates through the doclist, checks if each doc
