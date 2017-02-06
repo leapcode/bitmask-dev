@@ -104,7 +104,7 @@ class EIPService(HookableService):
             os.makedirs(cert_dir, mode=0700)
         with open(cert_path, 'w') as outf:
             outf.write(cert_str)
-        heck_and_fix_urw_only(cert_path)
+        check_and_fix_urw_only(cert_path)
         defer.returnValue({'get_cert': 'ok'})
 
     def do_install(self):
