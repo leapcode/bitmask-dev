@@ -267,56 +267,72 @@ class KeysCmd(SubCommand):
 
     @register_method("[dict]")
     def do_LIST(self, service, *parts, **kw):
+        uid = parts[2]
+
         private = False
         if parts[-1] == 'private':
             private = True
 
-        bonafide = kw['bonafide']
-        d = bonafide.do_get_active_user()
+        d = defer.succeed(uid)
+        if not uid:
+            d = self._get_active_user(kw['bonafide'])
         d.addCallback(service.do_list_keys, private)
         return d
 
     @register_method('dict')
     def do_EXPORT(self, service, *parts, **kw):
-        if len(parts) < 3:
-            return defer.fail("An email address is needed")
-        address = parts[2]
+        if len(parts) < 4:
+            raise ValueError("An email address is needed")
+        uid = parts[2]
+        address = parts[3]
 
         private = False
         if parts[-1] == 'private':
             private = True
 
-        bonafide = kw['bonafide']
-        d = bonafide.do_get_active_user()
+        d = defer.succeed(uid)
+        if not uid:
+            d = self._get_active_user(kw['bonafide'])
         d.addCallback(service.do_export, address, private)
         return d
 
     @register_method('dict')
+    @defer.inlineCallbacks
     def do_INSERT(self, service, *parts, **kw):
-        if len(parts) < 5:
-            return defer.fail("An email address is needed")
-        address = parts[2]
-        validation = parts[3]
-        rawkey = parts[4]
+        if len(parts) < 6:
+            raise ValueError("An email address is needed")
+        uid = parts[2]
+        address = parts[3]
+        validation = parts[4]
+        rawkey = parts[5]
 
-        bonafide = kw['bonafide']
-        d = bonafide.do_get_active_user()
+        d = defer.succeed(uid)
+        if not uid:
+            d = self._get_active_user(kw['bonafide'])
         d.addCallback(service.do_insert, address, rawkey, validation)
         return d
 
     @register_method('str')
+    @defer.inlineCallbacks
     def do_DELETE(self, service, *parts, **kw):
-        if len(parts) < 3:
-            return defer.fail("An email address is needed")
-        address = parts[2]
+        if len(parts) < 4:
+            raise ValueError("An email address is needed")
+        uid = parts[2]
+        address = parts[3]
 
         private = False
         if parts[-1] == 'private':
             private = True
 
-        bonafide = kw['bonafide']
-        d = bonafide.do_get_active_user()
+        d = defer.succeed(uid)
+        if not uid:
+            d = self._get_active_user(kw['bonafide'])
         d.addCallback(service.do_delete, address, private)
+        return d
+
+    def _get_active_user(self, bonafide):
+        d = bonafide.do_get_active_user()
+        d.addCallback(lambda active: active['user'])
         return d
 
 

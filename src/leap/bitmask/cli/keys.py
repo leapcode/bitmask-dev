@@ -44,11 +44,13 @@ SUBCOMMANDS:
         parser = argparse.ArgumentParser(
             description='Bitmask list keys',
             prog='%s %s %s' % tuple(sys.argv[:3]))
+        parser.add_argument('-u', '--userid', default='',
+                            help='Select the userid of the keyring')
         parser.add_argument('--private', action='store_true',
                             help='Use private keys (by default uses public)')
         subargs = parser.parse_args(raw_args)
 
-        self.data += ['list']
+        self.data += ['list', subargs.uid]
         if subargs.private:
             self.data += ['private']
         else:
@@ -60,12 +62,14 @@ SUBCOMMANDS:
         parser = argparse.ArgumentParser(
             description='Bitmask export key',
             prog='%s %s %s' % tuple(sys.argv[:3]))
+        parser.add_argument('-u', '--userid', default='',
+                            help='Select the userid of the keyring')
         parser.add_argument('--private', action='store_true',
                             help='Use private keys (by default uses public)')
         parser.add_argument('address', nargs=1,
                             help='email address of the key')
         subargs = parser.parse_args(raw_args)
-        self.data += ['export', subargs.address[0]]
+        self.data += ['export', subargs.uid, subargs.address[0]]
 
         return self._send(self._print_key)
 
@@ -73,6 +77,8 @@ SUBCOMMANDS:
         parser = argparse.ArgumentParser(
             description='Bitmask import key',
             prog='%s %s %s' % tuple(sys.argv[:3]))
+        parser.add_argument('-u', '--userid', default='',
+                            help='Select the userid of the keyring')
         parser.add_argument('--validation', choices=list(ValidationLevels),
                             default='Fingerprint',
                             help='Validation level for the key')
@@ -84,8 +90,8 @@ SUBCOMMANDS:
 
         with open(subargs.file[0], 'r') as keyfile:
             rawkey = keyfile.read()
-        self.data += ['insert', subargs.address[0], subargs.validation,
-                      rawkey]
+        self.data += ['insert', subargs.uid, subargs.address[0],
+                      subargs.validation, rawkey]
 
         return self._send(self._print_key)
 
@@ -93,12 +99,14 @@ SUBCOMMANDS:
         parser = argparse.ArgumentParser(
             description='Bitmask delete key',
             prog='%s %s %s' % tuple(sys.argv[:3]))
+        parser.add_argument('-u', '--userid', default='',
+                            help='Select the userid of the keyring')
         parser.add_argument('--private', action='store_true',
                             help='Use private keys (by default uses public)')
         parser.add_argument('address', nargs=1,
                             help='email address of the key')
         subargs = parser.parse_args(raw_args)
-        self.data += ['delete', subargs.address[0]]
+        self.data += ['delete', subargs.uid, subargs.address[0]]
 
         return self._send()
 

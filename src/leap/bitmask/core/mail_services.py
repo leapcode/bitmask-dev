@@ -397,19 +397,31 @@ class KeymanagerService(HookableService):
     # commands
 
     def do_list_keys(self, userid, private=False):
-        km = self._container.get_instance(userid['user'])
+        km = self._container.get_instance(userid)
+        if km is None:
+            return defer.fail(ValueError("User " + userid + " has no active "
+                                         "keymanager"))
+
         d = km.get_all_keys(private=private)
         d.addCallback(lambda keys: [dict(key) for key in keys])
         return d
 
     def do_export(self, userid, address, private=False):
-        km = self._container.get_instance(userid['user'])
+        km = self._container.get_instance(userid)
+        if km is None:
+            return defer.fail(ValueError("User " + userid + " has no active "
+                                         "keymanager"))
+
         d = km.get_key(address, private=private, fetch_remote=False)
         d.addCallback(lambda key: dict(key))
         return d
 
     def do_insert(self, userid, address, rawkey, validation='Fingerprint'):
-        km = self._container.get_instance(userid['user'])
+        km = self._container.get_instance(userid)
+        if km is None:
+            return defer.fail(ValueError("User " + userid + " has no active "
+                                         "keymanager"))
+
         validation = ValidationLevels.get(validation)
         d = km.put_raw_key(rawkey, address, validation=validation)
         d.addCallback(lambda _: km.get_key(address, fetch_remote=False))
@@ -418,7 +430,10 @@ class KeymanagerService(HookableService):
 
     @defer.inlineCallbacks
     def do_delete(self, userid, address, private=False):
-        km = self._container.get_instance(userid['user'])
+        km = self._container.get_instance(userid)
+        if km is None:
+            raise ValueError("User " + userid + " has no active keymanager")
+
         key = yield km.get_key(address, private=private, fetch_remote=False)
         km.delete_key(key)
         defer.returnValue(key.fingerprint)

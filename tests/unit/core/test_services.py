@@ -9,25 +9,25 @@ class KeymanagerServiceTestCase(unittest.TestCase):
     @defer.inlineCallbacks
     def test_keymanager_service_list_call(self):
         kms = keymanagerServiceFactory()
-        yield kms.do_list_keys({'user': 'user'})
+        yield kms.do_list_keys('user')
         assert kms._keymanager.loopback == ['get_all_keys']
 
     @defer.inlineCallbacks
     def test_keymanager_service_export_call(self):
         kms = keymanagerServiceFactory()
-        yield kms.do_export({'user': 'user'}, 'foo@bar')
+        yield kms.do_export('user', 'foo@bar')
         assert kms._keymanager.loopback == ['get_key']
 
     @defer.inlineCallbacks
     def test_keymanager_service_insert_call(self):
         kms = keymanagerServiceFactory()
-        yield kms.do_insert({'user': 'user'}, 'foo@bar', 'aaaa')
+        yield kms.do_insert('user', 'foo@bar', 'aaaa')
         assert kms._keymanager.loopback == ['put_raw_key', 'get_key']
 
     @defer.inlineCallbacks
     def test_keymanager_service_delete_call(self):
         kms = keymanagerServiceFactory()
-        yield kms.do_delete({'user': 'user'}, 'foo@bar')
+        yield kms.do_delete('user', 'foo@bar')
         assert kms._keymanager.loopback == ['get_key', 'delete_key']
 
 

@@ -265,31 +265,34 @@ var bitmask = function(){
             /**
              * List all the keys in the keyring
              *
+             * @param {string} uid The uid of the keyring.
              * @param {boolean} priv Should list private keys?
              *                       If it's not provided the public ones will be listed.
              *
              * @return {Promise<[KeyObject]>} List of keys in the keyring
              */
-            list: function(priv) {
-                return call(['keys', 'list', private_str(priv)]);
+            list: function(uid, priv) {
+                return call(['keys', 'list', uid, private_str(priv)]);
             },
 
             /**
              * Export key
              *
+             * @param {string} uid The uid of the keyring.
              * @param {string} address The email address of the key
              * @param {boolean} priv Should get the private key?
              *                       If it's not provided the public one will be fetched.
              *
              * @return {Promise<KeyObject>} The key
              */
-            exprt: function(address, priv) {
-                return call(['keys', 'export', address, private_str(priv)]);
+            exprt: function(uid, address, priv) {
+                return call(['keys', 'export', uid, address, private_str(priv)]);
             },
 
             /**
              * Insert key
              *
+             * @param {string} uid The uid of the keyring.
              * @param {string} address The email address of the key
              * @param {string} rawkey The key material
              * @param {string} validation The validation level of the key
@@ -297,24 +300,25 @@ var bitmask = function(){
              *
              * @return {Promise<KeyObject>} The key
              */
-            insert: function(address, rawkey, validation) {
+            insert: function(uid, address, rawkey, validation) {
                 if (typeof validation !== 'string') {
                     validation = 'Fingerprint';
                 }
-                return call(['keys', 'insert', address, validation, rawkey]);
+                return call(['keys', 'insert', uid, address, validation, rawkey]);
             },
 
             /**
              * Delete a key
              *
+             * @param {string} uid The uid of the keyring.
              * @param {string} address The email address of the key
              * @param {boolean} priv Should get the private key?
              *                       If it's not provided the public one will be deleted.
              *
              * @return {Promise<KeyObject>} The key
              */
-            del: function(address, priv) {
-                return call(['keys', 'delete', address, private_str(priv)]);
+            del: function(uid, address, priv) {
+                return call(['keys', 'delete', uid, address, private_str(priv)]);
             }
         },
 
