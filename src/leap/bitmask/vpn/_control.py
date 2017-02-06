@@ -28,38 +28,34 @@ class VPNControl(object):
     """
     TERMINATE_MAXTRIES = 10
     TERMINATE_WAIT = 1  # secs
+    RESTART_WAIT = 2  # secs
 
     OPENVPN_VERB = "openvpn_verb"
 
-    def __init__(self, **kwargs):
-        # TODO what the fuck this is doing that is different from
-        # the manager?
+    def __init__(self, remotes, eipconfig,
+                 providerconfig, socket_host, socket_port):
         self._vpnproc = None
         self._pollers = []
 
-        # self._openvpn_verb = flags.OPENVPN_VERBOSITY
         self._openvpn_verb = None
         self._user_stopped = False
-        self._remotes = kwargs['remotes']
 
-    def start(self, *args, **kwargs):
-        """
-        Starts the openvpn subprocess.
+        self._remotes = remotes
+        self._eipconfig = eipconfig
+        self._providerconfig = providerconfig
+        self._host = socket_host
+        self._port = socket_port
 
-        :param args: args to be passed to the VPNProcess
-        :type args: tuple
-
-        :param kwargs: kwargs to be passed to the VPNProcess
-        :type kwargs: dict
-        """
+    def start(self):
         logger.debug('VPN: start')
+
         self._user_stopped = False
         self._stop_pollers()
-        kwargs['openvpn_verb'] = self._openvpn_verb
-        kwargs['remotes'] = self._remotes
 
-        # start the main vpn subprocess
-        vpnproc = VPNProcess(*args, **kwargs)
+        vpnproc = VPNProcess(
+            self._eipconfig, self._providerconfig, self._host,
+            self._port, openvpn_verb=7, remotes=self._remotes,
+            restartfun=self.restart)
 
         if vpnproc.get_openvpn_process():
             logger.info("Another vpn process is running. Will try to stop it.")
@@ -91,17 +87,12 @@ class VPNControl(object):
                      LoopingCall(vpnproc.pollState)]
         self._pollers.extend(poll_list)
         self._start_pollers()
+        return True
 
-    @property
-    def status(self):
-        if not self._vpnproc:
-            return 'OFFLINE'
-        return self._vpnproc.status
-
-    @property
-    def traffic_status(self):
-        return self._vpnproc.traffic_status
-
+    def restart(self):
+        self.stop(shutdown=False, restart=True)
+        reactor.callLater(
+            self.RESTART_WAIT, self.start)
 
     def stop(self, shutdown=False, restart=False):
         """
@@ -122,7 +113,7 @@ class VPNControl(object):
             # We assume that the only valid stops are initiated
             # by an user action, not hard restarts
             self._user_stopped = not restart
-            self._vpnproc.is_restart = restart
+            self._vpnproc.restarting = restart
 
             self._sentterm = True
             self._vpnproc.terminate_openvpn(shutdown=shutdown)
@@ -134,6 +125,10 @@ class VPNControl(object):
         else:
             logger.debug("VPN is not running.")
 
+        return True
+
+
+    # FIXME -- is this used from somewhere???
     def bitmask_root_vpn_down(self):
         """
         Bring openvpn down using the privileged wrapper.
@@ -148,6 +143,16 @@ class VPNControl(object):
                                     BM_ROOT, "openvpn", "stop"])
         return True if exitCode is 0 else False
 
+    @property
+    def status(self):
+        if not self._vpnproc:
+            return 'OFFLINE'
+        return self._vpnproc.status
+
+    @property
+    def traffic_status(self):
+        return self._vpnproc.traffic_status
+
     def _killit(self):
         """
         Sends a kill signal to the process.
@@ -158,8 +163,6 @@ class VPNControl(object):
         else:
             self._vpnproc.aborted = True
             self._vpnproc.killProcess()
-
-
 
     def _kill_if_left_alive(self, tries=0):
         """

@@ -42,36 +42,33 @@ class VPNManager(object):
         :type remotes: tuple of tuple(str, int)
         """
         # TODO we can set all the needed ports, gateways and paths in here
-        ports = []
-
-        # this seems to be obsolete, needed to get gateways
-        domain = "demo.bitmask.net"
-        self._remotes = remotes
-
-        self._eipconfig = _TempEIPConfig(extra_flags, cert_path, ports)
-        self._providerconfig = _TempProviderConfig(domain, ca_path)
-        self._vpn = VPNControl(remotes=remotes)
-
-
-    def start(self):
-        """
-        Start the VPN process.
-
-        VPN needs:
-        * paths for: cert, key, ca
-        * gateway, port
-        * domain name
-        """
-        host, port = self._get_management_location()
-
         # TODO need gateways here
         # sorting them doesn't belong in here
         # gateways = ((ip1, portA), (ip2, portB), ...)
 
-        self._vpn.start(eipconfig=self._eipconfig,
-                        providerconfig=self._providerconfig,
-                        socket_host=host, socket_port=port)
-        return True
+        ports = []
+
+        # TODO fix hardcoding
+        domain = "demo.bitmask.net"
+
+        self._remotes = remotes
+
+        self._eipconfig = _TempEIPConfig(extra_flags, cert_path, ports)
+        self._providerconfig = _TempProviderConfig(domain, ca_path)
+
+        host, port = self._get_management_location()
+        self._vpn = VPNControl(remotes=remotes,
+                               eipconfig=self._eipconfig,
+                               providerconfig=self._providerconfig,
+                               socket_host=host, socket_port=port)
+
+    def start(self):
+        """
+        Start the VPN process.
+        """
+        result = self._vpn.start()
+        print "RESULT START --->", result
+        return result
 
     def stop(self):
         """
@@ -81,8 +78,8 @@ class VPNManager(object):
         :rtype: bool
         """
         # TODO how to return False if this fails
-        self._vpn.stop(False, False)  # TODO review params
-        return True
+        result = self._vpn.stop(False, False)  # TODO review params
+        return result
 
 
     @property

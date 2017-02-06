@@ -57,8 +57,10 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
     programmatically.
     """
 
+    # TODO do we really need the eipconfig/providerconfig objects in here???
+
     def __init__(self, eipconfig, providerconfig, socket_host, socket_port,
-                 openvpn_verb, remotes):
+                 openvpn_verb, remotes, restartfun=None):
         """
         :param eipconfig: eip configuration object
         :type eipconfig: EIPConfig
@@ -93,9 +95,10 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         # XXX use flags, maybe, instead of passing
         # the parameter around.
         self._openvpn_verb = openvpn_verb
+        self._restartfun = restartfun
 
         self._status = _status.VPNStatus()
-        self.is_restart = False
+        self.restarting = False
 
         self._remotes = remotes
 
@@ -129,6 +132,8 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         """
         # truncate the newline
         line = data[:-1]
+        if 'SIGTERM[soft,ping-restart]' in line:
+            self.restarting = True
         logger.info(line)
         self._status.watch(line)
 
@@ -163,6 +168,9 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         exit_code = reason.value.exitCode
         if isinstance(exit_code, int):
             logger.debug("processEnded, status %d" % (exit_code,))
+            if self.restarting:
+                logger.debug('Restarting VPN process')
+                reactor.callLater(2, self._restartfun)
 
     # polling
 

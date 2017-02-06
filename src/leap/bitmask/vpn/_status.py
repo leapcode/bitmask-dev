@@ -20,8 +20,6 @@ class VPNStatus(object):
             'Network is unreachable (code=101)',),
         'PROCESS_RESTART_TLS': (
             "SIGTERM[soft,tls-error]",),
-        'PROCESS_RESTART_PING': (
-            "SIGTERM[soft,ping-restart]",),
         'INITIALIZATION_COMPLETED': (
             "Initialization Sequence Completed",),
     }
@@ -71,7 +69,6 @@ class VPNStatus(object):
         _table = {
             "network_unreachable": ('OFFLINE', 'network unreachable'),
             "process_restart_tls": ('RESTARTING', 'restart tls'),
-            "process_restart_ping": ('CONNECTING', None),
             "initialization_completed": ('ONLINE', None)
         }
         return _table.get(event.lower())

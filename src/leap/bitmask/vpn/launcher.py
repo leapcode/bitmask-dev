@@ -262,9 +262,13 @@ class VPNLauncher(object):
             '--ca', providerconfig.get_ca_cert_path()
         ]
 
-        #args += [
-        #    '--ping', '10',
-        #    '--ping-restart', '30']
+        args += [
+            '--ping', '5',
+            '--ping-restart', '10']
+
+        args += [
+                '--persist-key',
+                '--persist-local-ip', '--persist-remote-ip']
 
         command_and_args = [openvpn_path] + args
         return command_and_args
