@@ -46,10 +46,6 @@ class EIPNoPkexecAvailable(VPNLauncherException):
     pass
 
 
-SYSTEM_CONFIG = "/etc/leap"
-leapfile = lambda f: "%s/%s" % (SYSTEM_CONFIG, f)
-
-
 class LinuxVPNLauncher(VPNLauncher):
 
     # The following classes depend on force_eval to be called against

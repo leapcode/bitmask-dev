@@ -5,7 +5,6 @@ from ._human import bytes2human
 logger = Logger()
 
 
-
 # TODO implement a state machine in this class
 
 

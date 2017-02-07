@@ -267,8 +267,8 @@ class VPNLauncher(object):
             '--ping-restart', '10']
 
         args += [
-                '--persist-key',
-                '--persist-local-ip', '--persist-remote-ip']
+            '--persist-key',
+            '--persist-local-ip', '--persist-remote-ip']
 
         command_and_args = [openvpn_path] + args
         return command_and_args

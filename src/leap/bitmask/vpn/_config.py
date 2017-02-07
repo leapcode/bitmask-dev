@@ -45,4 +45,3 @@ class _TempProviderConfig(object):
 
     def get_ca_cert_path(self):
         return self._path
-

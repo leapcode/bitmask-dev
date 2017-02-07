@@ -27,9 +27,8 @@ from ._config import _TempEIPConfig, _TempProviderConfig
 from .constants import IS_WIN
 
 
-
 # TODO this is very badly named. There is another class that is called
-# manager. This 
+# manager. This
 
 class VPNManager(object):
 
@@ -81,7 +80,6 @@ class VPNManager(object):
         result = self._vpn.stop(False, False)  # TODO review params
         return result
 
-
     @property
     def status(self):
         return self._vpn.status
@@ -89,7 +87,6 @@ class VPNManager(object):
     @property
     def traffic_status(self):
         return self._vpn.traffic_status
-
 
     def _get_management_location(self):
         """

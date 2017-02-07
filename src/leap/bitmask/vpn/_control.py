@@ -127,7 +127,6 @@ class VPNControl(object):
 
         return True
 
-
     # FIXME -- is this used from somewhere???
     def bitmask_root_vpn_down(self):
         """
@@ -191,7 +190,6 @@ class VPNControl(object):
         except OSError:
             logger.error("Could not kill process!")
 
-
     def _start_pollers(self):
         """
         Iterate through the registered observers
@@ -199,7 +197,6 @@ class VPNControl(object):
         """
         for poller in self._pollers:
             poller.start(POLL_TIME)
-
 
     def _stop_pollers(self):
         """
