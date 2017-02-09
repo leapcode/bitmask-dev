@@ -25,6 +25,7 @@ import signal
 from colorama import Fore
 from twisted.internet import reactor, defer
 
+from leap.bitmask.config import Configuration
 from leap.bitmask.cli.eip import Eip
 from leap.bitmask.cli.keys import Keys
 from leap.bitmask.cli.mail import Mail
@@ -62,27 +63,27 @@ GENERAL COMMANDS:
               "about each command.")
 
     def user(self, raw_args):
-        user = User()
+        user = User(self.cfg)
         return user.execute(raw_args)
 
     def mail(self, raw_args):
-        mail = Mail()
+        mail = Mail(self.cfg)
         return mail.execute(raw_args)
 
     def eip(self, raw_args):
-        eip = Eip()
+        eip = Eip(self.cfg)
         return eip.execute(raw_args)
 
     def keys(self, raw_args):
-        keys = Keys()
+        keys = Keys(self.cfg)
         return keys.execute(raw_args)
 
     def ui(self, raw_args):
-        webui = WebUI()
+        webui = WebUI(self.cfg)
         return webui.execute(raw_args)
 
     def logs(self, raw_args):
-        logs = Logs()
+        logs = Logs(self.cfg)
         return logs.execute(raw_args)
 
     # Single commands
@@ -129,7 +130,8 @@ GENERAL COMMANDS:
 
 @defer.inlineCallbacks
 def execute():
-    cli = BitmaskCLI()
+    cfg = Configuration("bitmaskctl.cfg")
+    cli = BitmaskCLI(cfg)
     cli.data = ['core', 'version']
     args = ['--verbose'] if '--verbose' in sys.argv else None
     yield cli._send(

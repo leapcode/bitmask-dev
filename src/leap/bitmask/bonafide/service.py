@@ -42,10 +42,6 @@ class BonafideService(HookableService):
         self._bonafide = BonafideProtocol()
         self.service_hooks = defaultdict(list)
 
-        # XXX this is a quick hack to get a ref
-        # to the latest authenticated user.
-        self._active_user = None
-
     def startService(self):
         logger.debug('starting Bonafide Service')
         super(BonafideService, self).startService()
@@ -68,8 +64,6 @@ class BonafideService(HookableService):
             data = dict(username=username, token=token, uuid=uuid,
                         password=password)
             self.trigger_hook('on_bonafide_auth', **data)
-
-            self._active_user = username
             return result
 
         # XXX I still have doubts from where it's best to trigger this.
@@ -93,18 +87,10 @@ class BonafideService(HookableService):
         return d
 
     def do_logout(self, username):
-        if not username:
-            username = self._active_user
-
-        def reset_active(passthrough):
-            self._active_user = None
-            return passthrough
-
         data = dict(username=username)
         self.trigger_hook('on_bonafide_logout', **data)
 
         d = self._bonafide.do_logout(username)
-        d.addCallback(reset_active)
         d.addCallback(lambda response: {'logout': 'ok'})
         return d
 
@@ -134,18 +120,11 @@ class BonafideService(HookableService):
     def do_provider_list(self, seeded=False):
         return self._bonafide.do_provider_list(seeded)
 
-    def do_get_smtp_cert(self, username=None):
-        if not username:
-            username = self._active_user
+    def do_get_smtp_cert(self, username):
         if not username:
             return defer.fail(
-                RuntimeError('No active user, cannot get SMTP cert.'))
+                RuntimeError('No username, cannot get SMTP cert.'))
 
         d = self._bonafide.do_get_smtp_cert(username)
         d.addCallback(lambda response: (username, response))
         return d
-
-    def do_get_active_user(self):
-        user = self._active_user or '<none>'
-        info = {'user': user}
-        return defer.succeed(info)

@@ -57,7 +57,9 @@ class Command(object):
               "about each command.")
     commands = []
 
-    def __init__(self):
+    def __init__(self, cfg):
+        self.cfg = cfg
+
         color_init()
         zf = ZmqFactory()
         e = ZmqEndpoint(ZmqEndpointType.connect, ENDPOINT)

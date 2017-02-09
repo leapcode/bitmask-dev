@@ -141,15 +141,6 @@ var bitmask = function(){
              */
             user: {
                 /**
-                 * Check wich user is active
-                 *
-                 * @return {Promise<string>} The uid of the active user
-                 */
-                active: function() {
-                    return call(['bonafide', 'user', 'active']);
-                },
-
-                /**
                  * Register a new user
                  *
                  * @param {string} uid The uid to be created
@@ -188,12 +179,8 @@ var bitmask = function(){
                  * Logout
                  *
                  * @param {string} uid The uid to log out.
-                 *                     If no uid is provided the active user will be used
                  */
                 logout: function(uid) {
-                    if (typeof uid !== 'string') {
-                        uid = "";
-                    }
                     return call(['bonafide', 'user', 'logout', uid]);
                 },
 

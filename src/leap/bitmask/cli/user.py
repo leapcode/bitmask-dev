@@ -23,6 +23,7 @@ import sys
 from copy import copy
 
 from colorama import Fore
+from twisted.internet import defer
 
 from leap.bitmask.cli import command
 
@@ -44,10 +45,8 @@ SUBCOMMANDS:
 
 '''.format(name=command.appname)
 
-    commands = ['active']
-
-    def __init__(self):
-        super(User, self).__init__()
+    def __init__(self, cfg):
+        super(User, self).__init__(cfg)
         self.data.append('user')
 
     def create(self, raw_args):
@@ -75,7 +74,7 @@ SUBCOMMANDS:
                 args.pop(index + 1)
                 args.pop(index)
 
-        username = self.username(args)
+        username = self._username(args, needed=True)
         if not passwd:
             passwd = self._getpass_twice()
         self.data += ['create', username, passwd,
@@ -89,15 +88,20 @@ SUBCOMMANDS:
                 passwd = raw_args.pop(index + 1)
                 raw_args.pop(index)
 
-        username = self.username(raw_args)
+        username = self._username(raw_args, needed=True)
         if not passwd:
             passwd = getpass.getpass()
         self.data += ['authenticate', username, passwd, 'true']
+        self.cfg.set('bonafide', 'active', username)
         return self._send(printer=command.default_dict_printer)
 
     def logout(self, raw_args):
-        username = self.username(raw_args)
+        username = self._username(raw_args)
         self.data += ['logout', username]
+
+        active = self.cfg.get('bonafide', 'active', default=None)
+        if active == username:
+            self.cfg.set('bonafide', 'active', "")
         return self._send(printer=command.default_dict_printer)
 
     def list(self, raw_args):
@@ -105,13 +109,19 @@ SUBCOMMANDS:
         return self._send(printer=self._print_user_list)
 
     def update(self, raw_args):
-        username = self.username(raw_args)
+        username = self._username(raw_args)
         current_passwd = getpass.getpass('Current password: ')
         new_passwd = self._getpass_twice('New password: ')
         self.data += ['update', username, current_passwd, new_passwd]
         return self._send(printer=command.default_dict_printer)
 
-    def username(self, raw_args):
+    def active(self, raw_args):
+        username = self.cfg.get('bonafide', 'active', default='<none>')
+        print(Fore.RESET + 'active'.ljust(10) + Fore.GREEN + username +
+              Fore.RESET)
+        return defer.succeed(None)
+
+    def _username(self, raw_args, needed=False):
         args = tuple([command.appname] + sys.argv[1:3])
         parser = argparse.ArgumentParser(
             description='Bitmask user',
@@ -121,7 +131,10 @@ SUBCOMMANDS:
 
         username = subargs.username
         if not username:
-            self._error("Missing username ID but needed for this command")
+            if needed:
+                self._error("Missing username ID but needed for this command")
+            else:
+                return self.cfg.get('bonafide', 'active')
         if '@' not in username:
             self._error("Username ID must be in the form <user@example.org>")
 

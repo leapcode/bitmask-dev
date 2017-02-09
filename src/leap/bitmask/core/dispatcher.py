@@ -174,10 +174,6 @@ class UserCmd(SubCommand):
         return bonafide.do_change_password(
             user, current_password, new_password)
 
-    @register_method('str')
-    def do_ACTIVE(self, bonafide, *parts):
-        return bonafide.do_get_active_user()
-
 
 class EIPCmd(SubCommand):
 
@@ -200,9 +196,11 @@ class EIPCmd(SubCommand):
 
     @register_method('dict')
     def do_START(self, eip, *parts):
-        # TODO --- attempt to get active provider
-        # TODO or catch the exception and send error
-        provider = parts[2]
+        try:
+            provider = parts[2]
+        except IndexError:
+            raise DispatchError(
+                'wrong number of arguments: expected 1, got none')
         d = eip.do_start(provider)
         return d
 
@@ -267,17 +265,15 @@ class KeysCmd(SubCommand):
 
     @register_method("[dict]")
     def do_LIST(self, service, *parts, **kw):
+        if len(parts) < 3:
+            raise ValueError("A uid is needed")
         uid = parts[2]
 
         private = False
         if parts[-1] == 'private':
             private = True
 
-        d = defer.succeed(uid)
-        if not uid:
-            d = self._get_active_user(kw['bonafide'])
-        d.addCallback(service.do_list_keys, private)
-        return d
+        return service.do_list_keys(uid, private)
 
     @register_method('dict')
     def do_EXPORT(self, service, *parts, **kw):
@@ -290,14 +286,9 @@ class KeysCmd(SubCommand):
         if parts[-1] == 'private':
             private = True
 
-        d = defer.succeed(uid)
-        if not uid:
-            d = self._get_active_user(kw['bonafide'])
-        d.addCallback(service.do_export, address, private)
-        return d
+        return service.do_export(uid, address, private)
 
     @register_method('dict')
-    @defer.inlineCallbacks
     def do_INSERT(self, service, *parts, **kw):
         if len(parts) < 6:
             raise ValueError("An email address is needed")
@@ -306,14 +297,9 @@ class KeysCmd(SubCommand):
         validation = parts[4]
         rawkey = parts[5]
 
-        d = defer.succeed(uid)
-        if not uid:
-            d = self._get_active_user(kw['bonafide'])
-        d.addCallback(service.do_insert, address, rawkey, validation)
-        return d
+        return service.do_insert(uid, address, rawkey, validation)
 
     @register_method('str')
-    @defer.inlineCallbacks
     def do_DELETE(self, service, *parts, **kw):
         if len(parts) < 4:
             raise ValueError("An email address is needed")
@@ -324,16 +310,7 @@ class KeysCmd(SubCommand):
         if parts[-1] == 'private':
             private = True
 
-        d = defer.succeed(uid)
-        if not uid:
-            d = self._get_active_user(kw['bonafide'])
-        d.addCallback(service.do_delete, address, private)
-        return d
-
-    def _get_active_user(self, bonafide):
-        d = bonafide.do_get_active_user()
-        d.addCallback(lambda active: active['user'])
-        return d
+        return service.do_delete(uid, address, private)
 
 
 class EventsCmd(SubCommand):

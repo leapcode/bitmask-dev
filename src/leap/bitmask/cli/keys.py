@@ -50,7 +50,11 @@ SUBCOMMANDS:
                             help='Use private keys (by default uses public)')
         subargs = parser.parse_args(raw_args)
 
-        self.data += ['list', subargs.uid]
+        userid = subargs.userid
+        if not userid:
+            userid = self.cfg.get('bonafide', 'active', default='')
+
+        self.data += ['list', userid]
         if subargs.private:
             self.data += ['private']
         else:
@@ -69,7 +73,11 @@ SUBCOMMANDS:
         parser.add_argument('address', nargs=1,
                             help='email address of the key')
         subargs = parser.parse_args(raw_args)
-        self.data += ['export', subargs.uid, subargs.address[0]]
+
+        userid = subargs.userid
+        if not userid:
+            userid = self.cfg.get('bonafide', 'active', default='')
+        self.data += ['export', userid, subargs.address[0]]
 
         return self._send(self._print_key)
 
@@ -88,9 +96,13 @@ SUBCOMMANDS:
                             help='email address of the key')
         subargs = parser.parse_args(raw_args)
 
+        userid = subargs.userid
+        if not userid:
+            userid = self.cfg.get('bonafide', 'active')
+
         with open(subargs.file[0], 'r') as keyfile:
             rawkey = keyfile.read()
-        self.data += ['insert', subargs.uid, subargs.address[0],
+        self.data += ['insert', userid, subargs.address[0],
                       subargs.validation, rawkey]
 
         return self._send(self._print_key)
@@ -106,8 +118,12 @@ SUBCOMMANDS:
         parser.add_argument('address', nargs=1,
                             help='email address of the key')
         subargs = parser.parse_args(raw_args)
-        self.data += ['delete', subargs.uid, subargs.address[0]]
 
+        userid = subargs.userid
+        if not userid:
+            userid = self.cfg.get('bonafide', 'active')
+
+        self.data += ['delete', userid, subargs.address[0]]
         return self._send()
 
     def _print_key_list(self, keys):

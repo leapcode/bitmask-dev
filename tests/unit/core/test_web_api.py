@@ -191,11 +191,6 @@ class RESTApiTests(unittest.TestCase):
         self.assertCall(call, self.canned.bonafide.auth)
 
     @defer.inlineCallbacks
-    def test_bonafide_user_active(self):
-        call = yield self.makeAPICall('bonafide/user/active')
-        self.assertCall(call, self.canned.bonafide.get_active_user)
-
-    @defer.inlineCallbacks
     def test_bonafide_user_logout(self):
         params = ['user@provider']
         call = yield self.makeAPICall('bonafide/user/logout',
