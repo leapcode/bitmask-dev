@@ -6,4 +6,4 @@ if [ ! -d "../soledaddev" ]; then
 	git clone https://github.com/leapcode/soledad ../soledaddev
 fi
 cd ../leap_commondev && git checkout master && git pull origin master
-cd ../soledaddev && git checkout develop && git pull origin develop
+cd ../soledaddev && git checkout master && git pull origin master
