@@ -88,9 +88,9 @@ class GPGError(Exception):
     pass
 
 
-class KeyExpiryExtensionError(Exception):
+class KeyExpirationError(Exception):
     """
-    Error during key expiry date extension
+    Error during key expiry date change
     """
 
 

@@ -180,8 +180,8 @@ class OpenPGPScheme(object):
         with TempGPGWrapper([current_sec_key], self._gpgbinary) as gpg:
             if current_sec_key.is_expired():
                 temporary_extension_period = '1'  # extend for 1 extra day
-                gpg.extend_key(current_sec_key.fingerprint,
-                               validity=temporary_extension_period)
+                gpg.expire(current_sec_key.fingerprint,
+                           expiration_time=temporary_extension_period)
             yield self.unactivate_key(address)  # only one priv key allowed
             yield self.delete_key(current_pub_key)
             new_key = yield self.gen_key(address)
@@ -679,30 +679,31 @@ class OpenPGPScheme(object):
                 raise errors.EncryptError()
 
     @defer.inlineCallbacks
-    def extend_key(self, seckey, validity='1y', passphrase=None):
+    def expire(self, seckey, expiration_time='1y', passphrase=None):
         """
-        Extend C{key} key pair, expiration date for C{validity} period,
-        from its creation date.
+        Change expiration for C{key} key pair for the given C{expiration_time}
+            period, from the current day.
 
-        :param seckey: The secret key of the key pair to be extended.
+        :param seckey: The secret key of the key pair to have the expiration
+            time changed.
         :type seckey: OpenPGPKey
-        :param validity: new validity from creation date 'n','nw','nm' or 'ny'
-                         where n is a number
-        :type validity: str
+        :param expiration_time: new expiration time from the current day in
+            'n', 'nw','nm' or 'ny' where n is a number
+        :type expiration_time: str
 
         :return: The updated secret key, with new expiry date
         :rtype: OpenPGPKey
 
-        :raise KeyExpiryExtensionError: Raised if failed to extend key
-                                        for some reason.
+        :raise KeyExpirationError: Raised if failed to change expiration of key
+            for some reason.
         """
         leap_assert_type(seckey, OpenPGPKey)
         leap_assert(seckey.private is True, 'Key is not private.')
         keys = [seckey]
         try:
             with TempGPGWrapper(keys, self._gpgbinary) as gpg:
-                result = yield from_thread(gpg.extend_key, seckey.fingerprint,
-                                           validity=validity,
+                result = yield from_thread(gpg.expire, seckey.fingerprint,
+                                           expiration_time=expiration_time,
                                            passphrase=passphrase)
                 if result.status == 'ok':
                     for secret in [False, True]:
@@ -716,8 +717,8 @@ class OpenPGPScheme(object):
                         yield self.put_key(renewed_key)
                     defer.returnValue(renewed_key)
         except Exception as e:
-            log.warn('Failed to Extend Key: %s expiration date.' % str(e))
-            raise errors.KeyExpiryExtensionError(str(e))
+            log.warn('Failed to change expiration of key: %s' % str(e))
+            raise errors.KeyExpirationError(str(e))
 
     @defer.inlineCallbacks
     def decrypt(self, data, privkey, passphrase=None, verify=None):

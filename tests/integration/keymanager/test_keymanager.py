@@ -31,7 +31,7 @@ import mock
 
 from leap.common import ca_bundle
 from leap.bitmask.keymanager import errors
-from leap.bitmask.keymanager.errors import KeyExpiryExtensionError
+from leap.bitmask.keymanager.errors import KeyExpirationError
 from leap.bitmask.keymanager.keys import (
     OpenPGPKey,
     is_address,
@@ -54,8 +54,7 @@ from common import (
     OLD_AND_NEW_KEY_ADDRESS,
     DIFFERENT_PRIVATE_KEY,
     DIFFERENT_KEY_FPR,
-    DIFFERENT_PUBLIC_KEY,
-    KEY_EXPIRING_CREATION_DATE)
+    DIFFERENT_PUBLIC_KEY)
 
 NICKSERVER_URI = "http://leap.se/"
 REMOTE_KEY_URL = "http://site.domain/key"
@@ -654,13 +653,13 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         km._openpgp.reset_all_keys_sign_used.assert_called_once()
 
     @defer.inlineCallbacks
-    def test_keymanager_extend_key_expiry_date_for_key_pair(self):
+    def test_keymanager_change_key_expiry_date_for_key_pair(self):
         km = self._key_manager(user=ADDRESS_EXPIRING)
 
         yield km._openpgp.put_raw_key(PRIVATE_EXPIRING_KEY, ADDRESS_EXPIRING)
         key = yield km.get_key(ADDRESS_EXPIRING, fetch_remote=False)
 
-        yield km.extend_key_expiration(validity='1w')
+        yield km.change_key_expiration(expiration_time='1w')
 
         new_expiry_date = date.today() + timedelta(weeks=1)
 
@@ -676,27 +675,28 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         self.assertEqual(key.fingerprint, renewed_private_key.fingerprint)
 
     @defer.inlineCallbacks
-    def test_key_extension_resets_all_public_key_sign_used(self):
+    def test_change_key_expiration_resets_all_public_key_sign_used(self):
         km = self._key_manager(user=ADDRESS_EXPIRING)
 
         yield km._openpgp.put_raw_key(PRIVATE_EXPIRING_KEY, ADDRESS_EXPIRING)
         km._openpgp.reset_all_keys_sign_used = mock.Mock()
 
-        yield km.extend_key_expiration(validity='1w')
+        yield km.change_key_expiration(expiration_time='1w')
 
         km._openpgp.reset_all_keys_sign_used.assert_called_once()
 
     @defer.inlineCallbacks
-    def test_key_extension_with_invalid_period_throws_exception(self):
+    def test_change_key_expiration_with_invalid_period_throws_exception(self):
         km = self._key_manager(user=ADDRESS_EXPIRING)
 
         yield km._openpgp.put_raw_key(PRIVATE_EXPIRING_KEY, ADDRESS_EXPIRING)
         key = yield km.get_key(ADDRESS_EXPIRING, fetch_remote=False)
 
-        invalid_validity_option = '2xw'
+        invalid_expiration_time_option = '2xw'
 
-        with self.assertRaises(KeyExpiryExtensionError):
-            yield km.extend_key_expiration(validity=invalid_validity_option)
+        with self.assertRaises(KeyExpirationError):
+            yield km.change_key_expiration(
+                expiration_time=invalid_expiration_time_option)
 
         renewed_public_key = yield km.get_key(ADDRESS_EXPIRING,
                                               fetch_remote=False)
