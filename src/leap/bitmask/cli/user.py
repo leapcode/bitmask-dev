@@ -45,8 +45,8 @@ SUBCOMMANDS:
 
 '''.format(name=command.appname)
 
-    def __init__(self, cfg):
-        super(User, self).__init__(cfg)
+    def __init__(self, *args, **kwargs):
+        super(User, self).__init__(*args, **kwargs)
         self.data.append('user')
 
     def create(self, raw_args):
@@ -116,7 +116,9 @@ SUBCOMMANDS:
         return self._send(printer=command.default_dict_printer)
 
     def active(self, raw_args):
-        username = self.cfg.get('bonafide', 'active', default='<none>')
+        username = self.cfg.get('bonafide', 'active', default='')
+        if not username:
+            username = '<none>'
         print(Fore.RESET + 'active'.ljust(10) + Fore.GREEN + username +
               Fore.RESET)
         return defer.succeed(None)

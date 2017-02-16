@@ -58,32 +58,36 @@ GENERAL COMMANDS:
   stats      show some debug info about bitmask-core
   help       show this help message
 
+OPTIONAL ARGUMENTS:
+
+  --json     print the raw json (useful for scripting)
+
 '''
     epilog = ("Use 'bitmaskctl <command> help' to learn more "
               "about each command.")
 
     def user(self, raw_args):
-        user = User(self.cfg)
+        user = User(self.cfg, self.print_json)
         return user.execute(raw_args)
 
     def mail(self, raw_args):
-        mail = Mail(self.cfg)
+        mail = Mail(self.cfg, self.print_json)
         return mail.execute(raw_args)
 
     def eip(self, raw_args):
-        eip = Eip(self.cfg)
+        eip = Eip(self.cfg, self.print_json)
         return eip.execute(raw_args)
 
     def keys(self, raw_args):
-        keys = Keys(self.cfg)
+        keys = Keys(self.cfg, self.print_json)
         return keys.execute(raw_args)
 
     def ui(self, raw_args):
-        webui = WebUI(self.cfg)
+        webui = WebUI(self.cfg, self.print_json)
         return webui.execute(raw_args)
 
     def logs(self, raw_args):
-        logs = Logs(self.cfg)
+        logs = Logs(self.cfg, self.print_json)
         return logs.execute(raw_args)
 
     # Single commands
@@ -96,6 +100,7 @@ GENERAL COMMANDS:
         if raw_args and ('--verbose' in raw_args or '-v' in raw_args):
             cmd += ' --verbose'
         commands.getoutput(cmd)
+        self.cfg.set('bonafide', 'active', "")
         return defer.succeed(None)
 
     def version(self, raw_args):
@@ -121,6 +126,7 @@ GENERAL COMMANDS:
 
     def stop(self, raw_args):
         self.data = ['core', 'stop']
+        self.cfg.set('bonafide', 'active', "")
         return self._send(printer=command.default_dict_printer)
 
     def stats(self, raw_args):
@@ -130,7 +136,9 @@ GENERAL COMMANDS:
 
 @defer.inlineCallbacks
 def execute():
-    cfg = Configuration("bitmaskctl.cfg")
+    cfg = Configuration(".bitmaskctl")
+    print_json = '--json' in sys.argv
+
     cli = BitmaskCLI(cfg)
     cli.data = ['core', 'version']
     args = ['--verbose'] if '--verbose' in sys.argv else None
@@ -139,8 +147,14 @@ def execute():
         errb=lambda: cli.start(args))
     if 'start' in sys.argv or 'restart' in sys.argv:
         command.default_dict_printer({'start': 'ok'})
+
     cli.data = []
-    yield cli.execute(sys.argv[1:])
+    cli.print_json = print_json
+    args = sys.argv[1:]
+    if print_json:
+        args.remove('--json')
+
+    yield cli.execute(args)
     try:
         yield reactor.stop()
     except:

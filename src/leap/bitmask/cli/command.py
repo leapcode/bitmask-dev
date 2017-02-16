@@ -57,7 +57,7 @@ class Command(object):
               "about each command.")
     commands = []
 
-    def __init__(self, cfg):
+    def __init__(self, cfg, print_json=False):
         self.cfg = cfg
 
         color_init()
@@ -68,6 +68,7 @@ class Command(object):
         self.data = []
         if self.service:
             self.data = [self.service]
+        self.print_json = print_json
 
     def execute(self, raw_args):
         self.parser = argparse.ArgumentParser(usage=self.usage,
@@ -112,7 +113,9 @@ class Command(object):
 
     def _check_err(self, stuff, printer):
         obj = json.loads(stuff[0])
-        if not obj['error']:
+        if self.print_json:
+            print(json.dumps(obj, indent=2))
+        elif not obj['error']:
             return printer(obj['result'])
         else:
             print Fore.RED + 'ERROR:' + '%s' % obj['error'] + Fore.RESET
