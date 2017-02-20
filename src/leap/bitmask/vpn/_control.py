@@ -32,7 +32,7 @@ class VPNControl(object):
 
     OPENVPN_VERB = "openvpn_verb"
 
-    def __init__(self, remotes, eipconfig,
+    def __init__(self, remotes, vpnconfig,
                  providerconfig, socket_host, socket_port):
         self._vpnproc = None
         self._pollers = []
@@ -41,7 +41,7 @@ class VPNControl(object):
         self._user_stopped = False
 
         self._remotes = remotes
-        self._eipconfig = eipconfig
+        self._vpnconfig = vpnconfig
         self._providerconfig = providerconfig
         self._host = socket_host
         self._port = socket_port
@@ -53,7 +53,7 @@ class VPNControl(object):
         self._stop_pollers()
 
         vpnproc = VPNProcess(
-            self._eipconfig, self._providerconfig, self._host,
+            self._vpnconfig, self._providerconfig, self._host,
             self._port, openvpn_verb=7, remotes=self._remotes,
             restartfun=self.restart)
 

@@ -32,7 +32,7 @@ from leap.common.config import get_path_prefix
 logger = Logger()
 
 
-class EIPNoTunKextLoaded(VPNLauncherException):
+class NoTunKextLoaded(VPNLauncherException):
     pass
 
 
@@ -142,18 +142,18 @@ class DarwinVPNLauncher(VPNLauncher):
         return kls.COCOASUDO, args
 
     @classmethod
-    def get_vpn_command(kls, eipconfig, providerconfig, socket_host,
+    def get_vpn_command(kls, vpnconfig, providerconfig, socket_host,
                         socket_port="unix", openvpn_verb=1):
         """
         Returns the OSX implementation for the vpn launching command.
 
         Might raise:
-            EIPNoTunKextLoaded,
+            NoTunKextLoaded,
             OpenVPNNotFoundException,
             VPNLauncherException.
 
-        :param eipconfig: eip configuration object
-        :type eipconfig: EIPConfig
+        :param vpnconfig: vpn configuration object
+        :type vpnconfig: VPNConfig
         :param providerconfig: provider specific configuration
         :type providerconfig: ProviderConfig
         :param socket_host: either socket path (unix) or socket IP
@@ -168,11 +168,11 @@ class DarwinVPNLauncher(VPNLauncher):
         :rtype: list
         """
         if not kls.is_kext_loaded():
-            raise EIPNoTunKextLoaded
+            raise VPNNoTunKextLoaded
 
         # we use `super` in order to send the class to use
         command = super(DarwinVPNLauncher, kls).get_vpn_command(
-            eipconfig, providerconfig, socket_host, socket_port, openvpn_verb)
+            vpnconfig, providerconfig, socket_host, socket_port, openvpn_verb)
 
         cocoa, cargs = kls.get_cocoasudo_ovpn_cmd()
         cargs.extend(command)

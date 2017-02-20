@@ -4,11 +4,11 @@
 from ._management import OpenVPNAlreadyRunning, AlienOpenVPNAlreadyRunning
 from .launcher import OpenVPNNotFoundException, VPNLauncherException
 from leap.bitmask.vpn.launchers.linux import (
-    EIPNoPolkitAuthAgentAvailable, EIPNoPkexecAvailable)
-from leap.bitmask.vpn.launchers.darwin import EIPNoTunKextLoaded
+    NoPolkitAuthAgentAvailable, NoPkexecAvailable)
+from leap.bitmask.vpn.launchers.darwin import NoTunKextLoaded
 
 
 __all__ = ["OpenVPNAlreadyRunning", "AlienOpenVPNAlreadyRunning",
            "OpenVPNNotFoundException", "VPNLauncherException",
-           "EIPNoPolkitAuthAgentAvailable", "EIPNoPkexecAvailable",
-           "EIPNoTunKextLoaded"]
+           "NoPolkitAuthAgentAvailable", "NoPkexecAvailable",
+           "NoTunKextLoaded"]

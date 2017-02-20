@@ -38,11 +38,11 @@ COM = commands
 flags_STANDALONE = False
 
 
-class EIPNoPolkitAuthAgentAvailable(VPNLauncherException):
+class NoPolkitAuthAgentAvailable(VPNLauncherException):
     pass
 
 
-class EIPNoPkexecAvailable(VPNLauncherException):
+class NoPkexecAvailable(VPNLauncherException):
     pass
 
 
@@ -77,19 +77,19 @@ class LinuxVPNLauncher(VPNLauncher):
     OTHER_FILES = (POLKIT_PATH, BITMASK_ROOT, OPENVPN_BIN_PATH)
 
     @classmethod
-    def get_vpn_command(kls, eipconfig, providerconfig, socket_host,
+    def get_vpn_command(kls, vpnconfig, providerconfig, socket_host,
                         remotes, socket_port="unix", openvpn_verb=1):
         """
         Returns the Linux implementation for the vpn launching command.
 
         Might raise:
-            EIPNoPkexecAvailable,
-            EIPNoPolkitAuthAgentAvailable,
+            NoPkexecAvailable,
+            NoPolkitAuthAgentAvailable,
             OpenVPNNotFoundException,
             VPNLauncherException.
 
-        :param eipconfig: eip configuration object
-        :type eipconfig: EIPConfig
+        :param vpnconfig: vpn configuration object
+        :type vpnconfig: VPNConfig
         :param providerconfig: provider specific configuration
         :type providerconfig: ProviderConfig
         :param socket_host: either socket path (unix) or socket IP
@@ -105,7 +105,7 @@ class LinuxVPNLauncher(VPNLauncher):
         """
         # we use `super` in order to send the class to use
         command = super(LinuxVPNLauncher, kls).get_vpn_command(
-            eipconfig, providerconfig, socket_host, socket_port, remotes,
+            vpnconfig, providerconfig, socket_host, socket_port, remotes,
             openvpn_verb)
 
         command.insert(0, force_eval(kls.BITMASK_ROOT))
@@ -113,12 +113,7 @@ class LinuxVPNLauncher(VPNLauncher):
         command.insert(2, "start")
 
         policyChecker = LinuxPolicyChecker()
-        try:
-            pkexec = policyChecker.maybe_pkexec()
-        except NoPolkitAuthAgentAvailable:
-            raise EIPNoPolkitAuthAgentAvailable()
-        except NoPkexecAvailable:
-            raise EIPNoPkexecAvailable()
+        pkexec = policyChecker.maybe_pkexec()
         if pkexec:
             command.insert(0, first(pkexec))
 

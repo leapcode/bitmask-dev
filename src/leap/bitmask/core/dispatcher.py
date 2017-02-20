@@ -212,24 +212,24 @@ class EIPCmd(SubCommand):
         d = eip.stop_vpn()
         return d
 
-    @register_method('check')
+    @register_method('dict')
     def do_CHECK(self, eip, *parts):
         d = eip.do_check()
         return d
 
-    @register_method('get_cert')
+    @register_method('dict')
     def do_GET_CERT(self, eip, *parts):
         # TODO -- attempt to get active provider
         provider = parts[2]
         d = eip.do_get_cert(provider)
         return d
 
-    @register_method('install')
+    @register_method('dict')
     def do_INSTALL(self, eip, *parts):
         d = eip.do_install()
         return d
 
-    @register_method('install')
+    @register_method('dict')
     def do_UNINSTALL(self, eip, *parts):
         d = eip.do_uninstall()
         return d
@@ -538,7 +538,7 @@ def _format_error(failure):
             logger.failure('[DISPATCHER] Unexpected error:')
         except:
             logger.debug('[DISPATCHER] Unexpected error: %r' % failure.value)
-            print failure.getTraceback()
+            logger.warn(failure.getTraceback())
 
     # if needed, we could add here the exception type as an extra field
     return json.dumps({'error': failure.value.message, 'result': None})

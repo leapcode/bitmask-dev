@@ -22,7 +22,7 @@ from leap.bitmask.vpn.manager import VPNManager
 from leap.bitmask.vpn.fw.firewall import FirewallManager
 
 
-class EIPManager(object):
+class VPNManager(object):
 
     def __init__(self, remotes, cert, key, ca, flags):
 
@@ -31,11 +31,6 @@ class EIPManager(object):
         self._firewall = FirewallManager(remotes)
 
     def start(self):
-        """
-        Start EIP service (firewall and vpn)
-
-        This may raise exceptions, see errors.py
-        """
         print(Fore.BLUE + "Firewall: starting..." + Fore.RESET)
         fw_ok = self._firewall.start()
         if not fw_ok:
@@ -74,9 +69,10 @@ class EIPManager(object):
 
     def get_status(self):
         vpn_status = self._vpn.status
+        # TODO use firewall.is_up instead
         fw_status = self._firewall.status
 
-        result = {'EIP': vpn_status,
+        result = {'VPN': vpn_status,
                   'firewall': fw_status}
         if vpn_status == 'CONNECTED':
             traffic = self._vpn.traffic_status

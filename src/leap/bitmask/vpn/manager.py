@@ -23,7 +23,7 @@ import os
 import tempfile
 
 from ._control import VPNControl
-from ._config import _TempEIPConfig, _TempProviderConfig
+from ._config import _TempVPNConfig, _TempProviderConfig
 from .constants import IS_WIN
 
 
@@ -52,12 +52,12 @@ class VPNManager(object):
 
         self._remotes = remotes
 
-        self._eipconfig = _TempEIPConfig(extra_flags, cert_path, ports)
+        self._vpnconfig = _TempVPNConfig(extra_flags, cert_path, ports)
         self._providerconfig = _TempProviderConfig(domain, ca_path)
 
         host, port = self._get_management_location()
         self._vpn = VPNControl(remotes=remotes,
-                               eipconfig=self._eipconfig,
+                               vpnconfig=self._vpnconfig,
                                providerconfig=self._providerconfig,
                                socket_host=host, socket_port=port)
 

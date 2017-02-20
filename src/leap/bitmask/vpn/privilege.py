@@ -38,10 +38,14 @@ flags_STANDALONE = False
 
 
 def install_helpers():
+    # TODO  check if the command has succeeded, and display error
+    # if failed
     commands.getoutput('pkexec bitmask_helpers install')
 
 
 def uninstall_helpers():
+    # TODO  check if the command has succeeded, and display error
+    # if failed
     commands.getoutput('pkexec bitmask_helpers uninstall')
 
 
@@ -149,11 +153,11 @@ class LinuxPolicyChecker(PolicyChecker):
                     raise Exception("We couldn't find pkexec")
                 return pkexec_possibilities
             else:
-                logger.warning("No polkit auth agent found. pkexec " +
-                               "will use its own auth agent.")
+                logger.warn("No polkit auth agent found. pkexec " +
+                            "will use its own auth agent.")
                 raise NoPolkitAuthAgentAvailable()
         else:
-            logger.warning("System has no pkexec")
+            logger.warn("System has no pkexec")
             raise NoPkexecAvailable()
 
     @classmethod

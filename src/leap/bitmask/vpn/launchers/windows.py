@@ -38,7 +38,7 @@ class WindowsVPNLauncher(VPNLauncher):
     # (and maybe we won't)
 
     @classmethod
-    def get_vpn_command(kls, eipconfig, providerconfig, socket_host,
+    def get_vpn_command(kls, vpnconfig, providerconfig, socket_host,
                         socket_port="9876", openvpn_verb=1):
         """
         Returns the Windows implementation for the vpn launching command.
@@ -47,8 +47,8 @@ class WindowsVPNLauncher(VPNLauncher):
             OpenVPNNotFoundException,
             VPNLauncherException.
 
-        :param eipconfig: eip configuration object
-        :type eipconfig: EIPConfig
+        :param vpnconfig: vpn configuration object
+        :type vpnconfig: VPNConfig
         :param providerconfig: provider specific configuration
         :type providerconfig: ProviderConfig
         :param socket_host: either socket path (unix) or socket IP
@@ -68,6 +68,6 @@ class WindowsVPNLauncher(VPNLauncher):
 
         # we use `super` in order to send the class to use
         command = super(WindowsVPNLauncher, kls).get_vpn_command(
-            eipconfig, providerconfig, socket_host, socket_port, openvpn_verb)
+            vpnconfig, providerconfig, socket_host, socket_port, openvpn_verb)
 
         return command

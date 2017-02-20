@@ -13,8 +13,8 @@ if IS_LINUX:
             'leap.bitmask.vpn.helpers.linux', 'se.leap.bitmask.bundle.policy')
 
 
-class _TempEIPConfig(object):
-    """Current EIP code on bitmask depends on EIPConfig object, this temporary
+class _TempVPNConfig(object):
+    """Current VPN code on bitmask depends on VPNConfig object, this temporary
     implementation helps on the transition."""
 
     def __init__(self, flags, path, ports):
@@ -33,7 +33,7 @@ class _TempEIPConfig(object):
 
 
 class _TempProviderConfig(object):
-    """Current EIP code on bitmask depends on ProviderConfig object, this
+    """Current VPN code on bitmask depends on ProviderConfig object, this
     temporary implementation helps on the transition."""
 
     def __init__(self, domain, path):

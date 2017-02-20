@@ -1,4 +1,4 @@
-from os import remove
+from os import remove, chmod
 from shutil import copyfile
 import sys
 
@@ -14,15 +14,12 @@ if IS_LINUX:
         helper_from = _config.get_bitmask_helper_path()
         polkit_from = _config.get_bitmask_polkit_policy_path()
         copyfile(helper_from, helper_to)
-        os.chmod(helper_to, 0744)
+        chmod(helper_to, 0744)
         copyfile(polkit_from, polkit_to)
 
     def uninstall():
-        try:
-            remove(helper_to)
-            remove(polkit_to)
-        except:
-            raise
+        remove(helper_to)
+        remove(polkit_to)
 
 
 def main():

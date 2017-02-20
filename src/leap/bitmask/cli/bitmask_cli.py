@@ -25,14 +25,14 @@ import signal
 from colorama import Fore
 from twisted.internet import reactor, defer
 
-from leap.bitmask.config import Configuration
-from leap.bitmask.cli.eip import Eip
-from leap.bitmask.cli.keys import Keys
-from leap.bitmask.cli.mail import Mail
-from leap.bitmask.cli.webui import WebUI
 from leap.bitmask.cli import command
-from leap.bitmask.cli.user import User
+from leap.bitmask.cli.keys import Keys
 from leap.bitmask.cli.logs import Logs
+from leap.bitmask.cli.mail import Mail
+from leap.bitmask.cli.user import User
+from leap.bitmask.cli.vpn import VPN
+from leap.bitmask.cli.webui import WebUI
+from leap.bitmask.config import Configuration
 
 
 class BitmaskCLI(command.Command):
@@ -44,10 +44,10 @@ SERVICE COMMANDS:
 
   user       Handles Bitmask accounts
   mail       Bitmask Encrypted Mail
-  eip        Encrypted Internet Proxy
+  vpn        Bitmask VPN
   keys       Bitmask Keymanager
   ui         Bitmask User Interface
-  logs       Manages bitmask daemon logs
+  logs       Manages the Bitmask daemon logs
 
 GENERAL COMMANDS:
 
@@ -74,9 +74,15 @@ OPTIONAL ARGUMENTS:
         mail = Mail(self.cfg, self.print_json)
         return mail.execute(raw_args)
 
+<<<<<<< HEAD
     def eip(self, raw_args):
         eip = Eip(self.cfg, self.print_json)
         return eip.execute(raw_args)
+=======
+    def vpn(self, raw_args):
+        vpn = VPN()
+        return vpn.execute(raw_args)
+>>>>>>> [refactor] rename eip to vpn
 
     def keys(self, raw_args):
         keys = Keys(self.cfg, self.print_json)

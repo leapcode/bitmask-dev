@@ -111,14 +111,14 @@ class VPNLauncher(object):
 
     @classmethod
     @abstractmethod
-    def get_gateways(kls, eipconfig, providerconfig):
+    def get_gateways(kls, vpnconfig, providerconfig):
         """
         Return a list with the selected gateways for a given provider, looking
-        at the EIP config file.
+        at the VPN config file.
         Each item of the list is a tuple containing (gateway, port).
 
-        :param eipconfig: eip configuration object
-        :type eipconfig: EIPConfig
+        :param vpnconfig: vpn configuration object
+        :type vpnconfig: VPNConfig
 
         :param providerconfig: provider specific configuration
         :type providerconfig: ProviderConfig
@@ -130,7 +130,7 @@ class VPNLauncher(object):
         settings = Settings()
         domain = providerconfig.get_domain()
         gateway_conf = settings.get_selected_gateway(domain)
-        gateway_selector = VPNGatewaySelector(eipconfig)
+        gateway_selector = VPNGatewaySelector(vpnconfig)
 
         if gateway_conf == GATEWAY_AUTOMATIC:
             gws = gateway_selector.get_gateways()
@@ -142,7 +142,7 @@ class VPNLauncher(object):
             raise VPNLauncherException('No gateway was found!')
 
         for idx, gw in enumerate(gws):
-            ports = eipconfig.get_gateway_ports(idx)
+            ports = vpnconfig.get_gateway_ports(idx)
 
             the_port = "1194"  # default port
 
@@ -161,7 +161,7 @@ class VPNLauncher(object):
 
     @classmethod
     @abstractmethod
-    def get_vpn_command(kls, eipconfig, providerconfig,
+    def get_vpn_command(kls, vpnconfig, providerconfig,
                         socket_host, socket_port, remotes, openvpn_verb=1):
         """
         Return the platform-dependant vpn command for launching openvpn.
@@ -170,8 +170,8 @@ class VPNLauncher(object):
             OpenVPNNotFoundException,
             VPNLauncherException.
 
-        :param eipconfig: eip configuration object
-        :type eipconfig: EIPConfig
+        :param vpnconfig: vpn configuration object
+        :type vpnconfig: VPNConfig
         :param providerconfig: provider specific configuration
         :type providerconfig: ProviderConfig
         :param socket_host: either socket path (unix) or socket IP
@@ -185,7 +185,7 @@ class VPNLauncher(object):
         :return: A VPN command ready to be launched.
         :rtype: list
         """
-        # leap_assert_type(eipconfig, EIPConfig)
+        # leap_assert_type(vpnconfig, VPNConfig)
         # leap_assert_type(providerconfig, ProviderConfig)
 
         # XXX this still has to be changed on osx and windows accordingly
@@ -212,7 +212,7 @@ class VPNLauncher(object):
         if openvpn_verb is not None:
             args += ['--verb', '%d' % (openvpn_verb,)]
 
-        # gateways = kls.get_gateways(eipconfig, providerconfig)
+        # gateways = kls.get_gateways(vpnconfig, providerconfig)
         gateways = remotes
 
         for ip, port in gateways:
@@ -227,7 +227,7 @@ class VPNLauncher(object):
             'server'
         ]
 
-        openvpn_configuration = eipconfig.get_openvpn_configuration()
+        openvpn_configuration = vpnconfig.get_openvpn_configuration()
         for key, value in openvpn_configuration.items():
             args += ['--%s' % (key,), value]
 
@@ -257,8 +257,8 @@ class VPNLauncher(object):
                 ]
 
         args += [
-            '--cert', eipconfig.get_client_cert_path(providerconfig),
-            '--key', eipconfig.get_client_cert_path(providerconfig),
+            '--cert', vpnconfig.get_client_cert_path(providerconfig),
+            '--key', vpnconfig.get_client_cert_path(providerconfig),
             '--ca', providerconfig.get_ca_cert_path()
         ]
 

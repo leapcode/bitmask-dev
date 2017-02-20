@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# eip
+# vpn 
 # Copyright (C) 2016-2017 LEAP
 #
 # This program is free software: you can redistribute it and/or modify
@@ -15,26 +15,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Bitmask Command Line interface: eip
+Bitmask Command Line interface: vpn module
 """
 from leap.bitmask.cli import command
 
 
-class Eip(command.Command):
-    service = 'eip'
-    usage = '''{name} eip <subcommand>
+class VPN(command.Command):
+    service = 'vpn'
+    usage = '''{name} vpn <subcommand>
 
-Bitmask Encrypted Internet Proxy Service
+Bitmask VPN Service
 
 SUBCOMMANDS:
 
-   enable     Enable EIP Service
-   disable    Disable EIP Service
-   start      Start EIP
-   stop       Stop EIP
-   status     Display status about service
-   check      Check whether EIP service is properly configured
-   get_cert   Get EIP Certificate from provider
+   enable     Enable VPN Service
+   disable    Disable VPN Service
+   start      Start VPN
+   stop       Stop VPN
+   status     Display status about the VPN
+   check      Check whether VPN service is properly configured
+   get_cert   Get VPN Certificate from provider
    install    Install helpers (needs root)
    uninstall  Uninstall helpers (needs root)
 

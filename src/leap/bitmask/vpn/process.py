@@ -57,13 +57,13 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
     programmatically.
     """
 
-    # TODO do we really need the eipconfig/providerconfig objects in here???
+    # TODO do we really need the vpnconfig/providerconfig objects in here???
 
-    def __init__(self, eipconfig, providerconfig, socket_host, socket_port,
+    def __init__(self, vpnconfig, providerconfig, socket_host, socket_port,
                  openvpn_verb, remotes, restartfun=None):
         """
-        :param eipconfig: eip configuration object
-        :type eipconfig: EIPConfig
+        :param vpnconfig: vpn configuration object
+        :type vpnconfig: VPNConfig
 
         :param providerconfig: provider specific configuration
         :type providerconfig: ProviderConfig
@@ -81,7 +81,7 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         """
         _management.VPNManagement.__init__(self)
 
-        self._eipconfig = eipconfig
+        self._vpnconfig = vpnconfig
         self._providerconfig = providerconfig
         self._socket_host = socket_host
         self._socket_port = socket_port
@@ -201,7 +201,7 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         :rtype: list of str
         """
         command = self._launcher.get_vpn_command(
-            eipconfig=self._eipconfig,
+            vpnconfig=self._vpnconfig,
             providerconfig=self._providerconfig,
             socket_host=self._socket_host,
             socket_port=self._socket_port,
@@ -224,7 +224,7 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         :rtype: list
         """
         gateways_ports = self._launcher.get_gateways(
-            self._eipconfig, self._providerconfig)
+            self._vpnconfig, self._providerconfig)
 
         # filter out ports since we don't need that info
         return [gateway for gateway, port in gateways_ports]

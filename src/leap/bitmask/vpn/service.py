@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-EIP service declaration.
+VPN service declaration.
 """
 
 import os
@@ -25,8 +25,8 @@ import os
 from twisted.internet import defer
 
 from leap.bitmask.hooks import HookableService
-from leap.bitmask.vpn.eip import EIPManager
-from leap.bitmask.vpn._checks import is_service_ready, get_eip_cert_path
+from leap.bitmask.vpn.vpn import VPNManager
+from leap.bitmask.vpn._checks import is_service_ready, get_vpn_cert_path
 from leap.bitmask.vpn._config import get_bitmask_helper_path
 from leap.bitmask.vpn._config import get_bitmask_polkit_policy_path
 from leap.bitmask.vpn import privilege
@@ -34,18 +34,19 @@ from leap.common.config import get_path_prefix
 from leap.common.files import check_and_fix_urw_only
 
 
-class EIPService(HookableService):
+class VPNService(HookableService):
 
-    name = 'eip'
+    name = 'vpn'
 
     def __init__(self, basepath=None):
         """
-        Initialize EIP service
+        Initialize VPN service
         """
-        super(EIPService, self).__init__()
+        super(VPNService, self).__init__()
 
         self._started = False
-        self._eip = None
+        self._vpn = None
+        self._domain = ''
 
         if basepath is None:
             self._basepath = get_path_prefix()
@@ -53,36 +54,39 @@ class EIPService(HookableService):
             self._basepath = basepath
 
     def startService(self):
-        print "Starting EIP Service..."
+        print "Starting VPN Service..."
         # TODO this could trigger a check for validity of the certificates,
         # etc.
-        super(EIPService, self).startService()
+        super(VPNService, self).startService()
 
     def stopService(self):
-        print "Stopping EIP Service..."
-        super(EIPService, self).stopService()
+        print "Stopping VPN Service..."
+        super(VPNService, self).stopService()
 
     def start_vpn(self, domain):
+        # TODO check if the VPN is started and return an error if it is.
         self._setup(domain)
-        self._eip.start()
+        self._vpn.start()
         self._started = True
+        self._domain = domain
         return {'result': 'started'}
 
     def stop_vpn(self):
         if self._started:
-            self._eip.stop()
+            self._vpn.stop()
             self._started = False
             return {'result': 'stopped'}
 
     def do_status(self):
-        if self._eip:
-            status = self._eip.get_status()
+        if self._vpn:
+            status = self._vpn.get_status()
         else:
-            status = {'EIP': 'OFF'}
+            status = {'VPN': 'OFF'}
+        status['domain'] = self._domain
         return status
 
     def do_check(self):
-        """Check whether the EIP Service is properly configured,
+        """Check whether the VPN Service is properly configured,
         and can be started"""
         # TODO either pass a provider, or set a given provider
         _ready = is_service_ready('demo.bitmask.net')
@@ -90,7 +94,7 @@ class EIPService(HookableService):
             result = 'ok'
         else:
             result = 'no'
-        return {'eip_ready': result}
+        return {'vpn_ready': result}
 
     @defer.inlineCallbacks
     def do_get_cert(self, provider):
@@ -98,7 +102,7 @@ class EIPService(HookableService):
         bonafide = self.parent.getServiceNamed("bonafide")
         _, cert_str = yield bonafide.do_get_vpn_cert()
 
-        cert_path = get_eip_cert_path(provider)
+        cert_path = get_vpn_cert_path(provider)
         cert_dir = os.path.dirname(cert_path)
         if not os.path.exists(cert_dir):
             os.makedirs(cert_dir, mode=0700)
@@ -116,7 +120,7 @@ class EIPService(HookableService):
         return {'uninstall': 'ok'}
 
     def _setup(self, provider):
-        """Set up EIPManager for a specified provider.
+        """Set up VPNManager for a specified provider.
 
         :param provider: the provider to use, e.g. 'demo.bitmask.net'
         :type provider: str"""
@@ -134,7 +138,7 @@ class EIPService(HookableService):
         ca_path = prefix + "/ca/cacert.pem"
 
         # FIXME
-        # XXX picked manually from eip-service.json
+        # XXX picked manually from vpn-service.json
         extra_flags = {
             "auth": "SHA1",
             "cipher": "AES-128-CBC",
@@ -142,5 +146,5 @@ class EIPService(HookableService):
             "tls-cipher": "DHE-RSA-AES128-SHA",
         }
 
-        self._eip = EIPManager(remotes, cert_path, key_path, ca_path,
+        self._vpn = VPNManager(remotes, cert_path, key_path, ca_path,
                                extra_flags)
