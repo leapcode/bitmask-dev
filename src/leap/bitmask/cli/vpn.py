@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# vpn 
+# vpn
 # Copyright (C) 2016-2017 LEAP
 #
 # This program is free software: you can redistribute it and/or modify
