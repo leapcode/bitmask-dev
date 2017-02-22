@@ -29,7 +29,7 @@ class CannedData:
             'soledad': 'running',
             'keymanager': 'running',
             'mail': 'running',
-            'eip': 'stopped',
+            'vpn': 'stopped',
             'backend': 'dummy'}
         version = {'version_core': '0.0.1'}
         stop = {'stop': 'ok'}

@@ -795,7 +795,7 @@ class IncomingMailService(service.MultiService):
 #
 
 
-SERVICES = ('soledad', 'smtp', 'eip')
+SERVICES = ('soledad', 'smtp', 'vpn')
 
 
 Provider = namedtuple(

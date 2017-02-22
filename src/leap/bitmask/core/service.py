@@ -32,7 +32,7 @@ from leap.bitmask.core import _zmq
 from leap.bitmask.core import flags
 from leap.bitmask.core import _session
 from leap.bitmask.core.web.service import HTTPDispatcherService
-from leap.bitmask.vpn.service import EIPService
+from leap.bitmask.vpn.service import VPNService
 from leap.common.events import server as event_server
 
 logger = Logger()
@@ -76,8 +76,8 @@ class BitmaskBackend(configurable.ConfigurableService):
         if enabled('mail'):
             on_start(self._init_mail_services)
 
-        if enabled('eip'):
-            on_start(self._init_eip)
+        if enabled('vpn'):
+            on_start(self._init_vpn)
 
         if enabled('zmq'):
             on_start(self._init_zmq)
@@ -165,8 +165,8 @@ class BitmaskBackend(configurable.ConfigurableService):
         service = mail_services.StandardMailService
         self._maybe_init_service('mail', service, self.basedir)
 
-    def _init_eip(self):
-        self._maybe_init_service('eip', EIPService)
+    def _init_vpn(self):
+        self._maybe_init_service('vpn', VPNService)
 
     def _init_zmq(self):
         zs = _zmq.ZMQServerService(self)
@@ -213,8 +213,8 @@ class BitmaskBackend(configurable.ConfigurableService):
             self._init_mail_services()
             self._start_mail_services()
 
-        elif service == 'eip':
-            self._init_eip()
+        elif service == 'vpn':
+            self._init_vpn()
 
         elif service == 'zmq':
             self._init_zmq()
@@ -245,7 +245,7 @@ class BackendCommands(object):
 
     def do_status(self):
         # we may want to make this tuple a class member
-        services = ('soledad', 'keymanager', 'mail', 'eip', 'web')
+        services = ('soledad', 'keymanager', 'mail', 'vpn', 'web')
 
         status = {}
         for name in services:

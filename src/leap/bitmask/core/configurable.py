@@ -29,7 +29,7 @@ from leap.bitmask.config import (
 class ConfigurableService(service.MultiService):
 
     config_file = u"bitmaskd.cfg"
-    service_names = ('mail', 'eip', 'zmq', 'web', 'websockets')
+    service_names = ('mail', 'vpn', 'zmq', 'web', 'websockets')
 
     def __init__(self, basedir=DEFAULT_BASEDIR):
         service.MultiService.__init__(self)
@@ -46,7 +46,7 @@ class ConfigurableService(service.MultiService):
 DEFAULT_CONFIG = """
 [services]
 mail = True
-eip = False
+vpn = False
 zmq = True
 web = True
 onion = False

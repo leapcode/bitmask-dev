@@ -41,4 +41,5 @@ SUBCOMMANDS:
 '''.format(name=command.appname)
 
     commands = ['start', 'stop', 'status', 'check',
-                'get_cert', 'install', 'uninstall']
+                'get_cert', 'install', 'uninstall',
+                'enable', 'disable']

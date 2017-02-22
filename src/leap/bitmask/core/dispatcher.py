@@ -175,9 +175,9 @@ class UserCmd(SubCommand):
             user, current_password, new_password)
 
 
-class EIPCmd(SubCommand):
+class VPNCmd(SubCommand):
 
-    label = 'eip'
+    label = 'vpn'
 
     @register_method('dict')
     def do_ENABLE(self, service, *parts):
@@ -190,48 +190,48 @@ class EIPCmd(SubCommand):
         return d
 
     @register_method('dict')
-    def do_STATUS(self, eip, *parts):
-        d = eip.do_status()
+    def do_STATUS(self, vpn, *parts):
+        d = vpn.do_status()
         return d
 
     @register_method('dict')
-    def do_START(self, eip, *parts):
+    def do_START(self, vpn, *parts):
+        # TODO --- attempt to get active provider
+        # TODO or catch the exception and send error
         try:
             provider = parts[2]
         except IndexError:
             raise DispatchError(
                 'wrong number of arguments: expected 1, got none')
-        # TODO --- attempt to get active provider
-        # TODO or catch the exception and send error
         provider = parts[2]
-        d = eip.start_vpn(provider)
+        d = vpn.start_vpn(provider)
         return d
 
     @register_method('dict')
-    def do_STOP(self, eip, *parts):
-        d = eip.stop_vpn()
+    def do_STOP(self, vpn, *parts):
+        d = vpn.stop_vpn()
         return d
 
     @register_method('dict')
-    def do_CHECK(self, eip, *parts):
-        d = eip.do_check()
+    def do_CHECK(self, vpn, *parts):
+        d = vpn.do_check()
         return d
 
     @register_method('dict')
-    def do_GET_CERT(self, eip, *parts):
+    def do_GET_CERT(self, vpn, *parts):
         # TODO -- attempt to get active provider
         provider = parts[2]
-        d = eip.do_get_cert(provider)
+        d = vpn.do_get_cert(provider)
         return d
 
     @register_method('dict')
-    def do_INSTALL(self, eip, *parts):
-        d = eip.do_install()
+    def do_INSTALL(self, vpn, *parts):
+        d = vpn.do_install()
         return d
 
     @register_method('dict')
-    def do_UNINSTALL(self, eip, *parts):
-        d = eip.do_uninstall()
+    def do_UNINSTALL(self, vpn, *parts):
+        d = vpn.do_uninstall()
         return d
 
 
@@ -406,7 +406,7 @@ class CommandDispatcher(object):
         self.core = core
         self.subcommand_core = CoreCmd()
         self.subcommand_bonafide = BonafideCmd()
-        self.subcommand_eip = EIPCmd()
+        self.subcommand_vpn = VPNCmd()
         self.subcommand_mail = MailCmd()
         self.subcommand_keys = KeysCmd()
         self.subcommand_events = EventsCmd()
@@ -425,17 +425,17 @@ class CommandDispatcher(object):
         d.addCallbacks(_format_result, _format_error)
         return d
 
-    def do_EIP(self, *parts):
-        eip = self._get_service(self.subcommand_eip.label)
-        if not eip:
-            return _format_result({'eip': 'disabled'})
+    def do_VPN(self, *parts):
+        vpn = self._get_service(self.subcommand_vpn.label)
+        if not vpn:
+            return _format_result({'vpn': 'disabled'})
         subcmd = parts[1]
 
-        dispatch = self.subcommand_eip.dispatch
+        dispatch = self.subcommand_vpn.dispatch
         if subcmd in ('enable', 'disable'):
             d = dispatch(self.core, *parts)
         else:
-            d = dispatch(eip, *parts)
+            d = dispatch(vpn, *parts)
 
         d.addCallbacks(_format_result, _format_error)
         return d
