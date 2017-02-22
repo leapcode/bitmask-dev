@@ -30,7 +30,7 @@ from .constants import IS_WIN
 # TODO this is very badly named. There is another class that is called
 # manager. This
 
-class VPNManager(object):
+class TunnelManager(object):
 
     def __init__(self, remotes, cert_path, key_path, ca_path, extra_flags):
         """
@@ -40,6 +40,7 @@ class VPNManager(object):
             ((ip1, portA), (ip2, portB), ...)
         :type remotes: tuple of tuple(str, int)
         """
+        print "INIT", remotes
         # TODO we can set all the needed ports, gateways and paths in here
         # TODO need gateways here
         # sorting them doesn't belong in here

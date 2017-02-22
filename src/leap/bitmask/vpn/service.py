@@ -72,6 +72,9 @@ class VPNService(HookableService):
         return {'result': 'started'}
 
     def stop_vpn(self):
+        # TODO -----------------------------
+        # when shutting down the main bitmaskd daemon, this should be called.
+
         if self._started:
             self._vpn.stop()
             self._started = False

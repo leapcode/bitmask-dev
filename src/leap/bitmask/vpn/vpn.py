@@ -18,7 +18,7 @@
 
 from colorama import Fore
 
-from leap.bitmask.vpn.manager import VPNManager
+from leap.bitmask.vpn.manager import TunnelManager
 from leap.bitmask.vpn.fw.firewall import FirewallManager
 
 
@@ -26,7 +26,7 @@ class VPNManager(object):
 
     def __init__(self, remotes, cert, key, ca, flags):
 
-        self._vpn = VPNManager(
+        self._vpn = TunnelManager(
             remotes, cert, key, ca, flags)
         self._firewall = FirewallManager(remotes)
 
