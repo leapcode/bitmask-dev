@@ -131,7 +131,7 @@ class RESTApiTests(unittest.TestCase):
 
     def setUp(self):
         dispatcher = dummyDispatcherFactory()
-        api = web.api.Api(dispatcher)
+        api = web.api.Api(dispatcher, ['aaa'])
         root = resource.Resource()
         root.putChild(b"API", api)
         plainSite = Site(root)
@@ -205,7 +205,8 @@ class RESTApiTests(unittest.TestCase):
         uri = networkString("http://127.0.0.1:%d/API/%s" % (
             self.plainPortno, path))
         return client.getPage(
-            uri, method=method, timeout=1, postdata=postdata)
+            uri, method=method, timeout=1, postdata=postdata,
+            headers={'X-Bitmask-Auth': 'aaa'})
 
     def assertCall(self, returned, expected):
         data = json.loads(returned)

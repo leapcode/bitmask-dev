@@ -6,6 +6,7 @@ from twisted.web.guard import HTTPAuthSessionWrapper, BasicCredentialFactory
 from twisted.web.resource import IResource
 
 
+# Deprecate if the user-session tokens are finally not used.
 class TokenCredentialFactory(BasicCredentialFactory):
     scheme = 'token'
 
@@ -37,11 +38,11 @@ class WhitelistHTTPAuthSessionWrapper(HTTPAuthSessionWrapper):
         return HTTPAuthSessionWrapper.render(self, request)
 
 
-def protectedResourceFactory(resource, session_tokens, whitelist):
+def protectedResourceFactory(resource, tokens, whitelist):
     realm = HttpPasswordRealm(resource)
-    checker = TokenDictChecker(session_tokens)
-    resource_portal = portal.Portal(realm, [checker])
+    checker = TokenDictChecker(tokens)
     credentialFactory = TokenCredentialFactory('localhost')
+    resource_portal = portal.Portal(realm, [checker])
     protected_resource = WhitelistHTTPAuthSessionWrapper(
         resource_portal, [credentialFactory],
         whitelist=whitelist)

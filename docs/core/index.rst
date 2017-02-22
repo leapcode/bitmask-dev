@@ -24,8 +24,31 @@ throught a REST API. In bitmaskd.cfg::
   [services]
   web = True
 
-API Authentication
-==================
+
+Global API Authentication
+=========================
+
+To avoid some kind of attacks, the Bitmask API is protected by a global
+authentication token.
+
+The JS API receives this value when the initial entrypoint is loaded for the
+first time, in the anchor part of the url.
+
+To authenticate any request to the API, the ``X-Bitmask-Auth`` header has to be
+added to it, set to the single value that is initialized during the bitmask
+deaemon startup::
+
+  curl -X POST http://localhost:7070/API/mail/status
+  unauthorized:bad auth token
+
+  curl -X POST http://localhost:7070/API/mail/status -H 'X-Bitmask-Auth: fae20706aa4f4f98ac0e67996787a370'
+  {"result": {"status": "on", "childrenStatus": {"smtp": {"status": "on", "error": null}, "imap": {"status": "on", "error": null}}, "error": null}, "error": null}
+
+This token can be found in ``.config/leap/authtoken``
+
+
+API Authentication (this section not implemented yet)
+======================================================
 
 By default, the resources in the API are protected by an authentication token.
 

@@ -18,6 +18,8 @@
 Bitmask-core Service.
 """
 import json
+import os
+import uuid
 try:
     import resource
 except ImportError:
@@ -62,6 +64,16 @@ class BitmaskBackend(configurable.ConfigurableService):
 
         configurable.ConfigurableService.__init__(self, basedir)
         self.core_commands = BackendCommands(self)
+
+        # The global token is used for authenticating some of the channels that
+        # expose the dispatcher. For the moment being, this is the REST API.
+        self.global_tokens = [uuid.uuid4().hex]
+        logger.info('Global token: {0}'.format(self.global_tokens[0]))
+        self._touch_token_file()
+
+        # These tokens are user-session tokens. Implemented and rolled back,
+        # unused for now. If we don't move forward with user-session tokens on
+        # top of the global app token, this should be removed.
         self.tokens = {}
 
         def enabled(service):
@@ -88,6 +100,12 @@ class BitmaskBackend(configurable.ConfigurableService):
 
         if enabled('websockets'):
             on_start(self._init_websockets)
+
+    def _touch_token_file(self):
+        path = os.path.join(self.basedir, 'authtoken')
+        with open(path, 'w') as f:
+            f.write(self.global_tokens[0])
+        os.chmod(path, 0600)
 
     def init_events(self):
         event_server.ensure_server()

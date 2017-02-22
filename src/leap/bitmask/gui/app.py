@@ -30,8 +30,8 @@ from functools import partial
 from multiprocessing import Process
 
 from leap.bitmask.core.launcher import run_bitmaskd, pid
-
 from leap.bitmask.gui import app_rc
+from leap.common.config import get_path_prefix
 
 
 if platform.system() == 'Windows':
@@ -51,7 +51,7 @@ else:
     from PyQt5.QtCore import QSize
 
 
-BITMASK_URI = 'http://localhost:7070'
+BITMASK_URI = 'http://localhost:7070/'
 
 IS_WIN = platform.system() == "Windows"
 DEBUG = os.environ.get("DEBUG", False)
@@ -100,7 +100,11 @@ class BrowserWindow(QDialog):
         self.closing = False
 
     def load_app(self):
-        self.view.load(QtCore.QUrl(BITMASK_URI))
+        path = os.path.join(get_path_prefix(), 'leap', 'authtoken')
+        global_token = open(path).read().strip()
+        anchored_uri = BITMASK_URI + 'index.html#' + global_token
+        print('[bitmask] opening Browser with {0}'.format(anchored_uri))
+        self.view.load(QtCore.QUrl(anchored_uri))
 
     def shutdown(self, *args):
         if self.closing:

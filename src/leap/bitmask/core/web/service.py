@@ -61,11 +61,6 @@ class HTTPDispatcherService(service.Service):
     API_WHITELIST = (
         '/API/core/version',
         '/API/core/stats',
-        '/API/bonafide/user/create',
-        '/API/bonafide/user/authenticate',
-        '/API/bonafide/provider/list',
-        '/API/bonafide/provider/create',
-        '/API/bonafide/provider/read',
     )
 
     def __init__(self, core, port=7070, debug=False, onion=False):
@@ -76,7 +71,6 @@ class HTTPDispatcherService(service.Service):
         self.uri = ''
 
     def startService(self):
-        # TODO refactor this, too long----------------------------------------
         if HAS_WEB_UI:
             webdir = os.path.abspath(
                 pkg_resources.resource_filename('leap.bitmask_js', 'public'))
@@ -91,18 +85,16 @@ class HTTPDispatcherService(service.Service):
                 'ui', 'app', 'lib', 'bitmask.js')
             jsapi = File(os.path.abspath(jspath))
 
-        api = Api(CommandDispatcher(self._core))
-        # protected_api = protectedResourceFactory(
-        #    api, self._core.tokens, self.API_WHITELIST)
+        api = Api(CommandDispatcher(self._core), self._core.global_tokens)
 
         root = File(webdir)
-
-        # FIXME -- switching off the protected api, due to
-        # https://0xacab.org/leap/bitmask-dev/issues/9
-        # root.putChild(u'API', protected_api)
-        # -------------------------------------------------
-
         root.putChild(u'API', api)
+
+        # XXX remove it we don't bring session tokens again
+        # protected_api = protectedResourceFactory(
+        # api, self._core.global_tokens, self.API_WHITELIST)
+        # root.putChild(u'API', protected_api)
+
         if not HAS_WEB_UI:
             root.putChild('bitmask.js', jsapi)
 
@@ -110,7 +102,7 @@ class HTTPDispatcherService(service.Service):
         self.site = factory
 
         if self.onion and _has_txtorcon():
-                self._start_onion_service(factory)
+            self._start_onion_service(factory)
         else:
             interface = '127.0.0.1'
             endpoint = endpoints.TCP4ServerEndpoint(

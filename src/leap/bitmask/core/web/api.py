@@ -11,11 +11,20 @@ class Api(Resource):
 
     isLeaf = True
 
-    def __init__(self, dispatcher):
+    def __init__(self, dispatcher, global_tokens):
         Resource.__init__(self)
         self.dispatcher = dispatcher
+        self.global_tokens = global_tokens
 
     def render_POST(self, request):
+        token = request.getHeader('x-bitmask-auth')
+        if not token:
+            request.setResponseCode(401)
+            return 'unauthorized: no app token'
+        elif token.strip() not in self.global_tokens:
+            request.setResponseCode(401)
+            return 'unauthorized: bad app token'
+
         command = request.uri.split('/')[2:]
         params = request.content.getvalue()
         if params:
