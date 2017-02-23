@@ -74,15 +74,9 @@ OPTIONAL ARGUMENTS:
         mail = Mail(self.cfg, self.print_json)
         return mail.execute(raw_args)
 
-<<<<<<< HEAD
-    def eip(self, raw_args):
-        eip = Eip(self.cfg, self.print_json)
-        return eip.execute(raw_args)
-=======
     def vpn(self, raw_args):
         vpn = VPN()
         return vpn.execute(raw_args)
->>>>>>> [refactor] rename eip to vpn
 
     def keys(self, raw_args):
         keys = Keys(self.cfg, self.print_json)
