@@ -204,6 +204,65 @@ var bitmask = function(){
             }
         },
 
+        /**
+         * For now the VPN setup is not really streamlined
+         *
+         * src/leap/bitmask/vpn/README.rst for more info
+         */
+        vpn: {
+            enable: function() {
+                return call(['vpn', 'enable'])
+            },
+
+            disable: function() {
+                return call(['vpn', 'disable'])
+            },
+
+            status: function() {
+                return call(['vpn', 'status'])
+            },
+
+            start: function(provider) {
+                return call(['vpn', 'start', provider])
+            },
+
+            stop: function() {
+                return call(['vpn', 'stop'])
+            },
+
+            /**
+             * Check if the VPN is ready to start and has the cert downloaded
+             *
+             * @return {Promise<bool>} User readable status
+             */
+            check: function(provider) {
+                return call(['vpn', 'check', provider])
+            },
+
+            /**
+             * Download VPN cert
+             *
+             * @param {string} userid the userid to be used
+             */
+            get_cert: function(userid) {
+                return call(['vpn', 'get_cert', userid])
+            },
+
+            /**
+             * Install helpers in the system
+             */
+            install: function() {
+                return call(['vpn', 'install'])
+            },
+
+            /**
+             * Uninstall helpers in the system
+             */
+            uninstall: function() {
+                return call(['vpn', 'uninstall'])
+            }
+        },
+
         mail: {
             /**
              * Check the status of the email service
