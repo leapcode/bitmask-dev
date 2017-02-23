@@ -112,12 +112,6 @@ class SoledadContainer(Container):
         secrets_path = os.path.join(soledad_path, '%s.secret' % uuid)
         local_db_path = os.path.join(soledad_path, '%s.db' % uuid)
 
-        if token is None:
-            syncable = False
-            token = ''
-        else:
-            syncable = True
-
         return Soledad(
             uuid,
             unicode(passphrase),
@@ -126,14 +120,14 @@ class SoledadContainer(Container):
             server_url=server_url,
             cert_file=cert_file,
             auth_token=token,
-            syncable=syncable)
+            offline=True)
 
     def set_remote_auth_token(self, userid, token):
         self.get_instance(userid).token = token
 
-    def set_syncable(self, userid, state):
+    def set_offline(self, userid, state):
         # TODO should check that there's a token!
-        self.get_instance(userid).set_syncable(bool(state))
+        self.get_instance(userid).set_offline(bool(state))
 
     def sync(self, userid):
         self.get_instance(userid).sync()
@@ -206,7 +200,7 @@ class SoledadService(HookableService):
             if container.get_instance(userid):
                 logger.debug("passing a new SRP Token to Soledad: %s" % userid)
                 container.set_remote_auth_token(userid, token)
-                container.set_syncable(userid, True)
+                container.set_offline(userid, False)
             else:
                 logger.debug("adding a new Soledad Instance: %s" % userid)
                 container.add_instance(

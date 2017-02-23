@@ -42,7 +42,6 @@ from leap.bitmask.mail.imap.service import LeapIMAPFactory
 from leap.soledad.client import Soledad
 
 
-
 # TODO should get this initializers from some authoritative mocked source
 # We might want to put them the soledad itself.
 
@@ -67,7 +66,7 @@ def initialize_soledad(uuid, email, passwd,
         localdb,
         server_url,
         cert_file,
-        syncable=False)
+        offline=True)
 
     return soledad
 
@@ -121,7 +120,7 @@ km_args = (userid, "https://localhost", soledad)
 km_kwargs = {
     "token": "",
     "ca_cert_path": "",
-    "api_uri":  "",
+    "api_uri": "",
     "api_version": "",
     "uid": uuid,
     "gpgbinary": get_gpg_bin_path()

@@ -251,7 +251,7 @@ class KeyManagerWithSoledadTestCase(unittest.TestCase, BaseLeapTest):
             server_url='',
             cert_file=None,
             auth_token=None,
-            syncable=False
+            offline=True,
         )
 
     def tearDown(self):

@@ -17,8 +17,6 @@
 """
 Base classes and keys for leap.mail tests.
 """
-import os
-import distutils.spawn
 from mock import Mock
 from twisted.internet.defer import gatherResults
 from twisted.trial import unittest
@@ -38,7 +36,6 @@ class defaultMockSharedDB(object):
     put_doc = Mock(side_effect=None)
     open = Mock(return_value=None)
     close = Mock(return_value=None)
-    syncable = True
 
     def __call__(self):
         return self
@@ -58,7 +55,7 @@ class KeyManagerWithSoledadTestCase(unittest.TestCase, BaseLeapTest):
             cert_file=None,
             auth_token=None,
             shared_db=defaultMockSharedDB(),
-            syncable=False)
+            offline=True)
 
         self.km = self._key_manager()
 
@@ -110,15 +107,6 @@ class KeyManagerWithSoledadTestCase(unittest.TestCase, BaseLeapTest):
         return KeyManager(user, url, self._soledad, token=token,
                           gpgbinary=self.gpg_binary_path,
                           ca_cert_path=ca_cert_path)
-
-    def get_public_binary_key(self):
-        with open(PATH + '/fixtures/public_key.bin', 'r') as binary_public_key:
-            return binary_public_key.read()
-
-    def get_private_binary_key(self):
-        with open(
-                PATH + '/fixtures/private_key.bin', 'r') as binary_private_key:
-            return binary_private_key.read()
 
 
 # key 24D18DDF: public key "Leap Test Key <leap@leap.se>"

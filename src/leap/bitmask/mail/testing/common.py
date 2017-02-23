@@ -57,7 +57,7 @@ def _initialize_soledad(email, gnupg_home, tempdir):
         local_db_path,
         server_url,
         cert_file,
-        syncable=False)
+        offline=True)
 
     return soledad
 
