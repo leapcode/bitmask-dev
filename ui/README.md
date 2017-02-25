@@ -30,7 +30,7 @@ python package and installed in the virtualenv:
     make dev-install  # builds and installs JS app as python package
     pkill bitmaskd    # make sure bitmaskd is not already running
     bitmaskd          # launch backend
-    npm run open      # opens http://localhost:7070/ in a browser
+    npm run ui        # opens http://localhost:7070/#authtoken in a browser
     npm run watch     # rebuild JS whenever source file is changed.
 
 In order to package for distribution:

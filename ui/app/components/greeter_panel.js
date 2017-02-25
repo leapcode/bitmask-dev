@@ -31,7 +31,7 @@ export default class GreeterPanel extends React.Component {
         <Area position="bottom" type="dark" className="greeter">
           <Glyphicon glyph="user" />
           &nbsp;
-          <a href="#" onClick={this.newAccount.bind(this)}>Create a new account...</a>
+          <a href="javascript:void(0)" onClick={this.newAccount.bind(this)}>Create a new account...</a>
         </Area>
       </Center>
     </div>

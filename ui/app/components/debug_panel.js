@@ -10,11 +10,11 @@ class DebugPanel extends React.Component {
   }
 
   componentDidMount() {
-    this.click(window.location.hash.replace('#', ''))
+    //this.click(window.location.hash.replace('#', ''))
   }
 
   click(panel_name) {
-    window.location.hash = panel_name
+    //window.location.hash = panel_name
     App.show(panel_name)
   }
 

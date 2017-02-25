@@ -44,21 +44,20 @@ var bitmask = function(){
     if (window.location.protocol === "file:") {
         api_url = 'http://localhost:7070/API/';
     }
+    if (window.location.hash) {
+        api_token = window.location.hash.replace('#', '')
+    }
 
     function call(command) {
         var url = api_url  + command.slice(0, 3).join('/');
         var data = JSON.stringify(command.slice(3));
-        var auth_header = null
-        if (api_token) {
-           auth_header = "Token " + btoa(last_uid + ":" + api_token)
-        }
 
         return new Promise(function(resolve, reject) {
             var req = new XMLHttpRequest();
 
             req.open('POST', url);
-            if (auth_header) {
-                req.setRequestHeader("Authorization", auth_header)
+            if (api_token) {
+                req.setRequestHeader("X-Bitmask-Auth", api_token)
             }
 
             req.onload = function() {
@@ -168,7 +167,6 @@ var bitmask = function(){
                         autoconf = false;
                     }
                     return call(['bonafide', 'user', 'authenticate', uid, password, autoconf]).then(function(response) {
-                        api_token = response.lcl_token
                         last_uuid = response.uuid
                         last_uid = uid
                         return response;

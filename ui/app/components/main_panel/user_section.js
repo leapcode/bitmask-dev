@@ -97,7 +97,7 @@ export default class UserSection extends React.Component {
         />
         <br />
         <Glyphicon glyph="user" />&nbsp;
-        <a href="#" onClick={App.show.bind(App, 'wizard')}>Create a new account...</a>
+        <a href="javascript:void(0)" onClick={App.show.bind(App, 'wizard')}>Create a new account...</a>
       </div>
     )
     return (

@@ -27,7 +27,7 @@
     "zxcvbn": "^4.4.0"
   },
   "scripts": {
-    "open": "gnome-open http://localhost:7070",
+    "ui": "chromium-browser \"http://localhost:7070/#$(cat ~/.config/leap/authtoken)\"",
     "watch": "NODE_ENV=development webpack --watch",
     "build": "NODE_ENV=development webpack",
     "build:production": "NODE_ENV=production webpack"
