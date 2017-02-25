@@ -127,7 +127,7 @@ class SoledadContainer(Container):
 
     def set_offline(self, userid, state):
         # TODO should check that there's a token!
-        self.get_instance(userid).set_offline(bool(state))
+        self.get_instance(userid).offline = bool(state)
 
     def sync(self, userid):
         self.get_instance(userid).sync()
