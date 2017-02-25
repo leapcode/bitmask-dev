@@ -76,14 +76,12 @@ export default class MainPanel extends React.Component {
       }
     }
 
-    if (false) {
-      sidePanel = (
-        <AccountList account={this.state.account}
-          accounts={this.state.accounts}
-          onSelect={this.activateAccount}
-          onRemove={this.removeAccount}/>
-      )
-    }
+    sidePanel = (
+      <AccountList account={this.state.account}
+        accounts={this.state.accounts}
+        onSelect={this.activateAccount}
+        onRemove={this.removeAccount}/>
+    )
 
     return (
       <div className="main-panel">

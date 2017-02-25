@@ -109,19 +109,16 @@ export default class Account {
   }
 
   //
-  // returns a promise, fullfill is passed account object
+  // returns a list of the authenticated accounts
   //
   static active() {
-    if (!bitmask.api_token()) {
-      return new Promise((resolve, reject) => {resolve(null)})
-    }
-    return bitmask.bonafide.user.active().then(
+    return bitmask.bonafide.user.list().then(
       response => {
-        if (response.user == '<none>') {
-          return null
-        } else {
-          return new Account(response.user, {authenticated: true})
+        let list = []
+        for (let accountProps of response) {
+          list.push(new Account(accountProps.userid, accountProps))
         }
+        return list
       }
     )
   }
@@ -181,7 +178,7 @@ export default class Account {
   // this is a temporary hack to support the old behavior
   // util the backend has a proper concept of an account list.
   //
-  static addPrimary(account) {
+  static addActive(account) {
     Account.list = Account.list.filter(i => {
       return i.domain != account.domain
     })

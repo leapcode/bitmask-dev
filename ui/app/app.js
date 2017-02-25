@@ -16,21 +16,25 @@ class Application {
   }
 
   start() {
-    Provider.list(false).then(domains => {
-      Account.initializeList(domains)
-      Account.active().then(account => {
-        if (account == null) {
-          this.show('greeter')
-        } else {
-          Account.addPrimary(account)
-          this.show('main', {initialAccount: account})
-        }
-      }, error => {
-        this.showError(error)
-      })
-    }, error => {
-      this.showError(error)
-    })
+    Provider.list(false).then(
+      domains => {
+        Account.initializeList(domains)
+        Account.active().then(
+          accounts => {
+            if (0 == accounts.length) {
+              this.show('greeter')
+            } else {
+              accounts.forEach(account => {
+                Account.addActive(account)
+              })
+              this.show('main', {initialAccount: Account.list[0]})
+            }
+          },
+          error => {this.showError(error)}
+        )
+      },
+      error => {this.showError(error)}
+    )
   }
 
   show(panel, properties) {

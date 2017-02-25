@@ -74,19 +74,15 @@ export default class EmailSection extends React.Component {
   }
 
   componentWillMount() {
-    //let events = [].concat(GENERAL_NOTICES, ACCOUNT_NOTICES, STATUSES, STATUS_ERRORS)
-    //for (let event of events) {
-    //  bitmask.events.register(event, this.logEvent)
-    //}
+    let events = [].concat(GENERAL_NOTICES, ACCOUNT_NOTICES, STATUSES, STATUS_ERRORS)
+    for (let event of events) {
+      bitmask.events.register(event, this.logEvent)
+    }
     bitmask.mail.status().then(status => {
-      // either 'running' or 'disabled'
-      let newstatus = 'error'
-      if (status['mail'] == 'running') {
-        newstatus = 'on'
-      } else if (status['mail'] == 'disabled') {
-        newstatus = 'disabled'
-      }
-      this.setState({status: newstatus})
+      this.setState({
+        status: status.status,
+        error: status.error
+      })
     })
   }
 
@@ -107,13 +103,13 @@ export default class EmailSection extends React.Component {
   }
 
   render () {
-    //let message = null
-    //if (this.state.error) {
-    //  // style may be: success, warning, danger, info
-    //  message = (
-    //    <Alert bsStyle="danger">{this.state.error}</Alert>
-    //  )
-    //}
+    let message = null
+    if (this.state.error) {
+      // style may be: success, warning, danger, info
+      message = (
+        <Alert bsStyle="danger">{this.state.error}</Alert>
+      )
+    }
     let button = null
     let body = null
     let header = <h1>Mail</h1>
@@ -124,12 +120,13 @@ export default class EmailSection extends React.Component {
       header = <h1>Mail Disabled</h1>
     }
     if (this.state.expanded) {
-      body = (
+      body = (<div>
+        {message}
         <ButtonToolbar>
           <IMAPButton account={this.props.account} />
           <Button onClick={this.openKeys}>Addressbook</Button>
         </ButtonToolbar>
-      )
+      </div>)
     }
     return (
       <SectionLayout icon="envelope" status={this.state.status}
