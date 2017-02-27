@@ -50,6 +50,19 @@ def _initialize_soledad(email, gnupg_home, tempdir):
     server_url = "https://provider"
     cert_file = ""
 
+    # TODO: we pass a fake shared database to soledad because we don't want
+    # it o try to reach network to lookup a stored secret in the shared
+    # database. This logic still has to be improved in soledad itself to
+    # account for tests, and when that is done we can remove this from
+    # here.
+    class FakeSharedDb(object):
+
+        def get_doc(self, doc_id):
+            return None
+
+        def put_doc(self, doc):
+            return None
+
     soledad = Soledad(
         uuid,
         passphrase,
@@ -57,7 +70,8 @@ def _initialize_soledad(email, gnupg_home, tempdir):
         local_db_path,
         server_url,
         cert_file,
-        offline=True)
+        offline=True,
+        shared_db=FakeSharedDb())
 
     return soledad
 

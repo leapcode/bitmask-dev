@@ -243,6 +243,19 @@ class KeyManagerWithSoledadTestCase(unittest.TestCase, BaseLeapTest):
     def setUp(self):
         self.gpg_binary_path = get_gpg_bin_path()
 
+        # TODO: we pass a fake shared database to soledad because we don't want
+        # it o try to reach network to lookup a stored secret in the shared
+        # database. This logic still has to be improved in soledad itself to
+        # account for tests, and when that is done we can remove this from
+        # here.
+        class FakeSharedDb(object):
+
+            def get_doc(self, doc_id):
+                return None
+
+            def put_doc(self, doc):
+                return None
+
         self._soledad = Soledad(
             u"leap@leap.se",
             u"123456",
@@ -252,6 +265,7 @@ class KeyManagerWithSoledadTestCase(unittest.TestCase, BaseLeapTest):
             cert_file=None,
             auth_token=None,
             offline=True,
+            shared_db=FakeSharedDb(),
         )
 
     def tearDown(self):
