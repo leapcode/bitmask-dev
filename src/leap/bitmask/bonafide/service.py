@@ -111,7 +111,9 @@ class BonafideService(HookableService):
     def do_provider_create(self, domain):
         return self._bonafide.do_get_provider(domain, autoconf=True)
 
-    def do_provider_read(self, domain):
+    def do_provider_read(self, domain, service=None):
+        if service:
+            return self._bonafide.do_get_service(domain, service)
         return self._bonafide.do_get_provider(domain)
 
     def do_provider_delete(self, domain):

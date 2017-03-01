@@ -229,7 +229,11 @@ class VPNLauncher(object):
 
         openvpn_configuration = vpnconfig.get_openvpn_configuration()
         for key, value in openvpn_configuration.items():
-            args += ['--%s' % (key,), value]
+            if type(value) is bool:
+                if value:
+                    args += ['--%s' % (key,)]
+            else:
+                args += ['--%s' % (key,), value]
 
         user = getpass.getuser()
 

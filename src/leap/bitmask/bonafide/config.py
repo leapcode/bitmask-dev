@@ -234,10 +234,20 @@ class Provider(object):
             return False
         return True
 
-    def config(self):
-        if not self._provider_config:
-            self._load_provider_json()
-        return self._provider_config.dict()
+    def config(self, service=None):
+        if not service:
+            if not self._provider_config:
+                self._load_provider_json()
+            return self._provider_config.dict()
+
+        path = self._get_service_config_path(service)
+        try:
+            with open(path, 'r') as config:
+                config = Record(**json.load(config))
+        except IOError:
+            raise ValueError("Service " + service +
+                             " not found in provider " + self._domain)
+        return config
 
     def bootstrap(self):
         domain = self._domain

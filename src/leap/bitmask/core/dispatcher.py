@@ -86,7 +86,10 @@ class ProviderCmd(SubCommand):
     @register_method("{'domain': str, 'api_uri': str, 'api_version': str}")
     def do_READ(self, bonafide, *parts):
         domain = parts[2]
-        return bonafide.do_provider_read(domain)
+        service = None
+        if len(parts) > 3:
+            service = parts[3]
+        return bonafide.do_provider_read(domain, service)
 
     @register_method("")
     def do_DELETE(self, bonafide, *parts):

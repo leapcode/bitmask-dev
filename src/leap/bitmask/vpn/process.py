@@ -22,24 +22,13 @@ A custom processProtocol launches the VPNProcess and connects to its management
 interface.
 """
 
-import os
-import shutil
-import socket
-import subprocess
 import sys
 
-from itertools import chain, repeat
-
-from twisted.internet import defer, protocol, reactor
+from twisted.internet import protocol, reactor
 from twisted.internet import error as internet_error
-from twisted.internet.task import LoopingCall
 from twisted.logger import Logger
 
-from leap.bitmask.vpn.constants import IS_MAC
-from leap.bitmask.vpn.utils import first, force_eval
 from leap.bitmask.vpn.utils import get_vpn_launcher
-from leap.bitmask.vpn.launchers import linux
-from leap.bitmask.vpn._telnet import UDSTelnet
 from leap.bitmask.vpn import _status
 from leap.bitmask.vpn import _management
 

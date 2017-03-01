@@ -61,13 +61,14 @@ class VPNService(HookableService):
         print "Stopping VPN Service..."
         super(VPNService, self).stopService()
 
+    @defer.inlineCallbacks
     def start_vpn(self, domain):
         # TODO check if the VPN is started and return an error if it is.
-        self._setup(domain)
+        yield self._setup(domain)
         self._vpn.start()
         self._started = True
         self._domain = domain
-        return {'result': 'started'}
+        defer.returnValue({'result': 'started'})
 
     def stop_vpn(self):
         # TODO -----------------------------
@@ -120,32 +121,23 @@ class VPNService(HookableService):
         ask = privilege.uninstall_helpers()
         return {'uninstall': 'ok'}
 
+    @defer.inlineCallbacks
     def _setup(self, provider):
         """Set up VPNManager for a specified provider.
 
         :param provider: the provider to use, e.g. 'demo.bitmask.net'
         :type provider: str"""
 
-        # FIXME ---------------------------------------------------------
-        # XXX picked manually from eip-service.json
-        remotes = (
-            ("198.252.153.84", "1194"),
-            ("46.165.242.169", "1194"),
-        )
+        bonafide = self.parent.getServiceNamed("bonafide")
+        config = yield bonafide.do_provider_read(provider, "eip")
+        remotes = [(gw["ip_address"], gw["capabilities"]["ports"][0])
+                   for gw in config.gateways]
+        extra_flags = config.openvpn_configuration
 
         prefix = os.path.join(self._basepath,
                               "leap/providers/{0}/keys".format(provider))
         cert_path = key_path = prefix + "/client/openvpn.pem"
         ca_path = prefix + "/ca/cacert.pem"
-
-        # FIXME
-        # XXX picked manually from vpn-service.json
-        extra_flags = {
-            "auth": "SHA1",
-            "cipher": "AES-128-CBC",
-            "keepalive": "10 30",
-            "tls-cipher": "DHE-RSA-AES128-SHA",
-        }
 
         self._vpn = VPNManager(remotes, cert_path, key_path, ca_path,
                                extra_flags)

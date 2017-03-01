@@ -119,8 +119,11 @@ var bitmask = function(){
                     return call(['bonafide', 'provider', 'create', domain]);
                 },
 
-                read: function(domain) {
-                    return call(['bonafide', 'provider', 'read', domain]);
+                read: function(domain, service) {
+                    if (typeof service !== 'string') {
+                        service  = "";
+                    }
+                    return call(['bonafide', 'provider', 'read', domain, service]);
                 },
 
                 delete: function(domain) {
