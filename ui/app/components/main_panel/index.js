@@ -8,12 +8,13 @@ import React from 'react'
 import App from 'app'
 import Login from 'components/login'
 import Account from 'models/account'
-import DummyAccount from 'models/dummy_account'
+import Spinner from 'components/spinner'
 
 import './main_panel.less'
 import AccountList from './account_list'
 import UserSection from './user_section'
 import EmailSection from './email_section'
+import VPNSection from './vpn_section'
 
 export default class MainPanel extends React.Component {
 
@@ -25,6 +26,7 @@ export default class MainPanel extends React.Component {
     super(props)
     this.state = {
       account: null,
+      provider: null,
       accounts: []
     }
     this.activateAccount = this.activateAccount.bind(this)
@@ -33,17 +35,17 @@ export default class MainPanel extends React.Component {
 
   componentWillMount() {
     if (this.props.initialAccount) {
-      this.setState({
-        account: this.props.initialAccount,
-        accounts: Account.list
-      })
+      this.activateAccount(this.props.initialAccount)
     }
   }
 
   activateAccount(account) {
-    this.setState({
-      account: account,
-      accounts: Account.list
+    account.getProvider().then(provider => {
+      this.setState({
+        account: account,
+        provider: provider,
+        accounts: Account.list
+      })
     })
   }
 
@@ -53,10 +55,7 @@ export default class MainPanel extends React.Component {
         if (newActiveAccount == null) {
           App.start()
         } else {
-          this.setState({
-            account: newActiveAccount,
-            accounts: Account.list
-          })
+          this.activateAccount(newActiveAccount)
         }
       },
       error => {
@@ -66,14 +65,26 @@ export default class MainPanel extends React.Component {
   }
 
   render() {
+    if (this.state.account && this.state.provider) {
+      return this.renderPanel()
+    } else {
+      return <Spinner />
+    }
+  }
+
+  renderPanel() {
     let emailSection = null
     let vpnSection = null
     let sidePanel = null
 
     if (this.state.account.authenticated) {
-      if (this.state.account.hasEmail) {
+      if (this.state.provider.hasEmail) {
         emailSection = <EmailSection account={this.state.account} />
       }
+    }
+
+    if (this.state.provider.hasVPN) {
+      vpnSection = <VPNSection account={this.state.account} />
     }
 
     sidePanel = (

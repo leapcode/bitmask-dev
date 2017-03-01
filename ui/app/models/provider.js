@@ -23,6 +23,14 @@ export default class Provider {
     return this._description[LOCALE]
   }
 
+  get hasEmail() {
+    return this.services.includes("mx")
+  }
+
+  get hasVPN() {
+    return this.services.includes("openvpn")
+  }
+
   static setup(domain) {
     return bitmask.bonafide.provider.create(domain).then(
       response => {

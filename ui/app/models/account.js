@@ -4,6 +4,7 @@
 //
 
 import bitmask from 'lib/bitmask'
+import Provider from 'models/provider'
 
 export default class Account {
 
@@ -46,8 +47,17 @@ export default class Account {
     return this._authenticated
   }
 
-  get hasEmail() {
-    return true
+  getProvider() {
+    if (this.provider) {
+      return new Promise((resolve, reject) => {
+        resolve(this.provider)
+      })
+    } else {
+      return Provider.get(this.domain).then(provider => {
+        this.provider = provider
+        return provider
+      })
+    }
   }
 
   //
