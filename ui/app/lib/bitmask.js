@@ -264,6 +264,14 @@ var bitmask = function(){
         },
 
         mail: {
+            enable: function() {
+                return call(['mail', 'enable'])
+            },
+
+            disable: function() {
+                return call(['mail', 'disable'])
+            },
+
             /**
              * Check the status of the email service
              *
