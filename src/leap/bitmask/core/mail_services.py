@@ -571,16 +571,16 @@ class StandardMailService(service.MultiService, HookableService):
     # commands
 
     @defer.inlineCallbacks
-    def do_status(self, userid=None):
+    def do_status(self, userid):
         smtp = self.getServiceNamed('smtp')
         imap = self.getServiceNamed('imap')
+        incoming = self.getServiceNamed('incoming_mail')
+        incoming_status = yield incoming.status(userid)
         childrenStatus = {
             'smtp': smtp.status(),
-            'imap': imap.status()
+            'imap': imap.status(),
+            'incoming': incoming_status
         }
-        if userid is not None:
-            incoming = self.getServiceNamed('incoming_mail')
-            childrenStatus['incoming'] = yield incoming.status(userid)
 
         def key(service):
             status = childrenStatus[service]

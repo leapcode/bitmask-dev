@@ -252,9 +252,11 @@ class MailCmd(SubCommand):
 
     @register_method('dict')
     def do_STATUS(self, mail, *parts, **kw):
-        userid = None
-        if len(parts) > 2:
+        try:
             userid = parts[2]
+        except IndexError:
+            raise DispatchError(
+                'wrong number of arguments: expected 1, got none')
         d = mail.do_status(userid)
         return d
 

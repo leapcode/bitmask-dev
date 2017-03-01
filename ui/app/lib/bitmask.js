@@ -213,9 +213,6 @@ var bitmask = function(){
              * @return {Promise<string>} User readable status
              */
             status: function(uid) {
-                if (typeof uid !== 'string') {
-                    uid = null
-                }
                 return call(['mail', 'status', uid]);
             },
 

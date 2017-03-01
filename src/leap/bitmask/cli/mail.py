@@ -50,15 +50,12 @@ SUBCOMMANDS:
                             help='uid to check the status of')
         subargs = parser.parse_args(raw_args)
 
-        self.data.append('status')
-
         uid = None
         if subargs.uid:
             uid = subargs.uid
         else:
             uid = self.cfg.get('bonafide', 'active', default=None)
-        if uid:
-            self.data.append(uid)
+        self.data += ['status', uid]
 
         return self._send(self._print_status)
 
