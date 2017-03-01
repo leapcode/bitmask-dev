@@ -196,14 +196,11 @@ class VPNCmd(SubCommand):
 
     @register_method('dict')
     def do_START(self, vpn, *parts):
-        # TODO --- attempt to get active provider
-        # TODO or catch the exception and send error
         try:
             provider = parts[2]
         except IndexError:
             raise DispatchError(
                 'wrong number of arguments: expected 1, got none')
-        provider = parts[2]
         d = vpn.start_vpn(provider)
         return d
 
@@ -214,14 +211,22 @@ class VPNCmd(SubCommand):
 
     @register_method('dict')
     def do_CHECK(self, vpn, *parts):
-        d = vpn.do_check()
+        try:
+            provider = parts[2]
+        except IndexError:
+            raise DispatchError(
+                'wrong number of arguments: expected 1, got none')
+        d = vpn.do_check(provider)
         return d
 
     @register_method('dict')
     def do_GET_CERT(self, vpn, *parts):
-        # TODO -- attempt to get active provider
-        provider = parts[2]
-        d = vpn.do_get_cert(provider)
+        try:
+            username = parts[2]
+        except IndexError:
+            raise DispatchError(
+                'wrong number of arguments: expected 1, got none')
+        d = vpn.do_get_cert(username)
         return d
 
     @register_method('dict')

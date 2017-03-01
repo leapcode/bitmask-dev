@@ -27,8 +27,6 @@ from twisted.internet import defer
 from leap.bitmask.hooks import HookableService
 from leap.bitmask.vpn.vpn import VPNManager
 from leap.bitmask.vpn._checks import is_service_ready, get_vpn_cert_path
-from leap.bitmask.vpn._config import get_bitmask_helper_path
-from leap.bitmask.vpn._config import get_bitmask_polkit_policy_path
 from leap.bitmask.vpn import privilege
 from leap.common.config import get_path_prefix
 from leap.common.files import check_and_fix_urw_only
@@ -88,22 +86,22 @@ class VPNService(HookableService):
         status['domain'] = self._domain
         return status
 
-    def do_check(self):
+    def do_check(self, domain):
         """Check whether the VPN Service is properly configured,
         and can be started"""
-        # TODO either pass a provider, or set a given provider
-        _ready = is_service_ready('demo.bitmask.net')
-        if _ready:
-            result = 'ok'
-        else:
-            result = 'no'
-        return {'vpn_ready': result}
+        return {'vpn_ready': is_service_ready(domain)}
 
     @defer.inlineCallbacks
-    def do_get_cert(self, provider):
+    def do_get_cert(self, username):
+        try:
+            _, provider = username.split('@')
+        except ValueError:
+            raise ValueError(username + ' is not a valid username, it should'
+                             ' contain an @')
+
         # fetch vpn cert and store
         bonafide = self.parent.getServiceNamed("bonafide")
-        _, cert_str = yield bonafide.do_get_vpn_cert()
+        _, cert_str = yield bonafide.do_get_vpn_cert(username)
 
         cert_path = get_vpn_cert_path(provider)
         cert_dir = os.path.dirname(cert_path)

@@ -17,6 +17,9 @@
 """
 Bitmask Command Line interface: vpn module
 """
+import argparse
+import sys
+
 from leap.bitmask.cli import command
 
 
@@ -40,6 +43,66 @@ SUBCOMMANDS:
 
 '''.format(name=command.appname)
 
-    commands = ['start', 'stop', 'status', 'check',
-                'get_cert', 'install', 'uninstall',
+    commands = ['stop', 'status', 'install', 'uninstall',
                 'enable', 'disable']
+
+    def start(self, raw_args):
+        parser = argparse.ArgumentParser(
+            description='Bitmask VPN start',
+            prog='%s %s %s' % tuple(sys.argv[:3]))
+        parser.add_argument('provider', nargs='?', default=None,
+                            help='provider to start the VPN')
+        subargs = parser.parse_args(raw_args)
+
+        provider = None
+        if subargs.provider:
+            provider = subargs.provider
+        else:
+            uid = self.cfg.get('bonafide', 'active', default=None)
+            try:
+                _, provider = uid.split('@')
+            except ValueError:
+                raise ValueError("A provider is needed to start the VPN")
+
+        self.data += ['start', provider]
+
+        return self._send(command.default_dict_printer)
+
+    def check(self, raw_args):
+        parser = argparse.ArgumentParser(
+            description='Bitmask VPN check',
+            prog='%s %s %s' % tuple(sys.argv[:3]))
+        parser.add_argument('provider', nargs='?', default=None,
+                            help='provider to check the VPN')
+        subargs = parser.parse_args(raw_args)
+
+        provider = None
+        if subargs.provider:
+            provider = subargs.provider
+        else:
+            uid = self.cfg.get('bonafide', 'active', default=None)
+            try:
+                _, provider = uid.split('@')
+            except ValueError:
+                raise ValueError("A provider is needed to start the VPN")
+
+        self.data += ['check', provider]
+
+        return self._send(command.default_dict_printer)
+
+    def get_cert(self, raw_args):
+        parser = argparse.ArgumentParser(
+            description='Bitmask VPN cert fetcher',
+            prog='%s %s %s' % tuple(sys.argv[:3]))
+        parser.add_argument('uid', nargs='?', default=None,
+                            help='uid to fetch the VPN cert')
+        subargs = parser.parse_args(raw_args)
+
+        uid = None
+        if subargs.uid:
+            uid = subargs.uid
+        else:
+            uid = self.cfg.get('bonafide', 'active', default=None)
+        self.data += ['get_cert', uid]
+
+        return self._send(command.default_dict_printer)

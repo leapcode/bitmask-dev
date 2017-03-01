@@ -42,9 +42,9 @@ def default_dict_printer(result):
     if not result:
         return
     for key, value in result.items():
-        if value is None:
+        if value is not str:
             value = str(value)
-        if value in ('OFF', 'OFFLINE', 'ABORTED'):
+        if value in ('OFF', 'OFFLINE', 'ABORTED', 'False'):
             color = Fore.RED
         else:
             color = Fore.GREEN

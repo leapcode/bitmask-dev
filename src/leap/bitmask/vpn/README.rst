@@ -11,7 +11,7 @@ It only works through the cli right now::
   srp_token iye7s1J7M3_iCdB4gXEAhxs-if3XOCwpKNPnvTC8ycE
   uuid      b63ac83826c7e1e903ed18f6f7780491
 
-  bitmaskctl vpn get_cert demo.bitmask.net
+  bitmaskctl vpn get_cert
   get_cert  ok
 
   bitmaskctl vpn check
@@ -26,7 +26,7 @@ authentication)::
 
 And finally you should be able to launch the VPN::
 
-  bitmaskctl vpn start demo.bitmask.net
+  bitmaskctl vpn start
   start     ok
   result    started
 
