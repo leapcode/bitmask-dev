@@ -144,7 +144,7 @@ class SRPSignupMechanism(object):
 class SRPPasswordChangeMechanism(object):
 
     """
-    Implement a protocol-agnostic SRP passord change mechanism.
+    Implement a protocol-agnostic SRP password change mechanism.
     """
 
     def get_password_params(self, username, password):
@@ -152,6 +152,20 @@ class SRPPasswordChangeMechanism(object):
         user_data = {
             'user[password_salt]': binascii.hexlify(salt),
             'user[password_verifier]': binascii.hexlify(verifier)}
+        return user_data
+
+
+class SRPRecoveryCodeUpdateMechanism(object):
+
+    """
+    Implement a protocol-agnostic SRP recovery code update mechanism.
+    """
+
+    def get_recovery_code_params(self, username, recovery_code):
+        salt, verifier = _get_salt_verifier(username, recovery_code)
+        user_data = {
+            'user[recovery_code_salt]': binascii.hexlify(salt),
+            'user[recovery_code_verifier]': binascii.hexlify(verifier)}
         return user_data
 
 

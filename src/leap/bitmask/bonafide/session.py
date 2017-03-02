@@ -69,6 +69,7 @@ class Session(object):
         self._srp_auth = _srp.SRPAuthMechanism(username, password)
         self._srp_signup = _srp.SRPSignupMechanism()
         self._srp_password = _srp.SRPPasswordChangeMechanism()
+        self._srp_recovery_code = _srp.SRPRecoveryCodeUpdateMechanism()
         self._token = None
         self._uuid = None
 
@@ -138,6 +139,17 @@ class Session(object):
         self.password = password
         self._srp_auth = _srp.SRPAuthMechanism(self.username, password)
         defer.returnValue(OK)
+
+    @_auth_required
+    @defer.inlineCallbacks
+    def update_recovery_code(self, recovery_code):
+        uri = self._api.get_update_user_uri(uid=self._uuid)
+        met = self._api.get_update_user_method()
+        params = self._srp_recovery_code.get_recovery_code_params(
+            self.username, recovery_code)
+        update = yield self._request(self._agent, uri, values=params,
+                                     method=met)
+        defer.returnValue(update)
 
     # User certificates
 
