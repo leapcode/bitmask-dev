@@ -93,10 +93,10 @@ class BrowserWindow(QWebView):
             web_page = os.path.relpath(web_page)
 
         url = QtCore.QUrl(web_page)
-        self.load(url)
         self.frame = self.page().mainFrame()
         self.frame.addToJavaScriptWindowObject(
             "bitmaskBrowser", self.bitmask_browser)
+        self.load(url)
 
     def shutdown(self, *args):
         if self.closing:
