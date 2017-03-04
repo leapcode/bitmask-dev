@@ -54,7 +54,7 @@ var config = {
       { from: 'img/*'},
       { from: 'index.html' },
       { from: '../node_modules/bootstrap/dist/css/bootstrap.min.css', to: 'css' },
-      { from: '../node_modules/bootstrap/dist/fonts/glyphicons-halflings-regular.woff2', to: 'fonts' },
+      { from: '../node_modules/bootstrap/dist/fonts/glyphicons-halflings-regular.svg', to: 'fonts' },
       { from: '../node_modules/zxcvbn/dist/zxcvbn.js', to: 'js' }
     ])
   ],
