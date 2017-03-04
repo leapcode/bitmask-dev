@@ -78,7 +78,7 @@ export default class EmailSection extends React.Component {
     for (let event of events) {
       bitmask.events.register(event, this.logEvent)
     }
-    bitmask.mail.status().then(status => {
+    bitmask.mail.status(this.props.account.id).then(status => {
       this.setState({
         status: status.status,
         error: status.error
