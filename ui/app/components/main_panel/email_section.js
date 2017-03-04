@@ -123,7 +123,8 @@ export default class EmailSection extends React.Component {
     let body = null
     let header = <h1>Mail</h1>
     if (this.state.status == 'on') {
-      button = <Button onClick={this.openKeys}>Addressbook</Button>
+      // FIXME disabling until #8792 is fixed
+      // button = <Button onClick={this.openKeys}>Addressbook</Button>
     }
     if (this.state.status == 'disabled') {
       header = <h1>Mail Disabled</h1>
