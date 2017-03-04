@@ -132,7 +132,16 @@ class VPNService(HookableService):
         config = yield bonafide.do_provider_read(provider, "eip")
         remotes = [(gw["ip_address"], gw["capabilities"]["ports"][0])
                    for gw in config.gateways]
-        extra_flags = config.openvpn_configuration
+        # FIXME -- bitmask-root cannot parse some options!
+        # extra_flags = config.openvpn_configuration
+        # XXX picked manually from vpn-service.json
+        extra_flags = {
+            "auth": "SHA1",
+            "cipher": "AES-128-CBC",
+            "keepalive": "10 30",
+            "tls-cipher": "DHE-RSA-AES128-SHA",
+        }
+
 
         prefix = os.path.join(self._basepath,
                               "leap/providers/{0}/keys".format(provider))
