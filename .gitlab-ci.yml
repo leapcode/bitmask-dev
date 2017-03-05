@@ -1,7 +1,7 @@
 stages:
   - test
-  - build
   - bundle
+  - build
 
 test:
   image: leapcode/soledad:latest
