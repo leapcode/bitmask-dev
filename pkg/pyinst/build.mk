@@ -6,8 +6,11 @@ bundle: bundle_clean
 	cp src/leap/bitmask/core/bitmaskd.tac $(DIST)
 	mkdir $(DIST)/leap
 	mkdir -p $(DIST)/leap/soledad/common/l2db/backends
+	# if you find yourself puzzled becase the following files are not found in your
+	# virtualenv, make sure that you're installing the packages from wheels and not eggs.
 	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/soledad/common/l2db/backends/dbschema.sql $(DIST)/leap/soledad/common/l2db/backends/
 	cp -r $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/bitmask_js/  $(DIST)/leap
+	cp -r $(VIRTUAL_ENV)/lib/python2.7/site-packages/pixelated_www/  $(DIST)
 	mv $(DIST) _bundlelib && mkdir $(DIST_VERSION) && mv _bundlelib $(DIST_VERSION)/lib
 	cd pkg/launcher && make
 	cp pkg/launcher/bitmask $(DIST_VERSION)
