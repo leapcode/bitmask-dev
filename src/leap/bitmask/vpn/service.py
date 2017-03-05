@@ -142,7 +142,6 @@ class VPNService(HookableService):
             "tls-cipher": "DHE-RSA-AES128-SHA",
         }
 
-
         prefix = os.path.join(self._basepath,
                               "leap/providers/{0}/keys".format(provider))
         cert_path = key_path = prefix + "/client/openvpn.pem"
