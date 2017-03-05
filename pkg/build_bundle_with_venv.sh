@@ -27,5 +27,8 @@ make dev-all
 $VIRTUAL_ENV/bin/pip uninstall leap.bitmask
 $VIRTUAL_ENV/bin/pip install .
 
+# install pixelated from kali dev repo until assets get packaged.
+pip install pixelated_www pixelated_user_agent --find-links https://devpi.net/kali/dev
+
 make bundle
 make bundle_gpg
