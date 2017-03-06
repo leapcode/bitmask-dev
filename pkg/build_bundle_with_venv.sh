@@ -4,6 +4,8 @@
 # To be run by Gitlab Runner,
 # will produce an artifact for each build.
 ###########################################################
+# Stop bundling in case of errors
+set -e
 virtualenv venv
 source venv/bin/activate
 $VIRTUAL_ENV/bin/pip install appdirs packaging
@@ -14,10 +16,9 @@ $VIRTUAL_ENV/bin/pip install zope.interface zope.proxy
 # fix for #8789
 $VIRTUAL_ENV/bin/pip --no-cache-dir install pysqlcipher --install-option="--bundled"
 # FIXME pixelated needs some thingd but doesn't declare it
-# FIXME persuade pixelated to stop using requests in favor of treq
 $VIRTUAL_ENV/bin/pip install chardet whoosh
+# FIXME persuade pixelated to stop using requests in favor of treq
 $VIRTUAL_ENV/bin/pip install requests==2.11.1
-
 
 # For the Bitmask 0.9.5 bundles.
 $VIRTUAL_ENV/bin/pip install -U leap.soledad.common==0.9.3
