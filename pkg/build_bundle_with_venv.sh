@@ -13,8 +13,8 @@ $VIRTUAL_ENV/bin/pip install zope.interface zope.proxy
 
 # fix for #8789
 $VIRTUAL_ENV/bin/pip --no-cache-dir install pysqlcipher --install-option="--bundled"
-# FIXME pixelated needs chardet but doesn't declare it
-$VIRTUAL_ENV/bin/pip install chardet
+# FIXME pixelated needs some thingd but doesn't declare it
+$VIRTUAL_ENV/bin/pip install chardet whoosh
 
 
 # For the Bitmask 0.9.5 bundles.

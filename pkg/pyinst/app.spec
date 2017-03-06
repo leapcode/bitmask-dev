@@ -6,7 +6,7 @@ block_cipher = None
 hiddenimports = [
      'appdirs',
      'scrypt', 'zope.interface', 'zope.proxy',
-     'pixelated_www', 'pixelated', 'chardet',
+     'pixelated_www', 'pixelated', 'chardet', 'whoosh',
      'pysqlcipher', 'service_identity',
      'leap.common', 'leap.bitmask', 
      'leap.bitmask.core.logs',
