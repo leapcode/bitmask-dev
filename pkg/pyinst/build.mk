@@ -5,9 +5,9 @@ bundle: bundle_clean
 	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/_scrypt.so $(DIST)
 	cp src/leap/bitmask/core/bitmaskd.tac $(DIST)
 	mkdir $(DIST)/leap
-	mkdir -p $(DIST)/leap/soledad/common/l2db/backends
 	# if you find yourself puzzled becase the following files are not found in your
 	# virtualenv, make sure that you're installing the packages from wheels and not eggs.
+	mkdir -p $(DIST)/leap/soledad/common/l2db/backends
 	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/soledad/common/l2db/backends/dbschema.sql $(DIST)/leap/soledad/common/l2db/backends/
 	cp -r $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/bitmask_js/  $(DIST)/leap
 	cp -r $(VIRTUAL_ENV)/lib/python2.7/site-packages/pixelated_www/  $(DIST)

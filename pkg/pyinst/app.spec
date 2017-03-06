@@ -4,13 +4,16 @@ import platform
 block_cipher = None
 
 hiddenimports = [
+     'appdirs',
      'scrypt', 'zope.interface', 'zope.proxy',
-     'pixelated_www', 'pixelated',
+     'pixelated_www', 'pixelated', 'chardet',
      'pysqlcipher', 'service_identity',
      'leap.common', 'leap.bitmask', 
      'leap.bitmask.core.logs',
      'leap.bitmask.gui.icons_rc',
+     'leap.soledad.common', 
      'leap.soledad.common.document', 
+     'leap.soledad.common.l2db',
      'leap.bitmask_js',
      'packaging', 'packaging.version', 'packaging.specifiers',
      'packaging.requirements']

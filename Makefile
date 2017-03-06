@@ -10,6 +10,9 @@ clean:
 dev-mail:
 	pip install -e '.[mail]'
 
+dev-gui:
+	pip install -e '.[gui]'
+
 dev-backend:
 	pip install -e '.[backend]'
 

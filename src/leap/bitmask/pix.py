@@ -40,7 +40,9 @@ try:
     from pixelated.resources.root_resource import RootResource
     import pixelated_www
     HAS_PIXELATED = True
-except ImportError:
+except ImportError as exc:
+    print "CANNOT LOAD PIXELATED!..............."
+    print exc
     HAS_PIXELATED = False
 
 
