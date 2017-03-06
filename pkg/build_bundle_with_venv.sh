@@ -15,7 +15,8 @@ $VIRTUAL_ENV/bin/pip install zope.interface zope.proxy
 $VIRTUAL_ENV/bin/pip --no-cache-dir install pysqlcipher --install-option="--bundled"
 # FIXME pixelated needs some thingd but doesn't declare it
 # FIXME persuade pixelated to stop using requests in favor of treq
-$VIRTUAL_ENV/bin/pip install chardet whoosh requests
+$VIRTUAL_ENV/bin/pip install chardet whoosh
+$VIRTUAL_ENV/bin/pip install requests==2.11.1
 
 
 # For the Bitmask 0.9.5 bundles.
