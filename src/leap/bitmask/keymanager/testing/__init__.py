@@ -264,7 +264,6 @@ class KeyManagerWithSoledadTestCase(unittest.TestCase, BaseLeapTest):
             server_url='',
             cert_file=None,
             auth_token=None,
-            offline=True,
             shared_db=FakeSharedDb(),
         )
 

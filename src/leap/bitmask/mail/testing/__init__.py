@@ -54,8 +54,7 @@ class KeyManagerWithSoledadTestCase(unittest.TestCase, BaseLeapTest):
             server_url='',
             cert_file=None,
             auth_token=None,
-            shared_db=defaultMockSharedDB(),
-            offline=True)
+            shared_db=defaultMockSharedDB())
 
         self.km = self._key_manager()
 

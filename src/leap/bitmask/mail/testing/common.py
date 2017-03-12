@@ -70,7 +70,6 @@ def _initialize_soledad(email, gnupg_home, tempdir):
         local_db_path,
         server_url,
         cert_file,
-        offline=True,
         shared_db=FakeSharedDb())
 
     return soledad

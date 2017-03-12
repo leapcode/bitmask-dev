@@ -65,8 +65,7 @@ def initialize_soledad(uuid, email, passwd,
         secrets,
         localdb,
         server_url,
-        cert_file,
-        offline=True)
+        cert_file)
 
     return soledad
 

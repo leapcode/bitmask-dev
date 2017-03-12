@@ -120,15 +120,10 @@ class SoledadContainer(Container):
             local_db_path=local_db_path,
             server_url=server_url,
             cert_file=cert_file,
-            auth_token=token,
-            offline=True)
+            auth_token=token)
 
     def set_remote_auth_token(self, userid, token):
         self.get_instance(userid).token = token
-
-    def set_offline(self, userid, state):
-        # TODO should check that there's a token!
-        self.get_instance(userid).offline = bool(state)
 
     def sync(self, userid):
         self.get_instance(userid).sync()
@@ -201,7 +196,6 @@ class SoledadService(HookableService):
             if container.get_instance(userid):
                 logger.debug("passing a new SRP Token to Soledad: %s" % userid)
                 container.set_remote_auth_token(userid, token)
-                container.set_offline(userid, False)
             else:
                 logger.debug("adding a new Soledad Instance: %s" % userid)
                 container.add_instance(
