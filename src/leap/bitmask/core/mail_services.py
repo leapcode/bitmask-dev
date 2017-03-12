@@ -217,19 +217,34 @@ class KeymanagerContainer(Container):
 
     def __init__(self, service=None, basedir=DEFAULT_BASEDIR):
         self._basedir = os.path.expanduser(basedir)
+        self._status = {}
         super(KeymanagerContainer, self).__init__(service=service)
 
     def add_instance(self, userid, token, uuid, soledad):
+
+        def _set_status_on(passthrough):
+            self._status[userid]["status"] = "on"
+            self._status[userid]["keys"] = "found"
+            return passthrough
+
         logger.debug("adding Keymanager instance for: %s" % userid)
+        self._status[userid] = {"status": "starting",
+                                "error": None, "keys": None}
         keymanager = self._create_keymanager_instance(
             userid, token, uuid, soledad)
         super(KeymanagerContainer, self).add_instance(userid, keymanager)
         d = self._get_or_generate_keys(keymanager, userid)
         d.addCallback(self._on_keymanager_ready_cb, userid, soledad)
+        d.addCallback(_set_status_on)
         return d
 
     def set_remote_auth_token(self, userid, token):
         self.get_instance(userid).token = token
+
+    def status(self, userid):
+        if userid not in self._status:
+            return {'status': 'off', 'error': None, 'keys': None}
+        return self._status[userid]
 
     def _on_keymanager_ready_cb(self, keymanager, userid, soledad):
         data = {'userid': userid, 'soledad': soledad, 'keymanager': keymanager}
@@ -247,6 +262,7 @@ class KeymanagerContainer(Container):
         def _if_not_found_generate(failure):
             failure.trap(KeyNotFound)
             logger.info("key not found, generating key for %s" % (userid,))
+            self._status[userid]["keys"] = "generating"
             d = keymanager.gen_key()
             d.addCallbacks(_send_key, _log_key_error("generating"))
             return d
@@ -276,6 +292,9 @@ class KeymanagerContainer(Container):
             def log_error(failure):
                 logger.error("Error while %s key!" % step)
                 logger.error(failure)
+                self._status[userid]["status"] = "failure"
+                self._status[userid]["error"] = "Error generating key: %s" \
+                    % (failure.getErrorMessage(),)
                 return failure
             return log_error
 
@@ -285,6 +304,7 @@ class KeymanagerContainer(Container):
                 return defer.succeed(None)
 
             logger.debug("soledad has never synced")
+            self._status[userid]["keys"] = "sync"
 
             if not keymanager.token:
                 logger.debug("no token to sync now, scheduling a new check")
@@ -426,6 +446,9 @@ class KeymanagerService(HookableService):
         key = yield km.get_key(address, private=private, fetch_remote=False)
         km.delete_key(key)
         defer.returnValue(key.fingerprint)
+
+    def status(self, userid):
+        return self._container.status(userid)
 
 
 class StandardMailService(service.MultiService, HookableService):
@@ -570,19 +593,21 @@ class StandardMailService(service.MultiService, HookableService):
     def do_status(self, userid):
         smtp = self.getServiceNamed('smtp')
         imap = self.getServiceNamed('imap')
+        keymanager = self.parent.getServiceNamed('keymanager')
         incoming = self.getServiceNamed('incoming_mail')
         incoming_status = yield incoming.status(userid)
         childrenStatus = {
             'smtp': smtp.status(),
             'imap': imap.status(),
+            'keymanager': keymanager.status(userid),
             'incoming': incoming_status
         }
 
         def key(service):
             status = childrenStatus[service]
             level = {
-                "on": 0,
-                "starting": 1,
+                "starting": 0,
+                "on": 1,
                 "off": 10,
                 "stopping": 11,
                 "failure": 100
