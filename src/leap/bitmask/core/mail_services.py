@@ -33,6 +33,7 @@ from twisted.internet import reactor
 from twisted.internet import task
 from twisted.logger import Logger
 
+from leap.common.events import catalog, emit_async
 from leap.common.files import check_and_fix_urw_only
 from leap.bitmask import pix
 from leap.bitmask.hooks import HookableService
@@ -221,21 +222,14 @@ class KeymanagerContainer(Container):
         super(KeymanagerContainer, self).__init__(service=service)
 
     def add_instance(self, userid, token, uuid, soledad):
-
-        def _set_status_on(passthrough):
-            self._status[userid]["status"] = "on"
-            self._status[userid]["keys"] = "found"
-            return passthrough
-
         logger.debug("adding Keymanager instance for: %s" % userid)
-        self._status[userid] = {"status": "starting",
-                                "error": None, "keys": None}
+        self._set_status(userid, "starting")
         keymanager = self._create_keymanager_instance(
             userid, token, uuid, soledad)
         super(KeymanagerContainer, self).add_instance(userid, keymanager)
         d = self._get_or_generate_keys(keymanager, userid)
         d.addCallback(self._on_keymanager_ready_cb, userid, soledad)
-        d.addCallback(_set_status_on)
+        d.addCallback(lambda _: self._set_status(userid, "on", keys="found"))
         return d
 
     def set_remote_auth_token(self, userid, token):
@@ -245,6 +239,11 @@ class KeymanagerContainer(Container):
         if userid not in self._status:
             return {'status': 'off', 'error': None, 'keys': None}
         return self._status[userid]
+
+    def _set_status(self, address, status, error=None, keys=None):
+        self._status[address] = {"status": status,
+                                 "error": error, "keys": keys}
+        emit_async(catalog.MAIL_STATUS_CHANGED, address)
 
     def _on_keymanager_ready_cb(self, keymanager, userid, soledad):
         data = {'userid': userid, 'soledad': soledad, 'keymanager': keymanager}
@@ -262,7 +261,7 @@ class KeymanagerContainer(Container):
         def _if_not_found_generate(failure):
             failure.trap(KeyNotFound)
             logger.info("key not found, generating key for %s" % (userid,))
-            self._status[userid]["keys"] = "generating"
+            self._set_status(userid, "starting", keys="generating")
             d = keymanager.gen_key()
             d.addCallbacks(_send_key, _log_key_error("generating"))
             return d
@@ -292,9 +291,8 @@ class KeymanagerContainer(Container):
             def log_error(failure):
                 logger.error("Error while %s key!" % step)
                 logger.error(failure)
-                self._status[userid]["status"] = "failure"
-                self._status[userid]["error"] = "Error generating key: %s" \
-                    % (failure.getErrorMessage(),)
+                error = "Error generating key: %s" % failure.getErrorMessage()
+                self._set_status(userid, "failure", error=error)
                 return failure
             return log_error
 
@@ -304,7 +302,6 @@ class KeymanagerContainer(Container):
                 return defer.succeed(None)
 
             logger.debug("soledad has never synced")
-            self._status[userid]["keys"] = "sync"
 
             if not keymanager.token:
                 logger.debug("no token to sync now, scheduling a new check")
@@ -313,6 +310,7 @@ class KeymanagerContainer(Container):
                 return d
 
             logger.debug("syncing soledad for the first time...")
+            self._set_status(userid, "starting", keys="sync")
             return keymanager._soledad.sync()
 
         logger.debug("checking if soledad has ever synced...")
@@ -476,7 +474,6 @@ class StandardMailService(service.MultiService, HookableService):
         self._sendmail_opts = {}
         self._service_tokens = {}
         self._active_user = None
-        self._status = {}
         super(StandardMailService, self).__init__()
         self.initializeChildrenServices()
 
@@ -606,9 +603,9 @@ class StandardMailService(service.MultiService, HookableService):
         def key(service):
             status = childrenStatus[service]
             level = {
-                "starting": 0,
-                "on": 1,
-                "off": 10,
+                "on": 0,
+                "off": 1,
+                "starting": 10,
                 "stopping": 11,
                 "failure": 100
             }
@@ -767,7 +764,7 @@ class IncomingMailService(service.MultiService):
     # Individual accounts
 
     def startInstance(self, userid):
-        self._status[userid] = {"status": "starting", "error": None}
+        self._set_status(userid, "starting")
         soledad = self._mail.get_soledad_session(userid)
         keymanager = self._mail.get_keymanager_session(userid)
 
@@ -785,6 +782,11 @@ class IncomingMailService(service.MultiService):
         status['unread'] = yield incoming.unread()
         defer.returnValue(status)
 
+    def _set_status(self, address, status, error=None, unread=None):
+        self._status[address] = {"status": status, "error": error,
+                                 "unread": unread}
+        emit_async(catalog.MAIL_STATUS_CHANGED, address)
+
     def _start_incoming_mail_instance(self, keymanager, soledad,
                                       userid, start_sync=True):
 
@@ -798,7 +800,7 @@ class IncomingMailService(service.MultiService):
             self.addService(incoming_mail)
 
         def setStatusOn(res):
-            self._status[userid]["status"] = "on"
+            self._set_status(userid, "on")
             return res
 
         acc = Account(soledad, userid)
@@ -810,7 +812,7 @@ class IncomingMailService(service.MultiService):
         return d
 
     def _errback(self, failure, userid):
-        self._status[userid] = {"status": "failure", "error": str(failure)}
+        self._set_status(userid, "failure", error=str(failure))
         logger.error(str(failure))
 
 # --------------------------------------------------------------------
