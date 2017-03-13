@@ -1,4 +1,4 @@
-0.10.0 - 
+0.9.5 - 
 +++++++++++++++++++++++++++++++
 
 Please add lines to this file, they will be moved to the CHANGELOG.rst during
@@ -32,6 +32,8 @@ Bugfixes
 
 Other
 ~~~~~
+- Remove usage of soledad offline flag.
+
 - `#1236 <https://leap.se/code/issues/1236>`_: Description of the new feature corresponding with issue #1236.
 - Some change without issue number.
 
