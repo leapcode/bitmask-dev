@@ -20,21 +20,20 @@ bitmask_latest_bundle:
     name: "Bitmask_linux64_latest_${CI_BUILD_REF}"
     expire_in: 1 month
 
-build:
+build_ui:
   image: leapcode/bitmask-dev:latest
   stage: build
   script:
-    - virtualenv venv
-    - source venv/bin/activate
-    - make dev-latest-backend
-    - mkdir -p /root/.config/leap/
-    - bitmaskd
-    - bitmaskctl status
+    - cd ui && make dev-build
 
 e2e_tests:
   image: leapcode/bitmask-dev:latest
   stage: e2e
   allow_failure: true
   script:
+    - virtualenv venv
+    - source venv/bin/activate
+    - make dev-latest-backend
+    - mkdir -p /root/.config/leap/
     - apt install swaks
     - make test_e2e
