@@ -2,12 +2,23 @@ stages:
   - test
   - bundle
   - build
+  - e2e
 
 test:
   image: leapcode/soledad:latest
   stage: test
   script:
     - tox --recreate -e py27-dev
+
+bitmask_latest_bundle:
+  image: leapcode/bitmask-dev:latest
+  stage: bundle
+  script: pkg/build_bundle_with_venv.sh
+  artifacts:
+    paths:
+      - dist/bitmask-*
+    name: "Bitmask_linux64_latest_${CI_BUILD_REF}"
+    expire_in: 1 month
 
 build:
   image: leapcode/bitmask-dev:latest
@@ -19,16 +30,11 @@ build:
     - mkdir -p /root/.config/leap/
     - bitmaskd
     - bitmaskctl status
+
+e2e_tests:
+  image: leapcode/bitmask-dev:latest
+  stage: e2e
+  allow_failure: true
+  script:
     - apt install swaks
     - make test_e2e
-
-
-bitmask_latest_bundle:
-  image: leapcode/bitmask-dev:latest
-  stage: bundle
-  script: pkg/build_bundle_with_venv.sh
-  artifacts:
-    paths:
-      - dist/bitmask-*
-    name: "Bitmask_linux64_latest_${CI_BUILD_REF}"
-    expire_in: 1 month
