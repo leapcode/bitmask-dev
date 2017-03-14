@@ -67,7 +67,8 @@ def get_gpg_bin_path():
                 os.path.join(here(), "..", "apps", "mail", "gpg"))
     else:
         try:
-            gpgbin_options = which("gpg", path_extension='/usr/bin/')
+            path_ext = '/usr/bin/:/usr/local/opt/gnupg/bin/'
+            gpgbin_options = which("gpg", path_extension=path_ext)
             # gnupg checks that the path to the binary is not a
             # symlink, so we need to filter those and come up with
             # just one option.
@@ -89,7 +90,8 @@ def get_gpg_bin_path():
     # binary, in case it was renamed using dpkg-divert or manually.
     # We could just pick gpg2, but we need to solve #7564 first.
     try:
-        gpgbin_options = which("gpg1", path_extension='/usr/bin')
+        path_ext = '/usr/bin/:/usr/local/opt/gnupg/bin/'
+        gpgbin_options = which("gpg1", path_extension=path_ext)
         for opt in gpgbin_options:
             if not os.path.islink(opt):
                 gpgbin = opt
