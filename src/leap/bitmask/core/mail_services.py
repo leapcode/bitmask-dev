@@ -779,7 +779,8 @@ class IncomingMailService(service.MultiService):
 
         status = self._status[userid]
         incoming = self.getServiceNamed(userid)
-        status['unread'] = yield incoming.unread()
+        if ['status'] == 'on':
+            status['unread'] = yield incoming.unread()
         defer.returnValue(status)
 
     def _set_status(self, address, status, error=None, unread=None):
