@@ -9,50 +9,6 @@ import Spinner from 'components/spinner'
 import bitmask from 'lib/bitmask'
 import App from 'app'
 
-const GENERAL_NOTICES = [
-  "KEYMANAGER_KEY_FOUND",  // (address)
-  "KEYMANAGER_KEY_NOT_FOUND",  // (address)
-  "KEYMANAGER_LOOKING_FOR_KEY",  // (address)
-  "KEYMANAGER_DONE_UPLOADING_KEYS",  // (address)
-
-  "SMTP_START_ENCRYPT_AND_SIGN",  // (from_addr)
-  "SMTP_END_ENCRYPT_AND_SIGN",  // (from_addr)
-  "SMTP_START_SIGN",  // (from_addr)
-  "SMTP_END_SIGN",  // (from_addr)
-  "SMTP_SEND_MESSAGE_START",  // (from_addr)
-  "SMTP_SEND_MESSAGE_SUCCESS"  // (from_addr)
-]
-
-const ACCOUNT_NOTICES = [
-  "IMAP_CLIENT_LOGIN",  // (username)
-
-  "MAIL_FETCHED_INCOMING",  // (userid)
-  "MAIL_MSG_DECRYPTED",  // (userid)
-  "MAIL_MSG_DELETED_INCOMING",  // (userid)
-  "MAIL_MSG_PROCESSING",  // (userid)
-  "MAIL_MSG_SAVED_LOCALLY",  // (userid)
-
-  "SMTP_RECIPIENT_ACCEPTED_ENCRYPTED",  // (userid, dest)
-  "SMTP_RECIPIENT_ACCEPTED_UNENCRYPTED",  // (userid, dest)
-  "SMTP_RECIPIENT_REJECTED",  // (userid, dest)
-  "SMTP_SEND_MESSAGE_ERROR"  // (userid, dest)
-]
-
-const STATUSES = [
-  "KEYMANAGER_FINISHED_KEY_GENERATION",  // (address)
-  "KEYMANAGER_STARTED_KEY_GENERATION",  // (address)
-  "SMTP_SERVICE_STARTED",
-  "MAIL_UNREAD_MESSAGES",  // (userid, number)
-  "IMAP_SERVICE_STARTED"
-]
-
-const STATUS_ERRORS = [
-  "IMAP_SERVICE_FAILED_TO_START",
-  "IMAP_UNHANDLED_ERROR",
-  "SMTP_SERVICE_FAILED_TO_START",
-  "SMTP_CONNECTION_LOST",  // (userid, dest)
-]
-
 export default class EmailSection extends React.Component {
 
   static get defaultProps() {return{
@@ -62,32 +18,42 @@ export default class EmailSection extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      status: 'unknown', // on, off, unknown, wait, disabled, error
-      messages: [],
-      expanded: true
+      status: 'unknown', // API produces: on, off, starting, stopping, failure
+      keys: null,        // API produces: null, sync, generating, found
+      message: null,
+      expanded: false
     }
-    this.expand    = this.expand.bind(this)
-    this.openKeys = this.openKeys.bind(this)
-    this.openApp   = this.openApp.bind(this)
-    this.openPrefs = this.openPrefs.bind(this)
-    this.logEvent  = this.logEvent.bind(this)
+    this.expand       = this.expand.bind(this)
+    this.openKeys     = this.openKeys.bind(this)
+    this.updateStatus = this.updateStatus.bind(this)
   }
 
   componentWillMount() {
-    let events = [].concat(GENERAL_NOTICES, ACCOUNT_NOTICES, STATUSES, STATUS_ERRORS)
-    for (let event of events) {
-      bitmask.events.register(event, this.logEvent)
-    }
-    bitmask.mail.status(this.props.account.id).then(status => {
-      this.setState({
-        status: status.status,
-        error: status.error
-      })
-    })
+    this.updateStatus(this.props.account.address)
+    bitmask.events.register("MAIL_STATUS_CHANGED", this.updateStatus)
   }
 
-  logEvent(event, msg) {
-    console.log("EVENT: " + event, msg)
+  componentWillUnmount() {
+    bitmask.events.unregister("MAIL_STATUS_CHANGED")
+  }
+
+  updateStatus(address) {
+    bitmask.mail.status(this.props.account.id).then(
+      status => {
+        console.log("STATUS CHANGED", status)
+        this.setState({
+          keys: status.keys,
+          status: status.status,
+          error: status.error
+        })
+      }, 
+      error => {
+        this.setState({
+          error: error,
+          status: "error"
+        })
+      }
+    )
   }
 
   openKeys() {
@@ -95,7 +61,7 @@ export default class EmailSection extends React.Component {
   }
 
   openPixelated() {
-    if (bitmaskBrowser) {
+    if(typeof bitmaskBrowser !== 'undefined') {
       // we are inside a qtwebkit page that exports the object
       bitmaskBrowser.openPixelated();
     } else {
@@ -103,44 +69,53 @@ export default class EmailSection extends React.Component {
     }
   }
 
-  openApp() {}
-
-  openPrefs() {}
-
   expand() {
     this.setState({expanded: !this.state.expanded})
   }
 
   render () {
     let message = null
+    let keyMessage = null
+    let expanded = this.state.expanded
+
     if (this.state.error) {
       // style may be: success, warning, danger, info
       message = (
         <Alert bsStyle="danger">{this.state.error}</Alert>
       )
+      expanded = true
     }
-    let button = null
+    if (this.state.keys) {
+      if (this.state.keys == "sync") {
+        keyMessage = <Alert bsStyle="info">Downloading identity files</Alert>
+        expanded = true
+      } else if (this.state.keys == "generating") {
+        keyMessage = <Alert bsStyle="info">Preparing your identity (this may take a long time)</Alert>
+        expanded = true
+      }
+    }
+    let addyButton = <Button disabled={this.state.status != 'on'} onClick={this.openKeys}>Addressbook</Button>
+    let mailButton = <Button disabled={this.state.status != 'on'} onClick={this.openPixelated}>Open Mail</Button>
+    let imapButton = <IMAPButton account={this.props.account} />
     let body = null
     let header = <h1>Mail</h1>
-    if (this.state.status == 'on') {
-      // FIXME disabling until #8792 is fixed
-      // button = <Button onClick={this.openKeys}>Addressbook</Button>
-    }
+
     if (this.state.status == 'disabled') {
       header = <h1>Mail Disabled</h1>
     }
-    if (this.state.expanded) {
+    if (expanded || keyMessage || message) {
       body = (<div>
         {message}
+        {keyMessage}
         <ButtonToolbar>
-          <Button onClick={this.openPixelated}>Open Mail</Button>
-          <IMAPButton account={this.props.account} />
+          {addyButton}
+          {imapButton}
         </ButtonToolbar>
       </div>)
     }
     return (
       <SectionLayout icon="envelope" status={this.state.status}
-        onExpand={this.expand} buttons={button} header={header} body={body} />
+        onExpand={this.expand} buttons={mailButton} header={header} body={body} />
     )
   }
 }

@@ -11,7 +11,8 @@ export default class SectionLayout extends React.Component {
   static get defaultProps() {return{
     icon: null,       // icon name
     buttons: null,    // button content
-    status: null,     // must be one of: on, off, unknown, wait, disabled
+    status: null,     // must be one of: on, off, unknown, wait, disabled,
+                      // starting, stopping, failure
     header: null,     // the first line content
     body: null,       // expanded content
     message: null,    // alert content
@@ -26,14 +27,23 @@ export default class SectionLayout extends React.Component {
 
   render() {
     let className = ["service-section", this.props.className].join(' ')
-    let status = null
+    let statusIcon = null
     let icon = null
     let buttons = null
     let expander = null
     let body = null
+    let status = this.props.status
+
+    if (status == "starting") {
+      status = "wait"
+    } else if (status == "stopping") {
+      status = "wait"
+    } else if (status == "failure") {
+      status = "error"
+    }
 
     if (this.props.onExpand) {
-      let glyph = this.props.body ? 'triangle-top' : 'triangle-bottom'
+      let glyph = this.props.body ? 'triangle-bottom' : 'triangle-right'
       expander = (
         <div className="expander clickable" onClick={this.props.onExpand}>
           <Glyphicon glyph={glyph} />
@@ -44,10 +54,10 @@ export default class SectionLayout extends React.Component {
         <div className="expander" />
       )
     }
-    if (this.props.status) {
-      status = (
+    if (status) {
+      statusIcon = (
         <div className="status">
-          <img src={'img/' + this.props.status + '.svg' } />
+          <img src={'img/' + status + '.svg' } />
         </div>
       )
     }
@@ -88,7 +98,7 @@ export default class SectionLayout extends React.Component {
             </div>
             {body}
           </div>
-          {status}
+          {statusIcon}
         </div>
       </div>
     )

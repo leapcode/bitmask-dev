@@ -1,6 +1,12 @@
 
+@left-margin: 30px;
+
 .body {
-  // background-color: #333;
+}
+
+.header .title {
+  line-height: 32px;
+  padding-left: 15px;
 }
 
 .darkBg {
@@ -30,5 +36,38 @@
 .lightFg {
   border-radius: 4px;
   background-color: #fff;
-  padding: 15px;
+}
+
+.key-list-item {
+  border-bottom: 1px solid #ccc;
+  .top-row {
+    &:hover {
+      background-color: #eee;
+    }
+    padding: 15px;
+    font-weight: bold;
+    font-size: 1.2em;
+    &:first-child {
+      border-radius: 4px 4px 0 0;
+    }
+  }
+  .expander {
+    width: @left-margin;
+    float: left;
+    .glyphicon {}
+  }
+  .address {
+    margin-left: @left-margin;
+    word-break: break-all;
+  }
+  .details {
+    margin-left: @left-margin;
+    padding: 15px;
+  }
+  .btn-toolbar {
+    margin-top: 15px;
+  }
+  .labels .label {
+    margin-left: 6px;
+  }
 }

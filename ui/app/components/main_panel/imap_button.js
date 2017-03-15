@@ -11,7 +11,7 @@ export default class IMAPButton extends React.Component {
 
   static get defaultProps() {return{
     account: null,
-    title: "Connect Mail Client"
+    title: "Configure A Mail Client"
   }}
 
   constructor(props) {

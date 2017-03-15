@@ -2,14 +2,15 @@
 // Interface to the key manager
 //
 
-
 import React from 'react'
 import App from 'app'
-import { ButtonToolbar, Button, Glyphicon, Alert } from 'react-bootstrap'
+import { Button, Glyphicon, Alert } from 'react-bootstrap'
 
 import {VerticalLayout, Row} from 'components/layout'
-import bitmask from 'lib/bitmask'
+import Spinner from 'components/spinner'
+import KeyListItem from './key_list_item'
 import './addressbook.less'
+import bitmask from 'lib/bitmask'
 
 export default class Addressbook extends React.Component {
 
@@ -21,16 +22,17 @@ export default class Addressbook extends React.Component {
     super(props)
     this.state = {
       keys: null,
+      loading: true,
       errorMsg: ""
     }
     this.close = this.close.bind(this)
   }
 
   componentWillMount() {
-    bitmask.keys.list(true).then(keys => {
-      this.setState({keys: keys})
+    bitmask.keys.list(this.props.account.id, false).then(keys => {
+      this.setState({keys: keys, loading: false})
     }, error => {
-      this.setState({errorMsg: error})
+      this.setState({keys: null, loading: false, errorMsg: error})
     })
   }
 
@@ -41,6 +43,11 @@ export default class Addressbook extends React.Component {
   render() {
     let alert = null
     let keyList = null
+    let spinner = null
+
+    if (this.state.loading) {
+      spinner = <Spinner />
+    }
 
     if (this.state.errorMsg) {
       alert = (
@@ -48,11 +55,15 @@ export default class Addressbook extends React.Component {
       )
     }
 
-    keyList = <b>list of keys goes here</b>
+    if (this.state.keys) {
+      keyList = this.state.keys.map((theKey, i) => {
+        return <KeyListItem key={i} data={theKey} account={this.props.account} />
+      })
+    }
 
     let buttons = (
       <Button onClick={this.close} className="btn-inverse">
-        <Glyphicon glyph="remove" />&nbsp;
+        <Glyphicon glyph="menu-left" />&nbsp;
         Close
       </Button>
     )
@@ -60,17 +71,19 @@ export default class Addressbook extends React.Component {
     let page = (
       <VerticalLayout className="darkBg">
         <Row className="header" size="shrink" gutter="8px">
-          <div className="pull-right">
+          <div className="pull-left">
             {buttons}
           </div>
           <div className="title">
-            {this.props.account.address}
-            <h1>Addressbook</h1>
+            {this.props.account.address} / Addressbook
           </div>
         </Row>
         <Row className="lightFg" size="expand">
           {alert}
-          {keyList}
+          {spinner}
+          <div className="key-list">
+            {keyList}
+          </div>
         </Row>
       </VerticalLayout>
     )

@@ -120,3 +120,5 @@ body {
 h1.first { margin-top: 0px }
 
 .vspacer {margin-top: 20px }
+
+.clickable {cursor: pointer;}
