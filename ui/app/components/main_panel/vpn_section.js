@@ -16,7 +16,7 @@ export default class VPNSection extends React.Component {
     this.state = {
       error: null,
       expanded: false,
-      vpn: "down",
+      vpn: "waiting",
     }
     this.expand     = this.expand.bind(this)
     this.connect    = this.connect.bind(this)
@@ -26,16 +26,72 @@ export default class VPNSection extends React.Component {
     this.location   = this.location.bind(this)
   }
 
+  componentWillMount() {
+    bitmask.vpn.status().then(
+      status => {
+        console.log("status: ", status)
+        if (status.VPN == "OFF") {
+          this.setState({vpn: "down"})
+        } else if (status.VPN == "ON") {
+          if (status.domain == this.props.account.domain) {
+            this.setState({vpn: "up"})
+          } else {
+            this.setState({vpn: "down"})
+          }
+        } else {
+          // this.setState({vpn: "????"})
+        }
+      },
+      error => {
+        this.setState({vpn: "failed", error: error})
+      }
+    )
+  }
+
   expand() {
     this.setState({expanded: !this.state.expanded})
   }
 
+  // turn on button pressed
   connect() {
-    this.setState({vpn: "up"})
+    this.setState({vpn: "connecting", error: null})
+    bitmask.vpn.check(this.props.account.domain).then(
+      status => {
+        console.log('check: ', status)
+        if (status.vpn_ready == true) {
+          this.startVPN()
+        } else if (status.vpn == "disabled") {
+          this.setState({vpn: "failed", error: "VPN support disabled"})
+        } else {
+          bitmask.vpn.get_cert(this.props.account.id).then(
+            uid => {
+              this.startVPN()
+            },
+            error => {
+              this.setState({vpn: "failed", error: error})
+            }
+          )
+        }
+      },
+      error => {
+        this.setState({vpn: "failed", error: error})
+      }
+    )
   }
 
+  // turn off button pressed
   disconnect() {
-    this.setState({vpn: "down"})
+    this.setState({vpn: "disconnecting", error: null})
+    bitmask.vpn.stop().then(
+      success => {
+        console.log('stop:')
+        console.log(success)
+        this.setState({vpn: "down"})
+      },
+      error => {
+        this.setState({vpn: "failed", error: error})
+      }
+    )
   }
 
   cancel() {
@@ -50,7 +106,25 @@ export default class VPNSection extends React.Component {
 
   }
 
+  // call startVPN() only when everything is ready
+  startVPN() {
+    bitmask.vpn.start(this.props.account.domain).then(
+      status => {
+        console.log('start: ', status)
+        if (status.result == "started") {
+          this.setState({vpn: "up", error: null})
+        } else {
+          this.setState({vpn: "failed"})
+        }
+      },
+      error => {
+        this.setState({vpn: "failed", error: error})
+      }
+    )
+  }
+
   render () {
+    console.log(this.state)
     let message = null
     let body = null
     let button = null
@@ -87,9 +161,17 @@ export default class VPNSection extends React.Component {
       case "failed":
         button = <div>
           <Button onClick={this.connect}>Turn ON</Button>
-          <Button onClick={this.unblock}>Unblock</Button>
         </div>
+        // <Button onClick={this.unblock}>Unblock</Button>
         icon = "off"
+        break
+      case "disabled":
+        button = <div>Disabled</div>
+        icon = "disabled"
+        break
+      case "waiting":
+        button = <Spinner />
+        icon = "wait"
         break
     }
 
