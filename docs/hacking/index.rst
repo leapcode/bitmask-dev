@@ -75,6 +75,17 @@ Making a new release
 --------------------
 A checklist for the release process can be found :ref:`here <release>`
 
+As part of the release we also tag upload snapshots of the `leap.bitmask_js`
+package, in order to allow installation of the javascript application without
+needing to compile the javascript and html assets. This is done with::
+
+   cd ui
+   make dist-build
+
+and then you can upload it to pypi::
+
+   make dist-upload
+
 Contribution ideas
 ------------------
 Want to help?
