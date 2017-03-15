@@ -14,6 +14,7 @@ linux_test:
 
 osx_test:
   stage: test
+  allow_failure: true
   script:
     - tox --recreate -e py27-dev
   tags:
