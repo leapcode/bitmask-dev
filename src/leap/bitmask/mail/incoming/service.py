@@ -339,6 +339,8 @@ class IncomingMail(Service):
 
         d = self._keymanager.decrypt(doc.content[ENC_JSON_KEY], self._userid)
         d.addErrback(self._errback)
+        d.addErrback(lambda _: logger.error(
+            '_decrypt_doc: Error decrypting document with ID %s' % doc.doc_id))
         d.addCallback(process_decrypted)
         d.addCallback(lambda data: (doc, data))
         return d
