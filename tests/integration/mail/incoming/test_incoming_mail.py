@@ -29,10 +29,12 @@ import uuid
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.parser import Parser
-from mock import Mock
+from mock import Mock, patch, MagicMock, ANY
 
 from twisted.internet import defer
 from twisted.python import log
+from twisted.logger import Logger
+from twisted.python.failure import Failure
 
 from leap.bitmask.keymanager.errors import KeyAddressMismatch
 from leap.bitmask.mail.adaptors import soledad_indexes as fields
@@ -323,6 +325,26 @@ subject: independence of cyberspace
         d.addCallback(decryption_error_not_called)
         d.addCallback(add_decrypted_header_called)
         return d
+
+    def test_log_error_if_decrypt_fails(self):
+
+        def assert_failure(_):
+            mock_logger_error.assert_any_call('_decrypt_doc: '
+                                              'Error decrypting document with '
+                                              'ID 1')
+
+        with patch.object(Logger, 'error') as mock_logger_error:
+            doc = SoledadDocument()
+            doc.doc_id = '1'
+            doc.content = {'_enc_json': ''}
+
+            self.fetcher._process_decrypted_doc = Mock()
+            self.km.decrypt = Mock(
+                return_value=defer.fail(Exception()))
+
+            d = self.fetcher._decrypt_doc(doc)
+            d.addCallback(assert_failure)
+            return d
 
     def testValidateSignatureFromEncryptedEmailFromAppleMail(self):
         enc_signed_file = os.path.join(
