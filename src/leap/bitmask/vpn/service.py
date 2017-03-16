@@ -80,11 +80,14 @@ class VPNService(HookableService):
             return {'result': 'stopped'}
 
     def do_status(self):
+        status = {
+            'status': 'off',
+            'error': None,
+            'childrenStatus': {}
+        }
         if self._vpn:
             status = self._vpn.get_status()
-        else:
-            status = {'VPN': 'OFF'}
-        status['domain'] = self._domain
+            status['domain'] = self._domain
         return status
 
     def do_check(self, domain):

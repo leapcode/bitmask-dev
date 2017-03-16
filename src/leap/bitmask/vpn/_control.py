@@ -145,7 +145,7 @@ class VPNControl(object):
     @property
     def status(self):
         if not self._vpnproc:
-            return 'OFFLINE'
+            return {'status': 'off', 'error': None}
         return self._vpnproc.status
 
     @property

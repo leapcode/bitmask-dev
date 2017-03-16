@@ -57,22 +57,4 @@ SUBCOMMANDS:
             uid = self.cfg.get('bonafide', 'active', default=None)
         self.data += ['status', uid]
 
-        return self._send(self._print_status)
-
-    def _print_status(self, status, depth=0):
-        for name, v in [('mail', status)] + status['childrenStatus'].items():
-            line = Fore.RESET + name.ljust(10)
-            if v['status'] in ('on', 'starting'):
-                line += Fore.GREEN
-            elif v['status'] == 'failure':
-                line += Fore.RED
-            line += v['status']
-            if v['error']:
-                line += Fore.RED + " (" + v['error'] + ")"
-            line += Fore.RESET
-            print(line)
-
-        for k, v in status.items():
-            if k in ('status', 'childrenStatus', 'error'):
-                continue
-            print(Fore.RESET + k.ljust(10) + Fore.CYAN + str(v) + Fore.RESET)
+        return self._send(command.print_status)

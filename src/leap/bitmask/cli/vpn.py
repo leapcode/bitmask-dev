@@ -43,7 +43,7 @@ SUBCOMMANDS:
 
 '''.format(name=command.appname)
 
-    commands = ['stop', 'status', 'install', 'uninstall',
+    commands = ['stop', 'install', 'uninstall',
                 'enable', 'disable']
 
     def start(self, raw_args):
@@ -67,6 +67,10 @@ SUBCOMMANDS:
         self.data += ['start', provider]
 
         return self._send(command.default_dict_printer)
+
+    def status(self, raw_args):
+        self.data += ['status']
+        return self._send(command.print_status)
 
     def check(self, raw_args):
         parser = argparse.ArgumentParser(

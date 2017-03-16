@@ -23,6 +23,7 @@ import commands
 import subprocess
 
 from leap.bitmask.vpn.constants import IS_MAC
+from leap.common.events import catalog, emit_async
 
 
 class FirewallManager(object):
@@ -44,7 +45,6 @@ class FirewallManager(object):
         :param remotes: the gateway(s) that we will allow
         :type remotes: list
         """
-        self.status = 'OFF'
         self._remotes = remotes
 
     def start(self, restart=False):
@@ -66,12 +66,11 @@ class FirewallManager(object):
 
         # FIXME -- use a processprotocol
         exitCode = subprocess.call(cmd + gateways)
+        emit_async(catalog.VPN_STATUS_CHANGED)
 
         if exitCode == 0:
-            self.status = 'ON'
             return True
         else:
-            self.status = 'OFF'
             return False
 
     # def tear_down_firewall(self):
@@ -85,11 +84,10 @@ class FirewallManager(object):
 
         exitCode = subprocess.call(["pkexec", self.BITMASK_ROOT,
                                     "firewall", "stop"])
+        emit_async(catalog.VPN_STATUS_CHANGED)
         if exitCode == 0:
-            self.status = 'OFF'
             return True
         else:
-            self.status = 'ON'
             return False
 
     def is_up(self):
@@ -104,3 +102,11 @@ class FirewallManager(object):
         output = commands.getstatusoutput(cmd)[0]
 
         return output != 256
+
+    @property
+    def status(self):
+        status = 'off'
+        if self.is_up():
+            status = 'on'
+
+        return {'status': status, 'error': None}

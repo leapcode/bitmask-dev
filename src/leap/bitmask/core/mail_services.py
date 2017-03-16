@@ -47,7 +47,7 @@ from leap.bitmask.mail.imap import service as imap_service
 from leap.bitmask.mail.smtp import service as smtp_service
 from leap.bitmask.mail.incoming.service import IncomingMail
 from leap.bitmask.mail.incoming.service import INCOMING_CHECK_PERIOD
-from leap.bitmask.util import get_gpg_bin_path
+from leap.bitmask.util import get_gpg_bin_path, merge_status
 from leap.soledad.client.api import Soledad
 
 from leap.bitmask.core.uuid_map import UserMap
@@ -599,30 +599,7 @@ class StandardMailService(service.MultiService, HookableService):
             'keymanager': keymanager.status(userid),
             'incoming': incoming_status
         }
-
-        def key(service):
-            status = childrenStatus[service]
-            level = {
-                "on": 0,
-                "off": 1,
-                "starting": 10,
-                "stopping": 11,
-                "failure": 100
-            }
-            return level.get(status["status"], -1)
-
-        service = max(childrenStatus, key=key)
-
-        status = childrenStatus[service]["status"]
-        error = childrenStatus[service]["error"]
-
-        res = {}
-        for s in childrenStatus.values():
-            res.update(s)
-        res['status'] = status
-        res['error'] = error
-        res['childrenStatus'] = childrenStatus
-        defer.returnValue(res)
+        defer.returnValue(merge_status(childrenStatus))
 
     def get_token(self):
         active_user = self._active_user

@@ -45,6 +45,33 @@ def here(module=None):
             return dirname(__file__)
 
 
+def merge_status(children):
+
+    def key(service):
+        status = children[service]
+        level = {
+            "on": 0,
+            "off": 1,
+            "starting": 10,
+            "stopping": 11,
+            "failure": 100
+        }
+        return level.get(status["status"], -1)
+
+    service = max(children, key=key)
+
+    status = children[service]["status"]
+    error = children[service]["error"]
+
+    res = {}
+    for s in children.values():
+        res.update(s)
+    res['status'] = status
+    res['error'] = error
+    res['childrenStatus'] = children
+    return res
+
+
 def get_gpg_bin_path():
     """
     Return the path to gpg binary.

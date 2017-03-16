@@ -51,6 +51,29 @@ def default_dict_printer(result):
         print(Fore.RESET + key.ljust(10) + color + value + Fore.RESET)
 
 
+def print_status(status, depth=0):
+    for name, v in [('  status', status)] + status['childrenStatus'].items():
+        line = Fore.RESET + name.ljust(12)
+        if v['status'] in ('on', 'starting'):
+            line += Fore.GREEN
+        elif v['status'] == 'failure':
+            line += Fore.RED
+        line += v['status']
+        if v['error']:
+            line += Fore.RED + " (" + v['error'] + ")"
+        line += Fore.RESET
+        print(line)
+
+    for k, v in status.items():
+        if k in ('status', 'childrenStatus', 'error'):
+            continue
+        if k == 'up':
+            k = '↑↑↑         '
+        elif k == 'down':
+            k = '↓↓↓         '
+        print(Fore.RESET + k.ljust(12) + Fore.CYAN + str(v) + Fore.RESET)
+
+
 class Command(object):
     """A generic command dispatcher.
     Any command in the class attribute `commands` will be dispached and

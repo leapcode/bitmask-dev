@@ -136,9 +136,9 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
             internet_error.ProcessDone, internet_error.ProcessTerminated)
 
         if err == internet_error.ProcessDone:
-            status, errmsg = 'OFFLINE', None
+            status, errmsg = 'off', None
         elif err == internet_error.ProcessTerminated:
-            status, errmsg = 'ABORTED', failure.value.exitCode
+            status, errmsg = 'failure', failure.value.exitCode
             if errmsg:
                 logger.debug("processExited, status %d" % (errmsg,))
             else:

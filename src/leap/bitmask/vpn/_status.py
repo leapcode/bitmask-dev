@@ -2,6 +2,8 @@ from itertools import chain, repeat
 from twisted.logger import Logger
 from ._human import bytes2human
 
+from leap.common.events import catalog, emit_async
+
 logger = Logger()
 
 
@@ -24,7 +26,8 @@ class VPNStatus(object):
     }
 
     def __init__(self):
-        self.status = 'OFFLINE'
+        self._status = 'off'
+        self.errcode = None
         self._traffic_down = None
         self._traffic_up = None
 
@@ -49,8 +52,14 @@ class VPNStatus(object):
         self.set_status(status, errcode)
 
     def set_status(self, status, errcode):
-        self.status = status
+        if status in ("AUTH", "WAIT"):
+            status = "starting"
+        elif status == "CONNECTED":
+            status = "on"
+
+        self._status = status
         self.errcode = errcode
+        emit_async(catalog.VPN_STATUS_CHANGED)
 
     def set_traffic_status(self, status):
         up, down = status
@@ -58,16 +67,30 @@ class VPNStatus(object):
         self._traffic_down = down
 
     def get_traffic_status(self):
-        return {'down': bytes2human(self._traffic_down),
-                'up': bytes2human(self._traffic_up)}
+        down = None
+        up = None
+        if self._traffic_down:
+            down = bytes2human(self._traffic_down)
+        if self._traffic_up:
+            up = bytes2human(self._traffic_up)
+        return {'down': down, 'up': up}
+
+    @property
+    def status(self):
+        status = self.get_traffic_status()
+        status.update({
+            'status': self._status,
+            'error': self.errcode
+        })
+        return status
 
     def _status_codes(self, event):
         # TODO check good transitions
         # TODO check valid states
 
         _table = {
-            "network_unreachable": ('OFFLINE', 'network unreachable'),
-            "process_restart_tls": ('RESTARTING', 'restart tls'),
-            "initialization_completed": ('ONLINE', None)
+            "network_unreachable": ('off', 'network unreachable'),
+            "process_restart_tls": ('starting', 'restart tls'),
+            "initialization_completed": ('on', None)
         }
         return _table.get(event.lower())
