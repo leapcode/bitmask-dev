@@ -52,8 +52,11 @@ class VPNStatus(object):
         self.set_status(status, errcode)
 
     def set_status(self, status, errcode):
-        if status in ("AUTH", "WAIT"):
+        if status in ("AUTH", "WAIT", "CONNECTING", "GET_CONFIG",
+                      "ASSIGN_IP", "ADD_ROUTES", "RECONNECTING"):
             status = "starting"
+        elif status == "EXITING":
+            status = "stopping"
         elif status == "CONNECTED":
             status = "on"
 

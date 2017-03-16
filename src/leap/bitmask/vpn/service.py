@@ -150,5 +150,5 @@ class VPNService(HookableService):
         cert_path = key_path = prefix + "/client/openvpn.pem"
         ca_path = prefix + "/ca/cacert.pem"
 
-        self._vpn = VPNManager(remotes, cert_path, key_path, ca_path,
+        self._vpn = VPNManager(provider, remotes, cert_path, key_path, ca_path,
                                extra_flags)

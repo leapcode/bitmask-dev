@@ -25,10 +25,10 @@ from leap.bitmask.vpn.fw.firewall import FirewallManager
 
 class VPNManager(object):
 
-    def __init__(self, remotes, cert, key, ca, flags):
+    def __init__(self, provider, remotes, cert, key, ca, flags):
 
         self._vpn = TunnelManager(
-            remotes, cert, key, ca, flags)
+            provider, remotes, cert, key, ca, flags)
         self._firewall = FirewallManager(remotes)
 
     def start(self):

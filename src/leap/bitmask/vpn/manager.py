@@ -32,7 +32,8 @@ from .constants import IS_WIN
 
 class TunnelManager(object):
 
-    def __init__(self, remotes, cert_path, key_path, ca_path, extra_flags):
+    def __init__(self, provider, remotes, cert_path, key_path, ca_path,
+                 extra_flags):
         """
         Initialize the VPNManager object.
 
@@ -48,13 +49,10 @@ class TunnelManager(object):
 
         ports = []
 
-        # TODO fix hardcoding
-        domain = "demo.bitmask.net"
-
         self._remotes = remotes
 
         self._vpnconfig = _TempVPNConfig(extra_flags, cert_path, ports)
-        self._providerconfig = _TempProviderConfig(domain, ca_path)
+        self._providerconfig = _TempProviderConfig(provider, ca_path)
 
         host, port = self._get_management_location()
         self._vpn = VPNControl(remotes=remotes,
