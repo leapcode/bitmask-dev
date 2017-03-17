@@ -2,6 +2,6 @@ twisted
 colorama
 zope.interface
 service-identity
-leap.common
-leap.soledad.client
 gnupg
+leap.common>=0.5.4
+leap.soledad.client>=0.9.5
