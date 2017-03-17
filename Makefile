@@ -42,7 +42,7 @@ doc:
 	cd docs && make html
 
 docker_container:
-	cd pkg/docker_bundle && docker build -t mybundle
+	cd pkg/docker_bundle && docker build -t mybundle .
 
 bundle_in_docker:
 	# needs a docker container called 'mybundle', created with 'make docker_container'
