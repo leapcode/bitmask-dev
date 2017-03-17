@@ -1,4 +1,5 @@
 git clone https://github.com/leapcode/bitmask-dev bitmaskbuild
+mkdir -p dist/
 cd bitmaskbuild
 pkg/build_bundle_with_venv.sh
 
