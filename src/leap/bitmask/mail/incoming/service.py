@@ -337,13 +337,14 @@ class IncomingMail(Service):
                        "1" if success else "0")
             return self._process_decrypted_doc(doc, decrdata)
 
-        def log_doc_id_and_raise_exception(failure):
+        def log_doc_id_and_call_errback(failure):
             logger.error(
-                '_decrypt_doc: Error decrypting document with ID %s' % doc.doc_id)
+                '_decrypt_doc: Error decrypting document with '
+                'ID %s' % doc.doc_id)
             self._errback(failure)
 
         d = self._keymanager.decrypt(doc.content[ENC_JSON_KEY], self._userid)
-        d.addErrback(log_doc_id_and_raise_exception)
+        d.addErrback(log_doc_id_and_call_errback)
         d.addCallback(process_decrypted)
         d.addCallback(lambda data: (doc, data))
         return d
@@ -368,9 +369,9 @@ class IncomingMail(Service):
         # the deferreds that would process an individual document
         try:
             msg = json_loads(data)
-        except UnicodeError as exc:
+        except (UnicodeError, ValueError) as exc:
             logger.error("Error while decrypting %s" % (doc.doc_id,))
-            logger.exception(exc)
+            logger.error(str(exc))
 
             # we flag the message as "with decrypting errors",
             # to avoid further decryption attempts during sync

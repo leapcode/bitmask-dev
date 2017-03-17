@@ -42,6 +42,7 @@ from leap.bitmask.mail.adaptors.soledad import cleanup_deferred_locks
 from leap.bitmask.mail.adaptors.soledad import SoledadMailAdaptor
 from leap.bitmask.mail.mail import MessageCollection
 from leap.bitmask.mail.mailbox_indexer import MailboxIndexer
+from leap.bitmask.mail import utils
 
 from leap.bitmask.mail.incoming.service import IncomingMail
 from leap.bitmask.mail.rfc3156 import MultipartEncrypted, PGPEncrypted
@@ -326,7 +327,7 @@ subject: independence of cyberspace
         d.addCallback(add_decrypted_header_called)
         return d
 
-    def test_log_error_if_decrypt_fails(self):
+    def testLogErrorIfDecryptFails(self):
 
         def assert_failure(_):
             mock_logger_error.assert_any_call('_decrypt_doc: '
@@ -345,6 +346,29 @@ subject: independence of cyberspace
             d = self.fetcher._decrypt_doc(doc)
             d.addCallback(assert_failure)
             return d
+
+    def testFlagMessageOnBadJsonWhileDecrypting(self):
+        doc = SoledadDocument()
+        doc.doc_id = '1'
+        doc.content = {'_enc_json': ''}
+
+        err = ValueError('No JSON object could be decoded')
+
+        def assert_failure():
+            mock_logger_error.assert_any_call(
+                'Error while decrypting 1')
+            mock_logger_error.assert_any_call(
+                'No JSON object could be decoded')
+            self.assertEquals(doc.content['errdecr'], True)
+
+        with patch.object(Logger, 'error') as mock_logger_error:
+            with patch.object(utils, 'json_loads') as mock_json_loader:
+                self.fetcher._update_incoming_message = Mock()
+                mock_json_loader.side_effect = err
+
+                self.fetcher._process_decrypted_doc(doc, '')
+
+                assert_failure()
 
     def testValidateSignatureFromEncryptedEmailFromAppleMail(self):
         enc_signed_file = os.path.join(
