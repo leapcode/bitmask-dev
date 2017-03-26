@@ -113,6 +113,25 @@ var bitmask = function(){
 
     return {
         api_token: function() {return api_token},
+
+        core: {
+            /**
+             * Get bitmaskd version
+             *
+             * @return {Promise<json>} {'version_core': str}
+             */
+            version: function() {
+                return call(['core', 'version']);
+            }
+
+            /**
+             * Stop bitmaskd
+             */
+            stop: function() {
+                return call(['core', 'stop']);
+            }
+        }
+
         bonafide: {
             provider: {
                 create: function(domain) {
