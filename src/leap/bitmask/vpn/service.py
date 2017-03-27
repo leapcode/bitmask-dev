@@ -35,6 +35,7 @@ from leap.common.files import check_and_fix_urw_only
 class VPNService(HookableService):
 
     name = 'vpn'
+    _last_vpn_path = os.path.join('leap', 'providers', 'last_vpn')
 
     def __init__(self, basepath=None):
         """
@@ -68,6 +69,7 @@ class VPNService(HookableService):
         self._vpn.start()
         self._started = True
         self._domain = domain
+        self._write_last(domain)
         defer.returnValue({'result': 'started'})
 
     def stop_vpn(self):
@@ -87,7 +89,12 @@ class VPNService(HookableService):
         }
         if self._vpn:
             status = self._vpn.get_status()
+
+        if self._domain:
             status['domain'] = self._domain
+        else:
+            status['domain'] = self._read_last()
+
         return status
 
     def do_check(self, domain):
@@ -152,3 +159,17 @@ class VPNService(HookableService):
 
         self._vpn = VPNManager(provider, remotes, cert_path, key_path, ca_path,
                                extra_flags)
+
+    def _write_last(self, domain):
+        path = os.path.join(self._basepath, self._last_vpn_path)
+        with open(path, 'w') as f:
+            f.write(domain)
+
+    def _read_last(self):
+        path = os.path.join(self._basepath, self._last_vpn_path)
+        try:
+            with open(path, 'r') as f:
+                domain = f.read()
+        except IOError:
+            domain = None
+        return domain
