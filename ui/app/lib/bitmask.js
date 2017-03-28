@@ -255,10 +255,14 @@ var bitmask = function(){
             /**
              * Check if the VPN is ready to start and has the cert downloaded
              *
-             * @return {Promise<bool>} User readable status
+             * @return {Promise<{'vpn_ready': bool,
+             *                   'installed': bool}>}
              */
             check: function(provider) {
-                return call(['vpn', 'check', provider])
+                if (typeof provider !== 'string') {
+                    provider = "";
+                }
+                return call(['vpn', 'check', provider]);
             },
 
             /**

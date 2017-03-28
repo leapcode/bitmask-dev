@@ -1,5 +1,6 @@
 from os import remove, chmod
 from shutil import copyfile
+import os.path
 import sys
 
 from leap.bitmask.vpn.constants import IS_LINUX
@@ -20,6 +21,11 @@ if IS_LINUX:
     def uninstall():
         remove(helper_to)
         remove(polkit_to)
+
+    def check():
+        helper = os.path.exists(helper_to)
+        polkit = os.path.exists(polkit_to)
+        return helper and polkit
 
 
 def main():

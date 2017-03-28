@@ -217,8 +217,7 @@ class VPNCmd(SubCommand):
         try:
             provider = parts[2]
         except IndexError:
-            raise DispatchError(
-                'wrong number of arguments: expected 1, got none')
+            provider = None
         d = vpn.do_check(provider)
         return d
 

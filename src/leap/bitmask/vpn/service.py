@@ -27,7 +27,7 @@ from twisted.internet import defer
 from leap.bitmask.hooks import HookableService
 from leap.bitmask.vpn.vpn import VPNManager
 from leap.bitmask.vpn._checks import is_service_ready, get_vpn_cert_path
-from leap.bitmask.vpn import privilege
+from leap.bitmask.vpn import privilege, helpers
 from leap.common.config import get_path_prefix
 from leap.common.files import check_and_fix_urw_only
 
@@ -97,10 +97,13 @@ class VPNService(HookableService):
 
         return status
 
-    def do_check(self, domain):
+    def do_check(self, domain=None):
         """Check whether the VPN Service is properly configured,
         and can be started"""
-        return {'vpn_ready': is_service_ready(domain)}
+        ret = {'installed': helpers.check()}
+        if domain:
+            ret['vpn_ready'] = is_service_ready(domain)
+        return ret
 
     @defer.inlineCallbacks
     def do_get_cert(self, username):
