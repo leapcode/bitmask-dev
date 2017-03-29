@@ -22,6 +22,7 @@ VPN service declaration.
 
 import os
 
+from time import strftime
 from twisted.internet import defer
 
 from leap.bitmask.hooks import HookableService
@@ -30,6 +31,7 @@ from leap.bitmask.vpn._checks import is_service_ready, get_vpn_cert_path
 from leap.bitmask.vpn import privilege, helpers
 from leap.common.config import get_path_prefix
 from leap.common.files import check_and_fix_urw_only
+from leap.common.certs import get_cert_time_boundaries
 
 
 class VPNService(HookableService):
@@ -103,6 +105,7 @@ class VPNService(HookableService):
         ret = {'installed': helpers.check()}
         if domain:
             ret['vpn_ready'] = is_service_ready(domain)
+            ret['cert_expires'] = self._cert_expires(domain)
         return ret
 
     @defer.inlineCallbacks
@@ -147,13 +150,21 @@ class VPNService(HookableService):
                    for gw in config.gateways]
         extra_flags = config.openvpn_configuration
 
-        prefix = os.path.join(self._basepath,
-                              "leap/providers/{0}/keys".format(provider))
-        cert_path = key_path = prefix + "/client/openvpn.pem"
-        ca_path = prefix + "/ca/cacert.pem"
+        prefix = os.path.join(self._basepath, "leap", "providers", provider,
+                              "keys")
+        cert_path = key_path = os.path.join(prefix, "client", "openvpn.pem")
+        ca_path = os.path.join(prefix, "ca", "cacert.pem")
 
         self._vpn = VPNManager(provider, remotes, cert_path, key_path, ca_path,
                                extra_flags)
+
+    def _cert_expires(self, provider):
+        path = os.path.join(self._basepath, "leap", "providers", provider,
+                            "keys", "client", "openvpn.pem")
+        with open(path, 'r') as f:
+            cert = f.read()
+        _, to = get_cert_time_boundaries(cert)
+        return strftime('%Y-%m-%dT%H:%M:%SZ', to)
 
     def _write_last(self, domain):
         path = os.path.join(self._basepath, self._last_vpn_path)
