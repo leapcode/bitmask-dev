@@ -363,6 +363,73 @@ JSON-encoded data to the POST.
 
 .. _cmd_keys_list:
 
+/mail/status
+-----------------------
+**POST /mail/status
+
+  Get the status of the mail service
+
+  **Example request**::
+
+
+        curl -X POST localhost:7070/API/mail/status -d '["foobar@mail.bitmask.net"]'
+
+
+  **Example response**::
+
+
+   {
+     "result": {
+       "status": "on",
+       "keys": "found",
+       "unread": 5,
+       "childrenStatus": {
+         "keymanager": {
+           "status": "on",
+           "keys": "found",
+           "error": null
+         },
+         "smtp": {
+           "status": "on",
+           "error": null
+         },
+         "incoming": {
+           "status": "on",
+           "unread": 5,
+           "error": null
+         },
+         "imap": {
+           "status": "on",
+           "error": null
+         }
+       },
+       "error": null
+     },
+     "error": null
+   }
+
+
+  **Form parameters**:
+        * ``address`` *(required)* - the email address of the account.
+
+  **Values**:
+
+  The possible values for ``status`` are:
+       * ``on``
+       * ``off``
+       * ``starting``
+       * ``stopping``
+       * ``failure``
+
+  The possible values for the ``keys`` field are:
+        * ``null`` - nothing is known about the private key status.
+        * ``sync`` - syncing soledad to see if there is a private key.
+        * ``generating`` - creating a new private key as none was found.
+        * ``found`` - there is a valid private key in KeyManager.
+
+
+.. _cmd_prov_del:
+
 /keys/list
 -------------------
 **POST /keys/list**
