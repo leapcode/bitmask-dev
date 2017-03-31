@@ -182,7 +182,7 @@ class LinuxPolicyChecker(PolicyChecker):
             subprocess.call(["python -m leap.bitmask.util.polkit_agent"],
                             shell=True, env=env)
         except Exception as exc:
-            logger.exception(exc)
+            logger.error(str(exc))
 
     @classmethod
     def is_up(self):
