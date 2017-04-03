@@ -130,21 +130,3 @@ class RandomRefreshPublicKeyTestCase(KeyManagerWithSoledadTestCase):
             self._soledad, gpgbinary=self.gpg_binary_path)
         rf = RandomRefreshPublicKey(pgp, self._key_manager())
         self.assertTrue(rf._loop.interval >= MIN_RANDOM_INTERVAL_RANGE)
-
-    def test_is_random_really_random(self):
-        pgp = openpgp.OpenPGPScheme(
-            self._soledad, gpgbinary=self.gpg_binary_path)
-        rf = RandomRefreshPublicKey(pgp, self._key_manager())
-
-        for x in range(0, 5):
-            random_numbers = []
-
-            for y in range(0, 5):
-                random_numbers.append(rf._get_random_interval_to_refresh())
-
-                # there are different numbers in the list
-                if len(random_numbers) == len(set(random_numbers)) \
-                        or len(random_numbers) == len(set(random_numbers)) + 1:
-                    self.assertTrue(True)
-                else:
-                    self.assertTrue(False)
