@@ -37,7 +37,7 @@ from leap.common.certs import get_cert_time_boundaries
 class VPNService(HookableService):
 
     name = 'vpn'
-    _last_vpn_path = os.path.join('leap', 'providers', 'last_vpn')
+    _last_vpn_path = os.path.join('leap', 'last_vpn')
 
     def __init__(self, basepath=None):
         """
