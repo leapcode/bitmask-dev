@@ -786,29 +786,6 @@ class KeyManager(object):
         pubkey.validation = validation
         yield self.put_key(pubkey)
 
-    @defer.inlineCallbacks
-    def change_key_expiration(self, expiration_time='1y', passphrase=None):
-        """
-        Change the expiration date of the key pair bound to the user's address
-        by the expiration_time period, from the current day.
-
-        :param expiration_time: new expiration time from current day in 'n',
-            'nw', 'nm' or 'ny' where n is a number
-        :type expiration_time: str
-
-        :return: The updated secret key, with new expiry date
-        :rtype: OpenPGPKey
-
-        :raise KeyExpirationError: if invalid expiration time period
-        """
-        my_secret_key = yield self.get_key(self._address, private=True)
-        renewed_key = yield self._openpgp.expire(
-            my_secret_key,
-            expiration_time=expiration_time,
-            passphrase=passphrase)
-        yield self._openpgp.reset_all_keys_sign_used()
-        defer.returnValue(renewed_key)
-
 
 def _split_email(address):
     """
