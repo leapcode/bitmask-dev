@@ -223,7 +223,7 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         yield km._openpgp.put_raw_key(PRIVATE_KEY, ADDRESS)
         yield km._openpgp.put_raw_key(DIFFERENT_PRIVATE_KEY, ADDRESS)
         # get the key
-        inactive_keys = yield km.get_inactive_private_keys()
+        inactive_keys = yield km._get_inactive_private_keys()
         active_key = yield km.get_key(
             ADDRESS, private=True, fetch_remote=False)
         self.assertEqual(1, len(inactive_keys))
@@ -627,7 +627,7 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         old_key = yield km.get_key(ADDRESS_EXPIRING, fetch_remote=False)
 
         new_key = yield km.regenerate_key()
-        inactive_private_keys = yield km.get_inactive_private_keys()
+        inactive_private_keys = yield km._get_inactive_private_keys()
         renewed_public_key = yield km.get_key(ADDRESS_EXPIRING, private=False,
                                               fetch_remote=False)
 

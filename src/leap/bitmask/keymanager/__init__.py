@@ -208,7 +208,7 @@ class KeyManager(object):
             raw_key, address=address, validation=validation_level)
 
     @defer.inlineCallbacks
-    def get_inactive_private_keys(self):
+    def _get_inactive_private_keys(self):
         """
         Return all inactive private keys bound to address, that are
         stored locally.
@@ -555,7 +555,7 @@ class KeyManager(object):
                 result = yield _decrypt(keys)
             except keymanager_errors.DecryptError as e:
                 verify_key, active_key = keys
-                inactive_keys = yield self.get_inactive_private_keys()
+                inactive_keys = yield self._get_inactive_private_keys()
                 result = yield decrypt_with_inactive_keys(inactive_keys,
                                                           verify_key, e)
             defer.returnValue(result)
