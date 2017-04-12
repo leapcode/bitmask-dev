@@ -61,6 +61,7 @@ Xenial live image testing
 -------------------------
 
 Pasting the following lines in a terminal will help you testing the latest
-bundle from inside a live image in xenial::
+bundle from inside a virtual machine running a **live image for xenial** (note
+that this is **not** an installation method!)::
 
   curl https://0xacab.org/leap/bitmask-dev/raw/master/docs/testing/latest-bundle-xenial | bash
