@@ -41,8 +41,6 @@ try:
     import pixelated_www
     HAS_PIXELATED = True
 except ImportError as exc:
-    print "CANNOT LOAD PIXELATED!..............."
-    print exc
     HAS_PIXELATED = False
 
 
@@ -203,7 +201,13 @@ def _start_in_single_user_mode(leap_session, config, resource,
                                services_factory):
     start_site(config, resource)
     reactor.callLater(
-        0, start_user_agent_in_single_user_mode,
+        # workaround for #8798
+        # we need to make pixelated initialization a bit behind
+        # the own leap initialization, because otherwise the inbox is created
+        # without the needed callbacks for IMAP compatibility.
+        # This should be better addressed at pixelated code, by using the mail
+        # api to create the collection.
+        2, start_user_agent_in_single_user_mode,
         resource, services_factory,
         leap_session.config.leap_home, leap_session)
 

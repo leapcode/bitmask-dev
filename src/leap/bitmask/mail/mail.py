@@ -392,9 +392,8 @@ class MessageCollection(object):
 
     @property
     def mbox_uuid(self):
-        # TODO raise instead?
         if self.mbox_wrapper is None:
-            return None
+            raise RuntimeError("This is not a mailbox collection")
         return self.mbox_wrapper.uuid
 
     def get_mbox_attr(self, attr):
