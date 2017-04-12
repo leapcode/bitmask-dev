@@ -122,7 +122,7 @@ var bitmask = function(){
              */
             version: function() {
                 return call(['core', 'version']);
-            }
+            },
 
             /**
              * Stop bitmaskd
@@ -130,7 +130,7 @@ var bitmask = function(){
             stop: function() {
                 return call(['core', 'stop']);
             }
-        }
+        },
 
         bonafide: {
             provider: {
