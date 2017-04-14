@@ -62,7 +62,10 @@ SUBCOMMANDS:
             try:
                 _, provider = uid.split('@')
             except ValueError:
-                raise ValueError("A provider is needed to start the VPN")
+                error = ValueError()
+                error.strerror = "A provider is needed to start the VPN"
+                error.expected = True
+                raise error
 
         self.data += ['start', provider]
 

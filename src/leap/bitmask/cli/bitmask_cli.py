@@ -21,6 +21,7 @@ Bitmask Command Line interface: zmq client.
 import json
 import sys
 import signal
+import traceback
 
 from colorama import Fore
 from twisted.internet import reactor, defer
@@ -142,11 +143,15 @@ def execute():
     cli = BitmaskCLI(cfg)
     cli.data = ['core', 'version']
     args = None if '--noverbose' in sys.argv else ['--verbose']
-    yield cli._send(
-        timeout=0.1, printer=_null_printer,
-        errb=lambda: cli.start(args))
-    if 'start' in sys.argv or 'restart' in sys.argv:
-        command.default_dict_printer({'start': 'ok'})
+
+    try:
+        yield cli._send(
+            timeout=0.1, printer=_null_printer,
+            errb=lambda: cli.start(args))
+    except Exception, e:
+        print (Fore.RED + "ERROR: " + Fore.RESET +
+               "%s" % e.strerror)
+        defer.returnValue('')
 
     cli.data = []
     cli.print_json = print_json
@@ -154,11 +159,19 @@ def execute():
     if print_json:
         args.remove('--json')
 
-    yield cli.execute(args)
     try:
+        yield cli.execute(args)
+        if 'start' in sys.argv or 'restart' in sys.argv:
+            command.default_dict_printer({'start': 'ok'})
+    except Exception, e:
+        if hasattr(e, 'strerror'):
+            print (Fore.RED + "ERROR: " + Fore.RESET +
+                   "%s" % e.strerror)
+        else:
+            if not hasattr(e, 'expected'):
+                print traceback.format_exc()
+    finally:
         yield reactor.stop()
-    except:
-        pass
 
 
 def _null_printer(*args):
@@ -166,6 +179,7 @@ def _null_printer(*args):
 
 
 def main():
+
     def signal_handler(signal, frame):
         if reactor.running:
             reactor.stop()
