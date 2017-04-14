@@ -52,7 +52,12 @@ def default_dict_printer(result):
 
 
 def print_status(status, depth=0):
-    for name, v in [('  status', status)] + status['childrenStatus'].items():
+
+    if status.get('vpn') == 'disabled':
+        print('vpn       ' + Fore.RED + 'disabled' + Fore.RESET)
+        return
+
+    for name, v in [('status', status)] + status['childrenStatus'].items():
         line = Fore.RESET + name.ljust(12)
         if v['status'] in ('on', 'starting'):
             line += Fore.GREEN
