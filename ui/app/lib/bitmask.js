@@ -166,7 +166,7 @@ var bitmask = function(){
                  *
                  * @param {string} uid The uid to be created
                  * @param {string} password The user password
-                 * @param {boolean} autoconf If the provider should be autoconfigured if it's not allready known
+                 * @param {boolean} autoconf If the provider should be autoconfigured if it's not already known
                  *                           If it's not provided it will default to false
                  */
                 create: function(uid, password, invite, autoconf) {
@@ -181,7 +181,7 @@ var bitmask = function(){
                  *
                  * @param {string} uid The uid to log in
                  * @param {string} password The user password
-                 * @param {boolean} autoconf If the provider should be autoconfigured if it's not allready known
+                 * @param {boolean} autoconf If the provider should be autoconfigured if it's not already known
                  *                           If it's not provided it will default to false
                  */
                 auth: function(uid, password, autoconf) {
