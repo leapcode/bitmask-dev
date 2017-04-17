@@ -130,11 +130,11 @@ class VPNService(HookableService):
         defer.returnValue({'get_cert': 'ok'})
 
     def do_install(self):
-        ask = privilege.install_helpers()
+        privilege.install_helpers()
         return {'install': 'ok'}
 
     def do_uninstall(self):
-        ask = privilege.uninstall_helpers()
+        privilege.uninstall_helpers()
         return {'uninstall': 'ok'}
 
     @defer.inlineCallbacks
