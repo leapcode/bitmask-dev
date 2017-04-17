@@ -48,7 +48,6 @@ else:
     from PyQt5 import QtWebKit
     from PyQt5.QtCore import QSize
     from PyQt5.QtCore import QObject, pyqtSlot
-    from PyQt5.QtWidgets import QDialog
     from PyQt5.QtWidgets import QApplication
     from PyQt5.QtWebKitWidgets import QWebView
     from PyQt5.QtWebKit import QWebSettings
@@ -223,6 +222,13 @@ def start_app():
     if STANDALONE and len(sys.argv) > MIN_ARGS:
         from leap.bitmask.cli import bitmask_cli
         return bitmask_cli.main()
+
+    prev_auth = os.path.join(get_path_prefix(), 'leap', 'authtoken')
+    try:
+        os.remove(prev_auth)
+    except OSError:
+        pass
+
     launch_gui()
 
 
