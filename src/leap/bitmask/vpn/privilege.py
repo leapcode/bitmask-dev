@@ -50,6 +50,7 @@ def uninstall_helpers():
 
 
 class NoPolkitAuthAgentAvailable(Exception):
+    message = 'No polkit authentication agent available. Please run one.'
     pass
 
 

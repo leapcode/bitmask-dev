@@ -537,10 +537,12 @@ def _format_error(failure):
     """
     Logs the failure backtrace, and returns a json containing the error
     message.
-    """
 
-    # If a exception declares the 'expected' attribute as True,
-    # we will not print a full traceback
+    If a exception declares the 'expected' attribute as True,
+    we will not print a full traceback. instead, we will dispatch
+    the ``exception`` message attribute as the ``error`` field in the response
+    json.
+    """
 
     expected = getattr(failure.value, 'expected', False)
     if not expected:

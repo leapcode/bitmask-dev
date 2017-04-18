@@ -29,6 +29,7 @@ from leap.bitmask.hooks import HookableService
 from leap.bitmask.vpn.vpn import VPNManager
 from leap.bitmask.vpn._checks import is_service_ready, get_vpn_cert_path
 from leap.bitmask.vpn import privilege, helpers
+from leap.bitmask.vpn.privilege import NoPolkitAuthAgentAvailable
 from leap.common.config import get_path_prefix
 from leap.common.files import check_and_fix_urw_only
 from leap.common.certs import get_cert_time_boundaries
@@ -68,7 +69,12 @@ class VPNService(HookableService):
     def start_vpn(self, domain):
         # TODO check if the VPN is started and return an error if it is.
         yield self._setup(domain)
-        self._vpn.start()
+        try:
+            self._vpn.start()
+        except NoPolkitAuthAgentAvailable as e:
+            e.expected = True
+            raise e
+
         self._started = True
         self._domain = domain
         self._write_last(domain)

@@ -154,7 +154,7 @@ class Command(object):
             else:
                 return printer(obj['result'])
         else:
-            print Fore.RED + 'ERROR:' + '%s' % obj['error'] + Fore.RESET
+            print Fore.RED + 'ERROR: ' + '%s' % obj['error'] + Fore.RESET
 
     def _timeout_handler(self, failure, errb):
         if failure.trap(ZmqRequestTimeoutError) == ZmqRequestTimeoutError:
