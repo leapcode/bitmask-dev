@@ -35,6 +35,12 @@ from leap.common.files import check_and_fix_urw_only
 from leap.common.certs import get_cert_time_boundaries
 
 
+class ImproperlyConfigured(Exception):
+    """This error is a transient exception until autoconf automates all the
+    needed steps for VPN bootstrap."""
+    expected = True
+
+
 class VPNService(HookableService):
 
     name = 'vpn'
@@ -121,6 +127,8 @@ class VPNService(HookableService):
         try:
             _, provider = username.split('@')
         except ValueError:
+            if not username:
+                raise ValueError('Need an username. are you logged in?')
             raise ValueError(username + ' is not a valid username, it should'
                              ' contain an @')
 
@@ -162,6 +170,14 @@ class VPNService(HookableService):
                               "keys")
         cert_path = key_path = os.path.join(prefix, "client", "openvpn.pem")
         ca_path = os.path.join(prefix, "ca", "cacert.pem")
+
+        if not os.path.isfile(cert_path):
+            raise ImproperlyConfigured(
+                'Cannot find client certificate. Please get one')
+        if not os.path.isfile(ca_path):
+            raise ImproperlyConfigured(
+                'Cannot find provider certificate. '
+                'Please configure provider.')
 
         self._vpn = VPNManager(provider, remotes, cert_path, key_path, ca_path,
                                extra_flags)

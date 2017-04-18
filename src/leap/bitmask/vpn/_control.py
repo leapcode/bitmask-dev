@@ -61,11 +61,6 @@ class VPNControl(object):
             logger.info("Another vpn process is running. Will try to stop it.")
             vpnproc.stop_if_already_running()
 
-        # FIXME it would be good to document where the
-        # errors here are catched, since we currently handle them
-        # at the frontend layer. This *should* move to be handled entirely
-        # in the backend.
-
         try:
             cmd = vpnproc.getCommand()
         except Exception as e:
