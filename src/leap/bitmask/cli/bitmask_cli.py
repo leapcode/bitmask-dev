@@ -161,9 +161,10 @@ def execute():
 
     try:
         yield cli.execute(args)
-        if 'start' in sys.argv or 'restart' in sys.argv:
+        cmdline = ' '.join(sys.argv)
+        if 'ctl start' in cmdline or 'ctl restart' in cmdline:
             command.default_dict_printer({'start': 'ok'})
-    except Exception, e:
+    except Exception as e:
         print(Fore.RED + "ERROR: " + Fore.RESET +
               "%s" % str(e))
         if not hasattr(e, 'expected'):

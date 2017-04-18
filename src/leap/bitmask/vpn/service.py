@@ -88,6 +88,8 @@ class VPNService(HookableService):
             self._vpn.stop()
             self._started = False
             return {'result': 'stopped'}
+        else:
+            raise Exception('VPN was not running')
 
     def do_status(self):
         status = {

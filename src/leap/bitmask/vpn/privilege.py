@@ -51,11 +51,10 @@ def uninstall_helpers():
 
 class NoPolkitAuthAgentAvailable(Exception):
     message = 'No polkit authentication agent available. Please run one.'
-    pass
 
 
 class NoPkexecAvailable(Exception):
-    pass
+    message = 'Could not find pkexec in the system'
 
 
 def is_missing_policy_permissions():
