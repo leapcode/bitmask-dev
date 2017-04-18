@@ -150,7 +150,7 @@ def execute():
             errb=lambda: cli.start(args))
     except Exception, e:
         print (Fore.RED + "ERROR: " + Fore.RESET +
-               "%s" % e.strerror)
+               "%s" % str(e))
         defer.returnValue('')
 
     cli.data = []
@@ -164,12 +164,10 @@ def execute():
         if 'start' in sys.argv or 'restart' in sys.argv:
             command.default_dict_printer({'start': 'ok'})
     except Exception, e:
-        if hasattr(e, 'strerror'):
-            print (Fore.RED + "ERROR: " + Fore.RESET +
-                   "%s" % e.strerror)
-        else:
-            if not hasattr(e, 'expected'):
-                print traceback.format_exc()
+        print(Fore.RED + "ERROR: " + Fore.RESET +
+              "%s" % str(e))
+        if not hasattr(e, 'expected'):
+            print(traceback.format_exc())
     finally:
         yield reactor.stop()
 
