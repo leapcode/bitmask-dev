@@ -25,6 +25,7 @@ import os
 import platform
 import signal
 import sys
+import webbrowser
 
 from functools import partial
 from multiprocessing import Process
@@ -70,6 +71,7 @@ class BrowserWindow(QWebView):
     python-js bridge:
 
         bitmaskApp.shutdown() -> shut downs the backend and frontend.
+        bitmaskApp.openSystemBrowser(url) -> opens URL in system browser
         bitmaskBrowser.openPixelated() -> opens Pixelated app in a new window.
 
     """
@@ -146,6 +148,10 @@ class AppProxy(QObject):
         global browser
         if browser:
             browser.close()
+
+    @pyqtSlot(str)
+    def openSystemBrowser(self, url):
+        webbrowser.open(url)
 
 
 pixbrowser = None
