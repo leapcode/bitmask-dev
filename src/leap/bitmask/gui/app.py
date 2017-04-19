@@ -61,9 +61,18 @@ DEBUG = os.environ.get("DEBUG", False)
 
 qApp = None
 bitmaskd = None
+browser = None
 
 
 class BrowserWindow(QWebView):
+    """
+    This qt-webkit window exposes a couple of callable objects through the
+    python-js bridge:
+
+        bitmaskApp.shutdown() -> shut downs the backend and frontend.
+        bitmaskBrowser.openPixelated() -> opens Pixelated app in a new window.
+
+    """
     def __init__(self, *args, **kw):
         url = kw.pop('url', None)
         first = False
@@ -79,6 +88,10 @@ class BrowserWindow(QWebView):
         super(QWebView, self).__init__(*args, **kw)
         self.bitmask_browser = NewPageConnector(self) if first else None
         self.loadPage(self.url)
+
+        self.proxy = AppProxy(self) if first else None
+        self.frame.addToJavaScriptWindowObject(
+            "bitmaskApp", self.proxy)
 
     def loadPage(self, web_page):
         self.settings().setAttribute(
@@ -125,6 +138,16 @@ class BrowserWindow(QWebView):
             sys.exit(1)
 
 
+class AppProxy(QObject):
+
+    @pyqtSlot()
+    def shutdown(self):
+        """To be exposed from the js bridge"""
+        global browser
+        if browser:
+            browser.close()
+
+
 pixbrowser = None
 
 
@@ -149,6 +172,7 @@ def _handle_kill(*args, **kw):
 def launch_gui():
     global qApp
     global bitmaskd
+    global browser
 
     if IS_WIN:
         freeze_support()
