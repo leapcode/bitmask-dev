@@ -41,7 +41,6 @@ class TunnelManager(object):
             ((ip1, portA), (ip2, portB), ...)
         :type remotes: tuple of tuple(str, int)
         """
-        print "INIT", remotes
         # TODO we can set all the needed ports, gateways and paths in here
         # TODO need gateways here
         # sorting them doesn't belong in here
@@ -65,7 +64,6 @@ class TunnelManager(object):
         Start the VPN process.
         """
         result = self._vpn.start()
-        print "RESULT START --->", result
         return result
 
     def stop(self):

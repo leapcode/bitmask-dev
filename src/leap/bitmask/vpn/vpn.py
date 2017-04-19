@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import commands
+
 from colorama import Fore
 
 from leap.bitmask.util import merge_status
@@ -67,6 +69,12 @@ class VPNManager(object):
 
         print(Fore.GREEN + "VPN: stopped." + Fore.RESET)
         return True
+
+    def stop_firewall(self):
+        self._firewall.stop()
+
+    def is_firewall_up(self):
+        return self._firewall.is_up()
 
     def get_status(self):
         childrenStatus = {

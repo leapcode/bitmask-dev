@@ -93,7 +93,10 @@ class VPNService(HookableService):
         if self._started:
             self._vpn.stop()
             self._started = False
-            return {'result': 'stopped'}
+            return {'result': 'vpn stopped'}
+        elif self._vpn.is_firewall_up():
+            self._vpn.stop_firewall()
+            return {'result': 'firewall stopped'}
         else:
             raise Exception('VPN was not running')
 
