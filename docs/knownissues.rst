@@ -7,9 +7,8 @@ Known Issues
 VPN
 -------------------
 
-* No VPN UI yet.
-* Only email is supported, but wizard allows you to login to providers that
-  only support VPN.
+* Partial support for VPN. 
+
 
 Wizard
 -------------------
@@ -25,5 +24,5 @@ Main window
   via the command line interface.
 * Removing an account does not actually clean up all the files associated with
   that account (need backend code).
-* Collapsing account list looks weird, and is state is not remembered (need
-  backend code).
+* `#8840 <https://0xacab.org/leap/bitmask-dev/issues/8840>`_: No ability to recover if the key generation fails.
+
