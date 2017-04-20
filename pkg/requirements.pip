@@ -3,5 +3,5 @@ colorama
 zope.interface
 service-identity
 gnupg
-leap.common>=0.5.4
+leap.common>=0.5.5
 leap.soledad.client>=0.9.5

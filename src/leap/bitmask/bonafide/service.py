@@ -21,9 +21,10 @@ Bonafide Service.
 import os
 from collections import defaultdict
 
-from leap.common.config import get_path_prefix
 from leap.bitmask.bonafide._protocol import BonafideProtocol
 from leap.bitmask.hooks import HookableService
+from leap.common.config import get_path_prefix
+from leap.common.events import catalog, emit_async
 
 from twisted.internet import defer
 from twisted.logger import Logger
@@ -66,6 +67,11 @@ class BonafideService(HookableService):
             self.trigger_hook('on_bonafide_auth', **data)
             return result
 
+        def trigger_event(result):
+            _, uuid = result
+            emit_async(catalog.BONAFIDE_AUTH_DONE, uuid, username)
+            return result
+
         # XXX I still have doubts from where it's best to trigger this.
         # We probably should wait for BOTH deferreds and
         # handle local and remote authentication success together
@@ -76,6 +82,7 @@ class BonafideService(HookableService):
 
         d = self._bonafide.do_authenticate(username, password, autoconf)
         d.addCallback(notify_bonafide_auth)
+        d.addCallback(trigger_event)
         d.addCallback(lambda response: {
             'srp_token': response[0], 'uuid': response[1]})
         return d
