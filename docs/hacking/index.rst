@@ -1,9 +1,9 @@
-:LastChangedDate: $LastChangedDate$
-:LastChangedRevision: $LastChangedRevision$
-:LastChangedBy: $LastChangedBy$
+:LastChangedDate: $LastChangedDate$ :LastChangedRevision: $LastChangedRevision$
+                  :LastChangedBy: $LastChangedBy$
 
 Hacking
 ========================================
+
 So you want to hack on Bitmask?
 Thanks, and welcome!
 
@@ -13,6 +13,7 @@ Running tests
 Tox is all you need::
 
   tox
+
 
 Test when changes are made to common/soledad
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -31,56 +32,27 @@ Setting up the development environment
 Dependencies::
 
   sudo apt install build-essential python-virtualenv libsqlcipher-dev \
-                   libssl-dev libffi-dev python-pyqt5
+  libssl-dev libffi-dev python-pyqt5
 
+
+Clone the repo::
+
+  git clone https://0xacab.org/leap/bitmask-dev
+  cd bitmask-dev
 
 Create a virtualenv and activate it::
 
-  mkvirtualenv venv
+  virtualenv venv
   source venv/bin/activate
 
-(but consider using something like `pew`_ if you are going to do heavy development
-though).
+By the way, if you plan to get into heavy development, you might want to
+consider using something like `pew`_, instead of the plain virtualenv.
 
 Now you should be able to install all the bitmask dependencies::
 
   make dev-latest-all
 
-.. _`pew`: https://pypi.python.org/pypi/pew/0.1.26
-
-How to contribute
----------------------------------
-
-Send your merge requests to https://0xacab/leap/bitmask-dev
-
-Coding conventions
----------------------------------
-* pep8
-* Git messages should be informative.
-* There is a pre-commit hook ready to be used in the ``docs/hooks`` folder,
-  alongside some other hooks to do autopep8 on each commit.
-
-.. include:: ../hooks/leap-commit-template.README
-   :literal:
-
-Pinning
-----------------------------------
-Don't introduce any pinning in the setup.py file, they should go in the
-requirements files (mainly ``pkg/requirements.pip``).
-
-
-Signing your commits
----------------------------------
-* For contributors with commit access, you **should** sign all your commits. If
-  you are merging some code from external contributors, you should sign their
-  commits.
-
-Merging code
----------------------------------
-Avoid fast-forwards. Put this in your gitconfig::
-
-  [merge]
-  ff = only  
+.. _`pew`: https://pypi.python.org/pypi/pew
 
 
 Main Bitmask Components
@@ -115,6 +87,54 @@ This extension gets published to the `mozilla addons page`_.
 
 .. _`this repo`: https://0xacab.org/leap/bitmask_thunderbird
 .. _`mozilla addons page`: https://addons.mozilla.org/en-US/thunderbird/addon/bitmask
+
+
+How to contribute code
+---------------------------------
+
+* Send your merge requests to https://0xacab/leap/bitmask-dev, it will be subject
+to code-review.
+* Please base your branch for master, and keep it rebased when you push.
+* After review, please squash your commits.
+ 
+
+Coding conventions
+---------------------------------
+
+* Follow pep8 for all the python code.
+* Git messages should be informative.
+* There is a pre-commit hook ready to be used in the ``docs/hooks`` folder,
+  alongside some other hooks to do autopep8 on each commit.
+
+.. include:: ../hooks/leap-commit-template.README
+   :literal:
+
+Dependencies
+----------------------------------
+
+We try hard not to introduce any new dependencies at this moment. If you really
+have to, the packages bitmask depends on have to be specified *both* in the
+setup.py and the pip requirements file.
+
+Don't introduce any pinning in the setup.py file, they should go in the
+requirements files (mainly ``pkg/requirements.pip``).
+
+
+Signing your commits
+---------------------------------
+
+For contributors with commit access, you **should** sign all your commits. If
+you are merging some code from external contributors, you should sign their
+commits.
+
+Merging code
+---------------------------------
+
+Avoid fast-forwards, they make a very messy history. Put this in your
+gitconfig::
+
+  [merge]
+  ff = only  
 
 
 Making a new release
