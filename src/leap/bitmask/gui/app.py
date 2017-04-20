@@ -94,6 +94,12 @@ class BrowserWindow(QWebView):
         self.frame.addToJavaScriptWindowObject(
             "bitmaskApp", self.proxy)
 
+        icon = QtGui.QIcon()
+        icon.addPixmap(
+            QtGui.QPixmap(":/mask-icon.png"),
+            QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.setWindowIcon(icon)
+
     def loadPage(self, web_page):
         self.settings().setAttribute(
             QWebSettings.DeveloperExtrasEnabled, True)
