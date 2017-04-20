@@ -3,8 +3,9 @@
 :LastChangedBy: $LastChangedBy$
 
 Hacking
-=================================
-blah blah
+========================================
+So you want to hack on Bitmask?
+Thanks, and welcome!
 
 Running tests
 ---------------------------------
@@ -30,16 +31,27 @@ Setting up the development environment
 Dependencies::
 
   sudo apt install build-essential python-virtualenv libsqlcipher-dev \
-        libssl-dev libffi-dev
+                   libssl-dev libffi-dev python-pyqt5
 
-There are different requirements files::
 
-  ...
+Create a virtualenv and activate it::
+
+  mkvirtualenv venv
+  source venv/bin/activate
+
+(but consider using something like `pew`_ if you are going to do heavy development
+though).
+
+Now you should be able to install all the bitmask dependencies::
+
+  make dev-latest-all
+
+.. _`pew`: https://pypi.python.org/pypi/pew/0.1.26
 
 How to contribute
 ---------------------------------
 
-Merge requests to https://0xacab/leap/bitmask-dev
+Send your merge requests to https://0xacab/leap/bitmask-dev
 
 Coding conventions
 ---------------------------------
@@ -53,26 +65,61 @@ Coding conventions
 
 Pinning
 ----------------------------------
-Only in the requirements files.
+Don't introduce any pinning in the setup.py file, they should go in the
+requirements files (mainly ``pkg/requirements.pip``).
+
 
 Signing your commits
 ---------------------------------
-* For contributors with commit access
+* For contributors with commit access, you **should** sign all your commits. If
+  you are merging some code from external contributors, you should sign their
+  commits.
 
-Developing on the gui
+Merging code
 ---------------------------------
-blah blah. see some other README
+Avoid fast-forwards. Put this in your gitconfig::
 
-Developing on the Javascript UI
+  [merge]
+  ff = only  
+
+
+Main Bitmask Components
 ---------------------------------
-blah blah. see the main README
 
-Developing on the Thunderbird Extension
----------------------------------------
-blah blah
+The Core
+~~~~~~~~
+
+The main bitmask-dev repo orchestrates the launching if the bitmaskd daemon.
+This is a collection of services that launches the vpn and mail services.
+bitmask vpn, mail and keymanager are the main modules, and soledad is one of the
+main dependencies for the mail service.
+
+The Qt gui
+~~~~~~~~~~
+
+The Qt gui is a minimalistic wrapper that uses PyQt5 to launch the core and
+display a qt-webkit browser rendering the resources served by the core. Its main
+entrypoint is in ``gui/app.py``.
+
+The Javascript UI
+~~~~~~~~~~~~~~~~~
+
+A modern javascript app is the main Bitmask Frontend. For instructions on how
+to develop with the js ui, refer to ``ui/README.md``.
+
+The Thunderbird Extension
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The development for the Thunderbird Extension happens on `this repo`_.
+This extension gets published to the `mozilla addons page`_.
+
+.. _`this repo`: https://0xacab.org/leap/bitmask_thunderbird
+.. _`mozilla addons page`: https://addons.mozilla.org/en-US/thunderbird/addon/bitmask
+
 
 Making a new release
 --------------------
+
 A checklist for the release process can be found :ref:`here <release>`
 
 As part of the release we also tag upload snapshots of the `leap.bitmask_js`
@@ -88,12 +135,13 @@ and then you can upload it to pypi::
 
 Contribution ideas
 ------------------
-Want to help?
+
+Want to help? Come talk to us on irc or the mailing list!
 
 Some areas in which we always need contribution are:
 
 * Localization of the client (talk to elijah).
 * Multiplatform gitlab runners
-* Windows and OSX packaging
+* Windows and OSX packaging (talk to kali)
 * Windows Firewall integration for VPN
 * Migrating components to py3 (look for vshyba or kali).
