@@ -90,6 +90,9 @@ class VPNService(HookableService):
         # TODO -----------------------------
         # when shutting down the main bitmaskd daemon, this should be called.
 
+        if not self._vpn:
+            raise Exception('VPN was not running')
+
         if self._started:
             self._vpn.stop()
             self._started = False

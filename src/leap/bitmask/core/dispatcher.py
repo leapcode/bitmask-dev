@@ -436,9 +436,9 @@ class CommandDispatcher(object):
 
     def do_VPN(self, *parts):
         vpn = self._get_service(self.subcommand_vpn.label)
-        if not vpn:
-            return _format_result({'vpn': 'disabled'})
         subcmd = parts[1]
+        if subcmd != 'enable' and not vpn:
+            return _format_result({'vpn': 'disabled'})
 
         dispatch = self.subcommand_vpn.dispatch
         if subcmd in ('enable', 'disable'):
