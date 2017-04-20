@@ -60,6 +60,20 @@ Please report any bugs `in our bug tracker`_.
 
 .. _`in our bug tracker`: https://leap.se/code/projects/report-issues
 
+Logs
+----
+
+If you want to watch the logs, from the command line::
+
+  bitmaskctl logs watch
+
+The paste command can be handy to do bug reports (needs ``pastebinit`` installed
+in the system)::
+
+  bitmaskctl logs send
+
+
+
 
 Development
 ===========================================================
