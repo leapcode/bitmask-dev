@@ -71,16 +71,36 @@ reconstruct arbitrarily nested email structures easily.
 
 Authentication
 ---------------------
-Currently, IMAP and SMTP are twisted services that are binded to ``localhost``. These services be initialized by the bitmask.core daemon, but they are not tied to any user session. When an use attempts to log in to those services, a ``twisted.cred`` pluggable authentication plugin will try to lookup a ``mail token`` that is stored inside the soledad encrypted storage.
+
+Currently, IMAP and SMTP are twisted services that are binded to ``localhost``.
+These services be initialized by the bitmask.core daemon, but they are not tied
+to any user session. When an use attempts to log in to those services, a
+``twisted.cred`` pluggable authentication plugin will try to lookup a ``mail
+token`` that is stored inside the soledad encrypted storage.
+
+From within the cli, you can get the mail token once you are authenticated
+with::
+
+  bitmaskctl mail get_token
+
+When launched, the bitmaskd daemon writes the tokens for each account to a file
+inside the folder named ``/tmp/bitmask_tokens``, and this is where the
+Thunderbird Extension reads them from.
 
 
 Pixelated user agent
 ----------------------
+
 From the 0.9.5 release, bundles are shipping the Pixelated User Agent. Until
 some merge requests (dealing with packaging of the js resources) are merged
-upstream, you will need to install pixelated user agent from kali's repo::
+upstream, you will need to install pixelated user agent from leap's repo::
 
-  pip install pixelated_www pixelated_user_agent --find-links https://devpi.net/kali/dev  
+  pip install pixelated_www pixelated_user_agent --find-links https://downloads.leap.se/libs/pixelated/
+
+Pixelated also needs a couple of extra dependencies::
+
+  pip install whoosh chardet requests==2.11.1
+
 
 
 

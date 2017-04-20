@@ -1,5 +1,6 @@
-:LastChangedDate: $LastChangedDate$ :LastChangedRevision: $LastChangedRevision$
-                  :LastChangedBy: $LastChangedBy$
+:LastChangedDate: $LastChangedDate$
+:LastChangedRevision: $LastChangedRevision$
+:LastChangedBy: $LastChangedBy$
 
 Hacking
 ========================================
