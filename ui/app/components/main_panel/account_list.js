@@ -4,6 +4,7 @@ import {Button, ButtonGroup, ButtonToolbar, Glyphicon} from 'react-bootstrap'
 import App from 'app'
 import Account from 'models/account'
 import Confirmation from 'components/confirmation'
+import AppButtons from './app_buttons'
 
 export default class AccountList extends React.Component {
 
@@ -124,6 +125,7 @@ export default class AccountList extends React.Component {
 
     return (
       <div className="accounts" style={style}>
+        <AppButtons />
         <ul>
           {items}
         </ul>

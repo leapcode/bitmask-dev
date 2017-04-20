@@ -16,7 +16,9 @@ export default class Splash extends React.Component {
 
   static get defaultProps() {return{
     speed: "fast",
-    mask: true,
+    mask: false,
+    fullscreen: true,
+    style: null,
     onClick: null
   }}
 
@@ -29,10 +31,10 @@ export default class Splash extends React.Component {
     this.resize = this.resize.bind(this)
     this.click  = this.click.bind(this)
     if (this.props.speed == "fast") {
-      this.fps = 30
+      this.fps = 20
       this.stepAngle = 0.005
     } else {
-      this.fps = 30
+      this.fps = 20
       this.stepAngle = 0.0005
     }
   }
@@ -61,9 +63,11 @@ export default class Splash extends React.Component {
   }
 
   resize() {
-    this.canvas.width = window.innerWidth
-    this.canvas.height = window.innerHeight
-    this.updateCanvas()
+    if (this.props.fullscreen) {
+      this.canvas.width = window.innerWidth
+      this.canvas.height = window.innerHeight
+      this.updateCanvas()
+    }
   }
 
   updateCanvas() {
@@ -71,7 +75,7 @@ export default class Splash extends React.Component {
     const arcAngle = 1 / arcCount
     const x = this.canvas.width / 2
     const y = this.canvas.height / 2
-    const radius = screen.height + screen.width
+    const radius = this.canvas.height + this.canvas.width
 
     for (let i = 0; i < arcCount; i++) {
       let startAngle = Math.PI * 2 * i/arcCount + this.stepAngle*this.counter
@@ -107,25 +111,43 @@ export default class Splash extends React.Component {
       mask = React.DOM.img({
         src: 'img/mask.svg',
         style: {
+          width: '100px',
           position: 'absolute',
           left: '50%',
           top: '50%',
-          marginLeft: -330/2 + 'px',
-          marginTop: -174/2 + 'px',
+          marginLeft: '-50px',
+          marginTop: '-28px'
         }
       })
     }
-    return React.DOM.div(
-      {style: {overflow: 'hidden'}},
-      React.DOM.canvas({
-        ref: 'canvas',
-        style: {position: 'absolute'},
-        width: window.innerWidth,
-        height: window.innerHeight,
-      }),
-      mask,
-      overlay
-    )
+    if (this.props.fullscreen) {
+      return React.DOM.div(
+        {style: {overflow: 'hidden'}},
+        React.DOM.canvas({
+          ref: 'canvas',
+          style: {position: 'absolute'},
+          width: window.innerWidth,
+          height: window.innerHeight,
+        }),
+        mask,
+        overlay
+      )
+    } else {
+      return React.DOM.div(
+        {style: {position: 'relative'}},
+        React.DOM.canvas({
+          style: {
+            width: '100%',
+            borderTopLeftRadius: '4px',
+            borderTopRightRadius: '4px',
+          },
+          ref: 'canvas',
+          width: '1000px',
+          height: '200px'
+        }),
+        mask
+      )
+    }
   }
 
 }

@@ -8,6 +8,7 @@ import GreeterPanel from './greeter_panel'
 import MainPanel from './main_panel'
 import Wizard from './wizard'
 import Addressbook from './addressbook'
+import ByeSplash from './bye_splash'
 
 import App from 'app'
 import 'lib/common'
@@ -73,5 +74,6 @@ export default class PanelSwitcher extends React.Component {
   render_main(props)    {return elem(MainPanel, props)}
   render_addressbook(props) {return elem(Addressbook, props)}
   render_error(props)   {return elem(ErrorPanel, props)}
+  render_bye_splash(props)  {return elem(ByeSplash, props)}
 
 }

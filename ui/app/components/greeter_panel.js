@@ -3,7 +3,7 @@ import Login from './login'
 import Center from './center'
 import Splash from './splash'
 import Area from './area'
-import { Glyphicon } from 'react-bootstrap'
+import { Glyphicon, Button, ButtonToolbar } from 'react-bootstrap'
 import App from 'app'
 
 export default class GreeterPanel extends React.Component {
@@ -20,6 +20,10 @@ export default class GreeterPanel extends React.Component {
     App.start()
   }
 
+  quit() {
+    App.show('bye_splash')
+  }
+
   render () {
     return <div>
       <Splash speed="slow" mask={false} />
@@ -29,9 +33,14 @@ export default class GreeterPanel extends React.Component {
             rememberAllowed={false} autoAllowed={true} />
         </Area>
         <Area position="bottom" type="dark" className="greeter">
-          <Glyphicon glyph="user" />
-          &nbsp;
-          <a href="javascript:void(0)" onClick={this.newAccount.bind(this)}>Create a new account...</a>
+          <ButtonToolbar>
+            <Button onClick={this.quit.bind(this)} className="pull-right">
+              <Glyphicon glyph="off" />
+            </Button>
+            <Button onClick={this.newAccount.bind(this)}>
+              <Glyphicon glyph="user" /> New account...
+            </Button>
+          </ButtonToolbar>
         </Area>
       </Center>
     </div>
