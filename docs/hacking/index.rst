@@ -31,8 +31,9 @@ Setting up the development environment
 
 Dependencies::
 
-  sudo apt install build-essential python-virtualenv libsqlcipher-dev \
-  libssl-dev libffi-dev python-pyqt5
+  sudo apt install build-essential python-dev python-virtualenv \
+  libsqlcipher-dev libssl-dev libffi-dev \
+  python-pyqt5 python-pyqt5.webkit
 
 
 Clone the repo::
@@ -92,8 +93,8 @@ This extension gets published to the `mozilla addons page`_.
 How to contribute code
 ---------------------------------
 
-* Send your merge requests to https://0xacab/leap/bitmask-dev, it will be subject
-to code-review.
+* Send your merge requests to https://0xacab/leap/bitmask-dev, it will be
+  subject to code-review.
 * Please base your branch for master, and keep it rebased when you push.
 * After review, please squash your commits.
  
