@@ -25,6 +25,7 @@ import os
 import platform
 import signal
 import sys
+import time
 import webbrowser
 
 from functools import partial
@@ -73,6 +74,8 @@ class BrowserWindow(QWebView):
         bitmaskApp.openSystemBrowser(url) -> opens URL in system browser
         bitmaskBrowser.openPixelated() -> opens Pixelated app in a new window.
 
+    This BrowserWindow assumes that the backend is already running, since it is
+    going to look for the authtoken in the configuration folder.
     """
     def __init__(self, *args, **kw):
         url = kw.pop('url', None)
@@ -80,6 +83,17 @@ class BrowserWindow(QWebView):
         if not url:
             url = "http://localhost:7070"
             path = os.path.join(get_path_prefix(), 'leap', 'authtoken')
+            waiting = 20
+            while not os.path.isfile(path):
+                if waiting == 0:
+                    # If we arrive here, something really messed up happened,
+                    # because touching the token file is one of the first
+                    # things the backend does, and this BrowserWindow
+                    # should be called *right after* launching the backend.
+                    raise NoAuthToken(
+                        'No authentication token found!')
+                time.sleep(0.1)
+                waiting -= 1
             token = open(path).read().strip()
             url += '#' + token
             first = True
@@ -191,7 +205,11 @@ def launch_gui():
     bitmaskd.start()
 
     qApp = QApplication([])
-    browser = BrowserWindow(None)
+    try:
+        browser = BrowserWindow(None)
+    except NoAuthToken as e:
+        print('ERROR: ' + e.message)
+        sys.exit(1)
 
     qApp.setQuitOnLastWindowClosed(True)
     qApp.lastWindowClosed.connect(browser.shutdown)
@@ -236,6 +254,10 @@ def start_app():
         pass
 
     launch_gui()
+
+
+class NoAuthToken(Exception):
+    pass
 
 
 if __name__ == "__main__":
