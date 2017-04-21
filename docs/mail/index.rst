@@ -54,7 +54,7 @@ handled by the ``leap.bitmask.keymanager`` module.
 The life cycle of a LEAP Email
 ------------------------------
 
-See :ref:`the life cycle of a leap email <mail_journey>` for an overview of the life cycle
+See :ref:`the life cycle of a leap email <journey>` for an overview of the life cycle
 of an email through ``LEAP`` providers.
 
 
@@ -83,7 +83,7 @@ with::
 
   bitmaskctl mail get_token
 
-When launched, the bitmaskd daemon writes the tokens for each account to a file
+When launched, the ``bitmaskd`` daemon writes the tokens for each account to a file
 inside the folder named ``/tmp/bitmask_tokens``, and this is where the
 Thunderbird Extension reads them from.
 
@@ -93,7 +93,7 @@ Pixelated user agent
 
 From the 0.9.5 release, bundles are shipping the Pixelated User Agent. Until
 some merge requests (dealing with packaging of the js resources) are merged
-upstream, you will need to install pixelated user agent from leap's repo::
+upstream, you will need to install the pixelated user agent from leap's repo::
 
   pip install pixelated_www pixelated_user_agent --find-links https://downloads.leap.se/libs/pixelated/
 
@@ -108,7 +108,7 @@ Mail development resources
 --------------------------
 
 Some old notes that might help you while developing or debugging bitmask mail
-issues.
+issues (a bit outdated).
 
 .. toctree::
 
