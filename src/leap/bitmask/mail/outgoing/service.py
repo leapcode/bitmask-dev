@@ -315,23 +315,14 @@ class OutgoingMail(object):
         emit_async(catalog.SMTP_START_ENCRYPT_AND_SIGN,
                    self._from_address,
                    "%s,%s" % (self._from_address, to_address))
-        d = self._maybe_attach_key(origmsg, from_address, to_address)
+        d = self._attach_key(origmsg, from_address)
         d.addCallback(maybe_encrypt_and_sign)
         return d
 
-    def _maybe_attach_key(self, origmsg, from_address, to_address):
+    def _attach_key(self, origmsg, from_address):
         filename = "%s-email-key.asc" % (from_address,)
 
-        def attach_if_address_hasnt_encrypted(to_key):
-            # if the sign_used flag is true that means that we got an encrypted
-            # email from this address, because we conly check signatures on
-            # encrypted emails. In this case we don't attach.
-            # XXX: this might not be true some time in the future
-            if to_key.sign_used:
-                return origmsg
-            return get_key_and_attach(None)
-
-        def get_key_and_attach(_):
+        def get_key_and_attach():
             d = self._keymanager.get_key(from_address, fetch_remote=False)
             d.addCallback(attach_key)
             return d
@@ -352,8 +343,9 @@ class OutgoingMail(object):
             msg.attach(keymsg)
             return msg
 
-        d = self._keymanager.get_key(to_address, fetch_remote=False)
-        d.addCallbacks(attach_if_address_hasnt_encrypted, get_key_and_attach)
+        self.log.info("Will send %s public key as an attachment."
+                      % (from_address))
+        d = get_key_and_attach()
         d.addErrback(lambda _: origmsg)
         return d
 

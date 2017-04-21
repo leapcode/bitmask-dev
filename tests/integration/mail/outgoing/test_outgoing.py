@@ -96,15 +96,12 @@ class TestOutgoingMail(KeyManagerWithSoledadTestCase):
         """
         def check_decryption(res):
             decrypted, _ = res
-            self.assertEqual(
-                '\n' + self.expected_body,
+            self.assertIn(
+                self.expected_body,
                 decrypted,
-                'Decrypted text differs from plaintext.')
+                'Decrypted text does not contain the original text.')
 
-        d = self._set_sign_used(ADDRESS)
-        d.addCallback(
-            lambda _:
-            self.outgoing_mail._maybe_encrypt_and_sign(self.raw, self.dest))
+        d = self.outgoing_mail._maybe_encrypt_and_sign(self.raw, self.dest)
         d.addCallback(self._assert_encrypted)
         d.addCallback(lambda message: self.km.decrypt(
             message.get_payload(1).get_payload(), ADDRESS))
@@ -118,17 +115,14 @@ class TestOutgoingMail(KeyManagerWithSoledadTestCase):
         '"""
         def check_decryption_and_verify(res):
             decrypted, signkey = res
-            self.assertEqual(
-                '\n' + self.expected_body,
+            self.assertIn(
+                self.expected_body,
                 decrypted,
-                'Decrypted text differs from plaintext.')
+                'Decrypted text does not contain the original text.')
             self.assertTrue(ADDRESS_2 in signkey.address,
                             "Verification failed")
 
-        d = self._set_sign_used(ADDRESS)
-        d.addCallback(
-            lambda _:
-            self.outgoing_mail._maybe_encrypt_and_sign(self.raw, self.dest))
+        d = self.outgoing_mail._maybe_encrypt_and_sign(self.raw, self.dest)
         d.addCallback(self._assert_encrypted)
         d.addCallback(lambda message: self.km.decrypt(
             message.get_payload(1).get_payload(), ADDRESS, verify=ADDRESS_2))
@@ -241,15 +235,6 @@ class TestOutgoingMail(KeyManagerWithSoledadTestCase):
                                 "Key attachment don't match")
                 return
         self.fail("No public key attachment found")
-
-    def _set_sign_used(self, address):
-        def set_sign(key):
-            key.sign_used = True
-            return self.km.put_key(key)
-
-        d = self.km.get_key(address, fetch_remote=False)
-        d.addCallback(set_sign)
-        return d
 
     def _assert_encrypted(self, res):
         message, _ = res
