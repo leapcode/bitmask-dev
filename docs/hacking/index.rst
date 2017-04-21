@@ -140,8 +140,9 @@ commits.
 Merging code
 ---------------------------------
 
-Avoid fast-forwards, they make a very messy history. Put this in your
-gitconfig::
+We avoid merge commits into master, they make a very messy history. Put this
+in your gitconfig to only allow the merges that can be resolved as a
+fast-forward::
 
   [merge]
   ff = only  
