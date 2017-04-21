@@ -584,27 +584,6 @@ class OpenPGPScheme(object):
         active_doc = yield self._get_active_doc_from_address(address, False)
         yield self._soledad.delete_doc(active_doc)
 
-    @defer.inlineCallbacks
-    def reset_all_keys_sign_used(self):
-        """
-        Reset sign_used flag for all keys in storage, to False...
-        to indicate that the key pair has not interacted with all
-        keys in the key ring yet.
-        This should only be used when regenerating/extending the key pair.
-
-        """
-        all_keys = yield self.get_all_keys(private=False)
-        deferreds = []
-
-        @defer.inlineCallbacks
-        def reset_sign_used(key):
-            key.sign_used = False
-            yield self.put_key(key, key_renewal=True)
-
-        for open_pgp_key in all_keys:
-            deferreds.append(reset_sign_used(open_pgp_key))
-        yield defer.gatherResults(deferreds)
-
     #
     # Data encryption, decryption, signing and verifying
     #

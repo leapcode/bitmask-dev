@@ -100,33 +100,6 @@ class OpenPGPCryptoTestCase(KeyManagerWithSoledadTestCase):
         yield self._assert_key_not_found(pgp, ADDRESS)
 
     @inlineCallbacks
-    def test_reset_sign_used_for_all_keys(self):
-        pgp = openpgp.OpenPGPScheme(
-            self._soledad, gpgbinary=self.gpg_binary_path)
-
-        yield pgp.put_raw_key(PRIVATE_KEY, ADDRESS)
-        yield pgp.put_raw_key(PUBLIC_KEY, ADDRESS)
-        yield pgp.put_raw_key(PUBLIC_KEY_2, ADDRESS_2)
-        pubkey = yield pgp.get_key(ADDRESS)
-        pubkey.sign_used = True
-        yield pgp.put_key(pubkey)
-        pubkey2 = yield pgp.get_key(ADDRESS_2)
-        pubkey2.sign_used = True
-        yield pgp.put_key(pubkey2)
-
-        yield pgp.reset_all_keys_sign_used()
-
-        pubkey_refetched = yield pgp.get_key(ADDRESS)
-        pubkey2_refetched = yield pgp.get_key(ADDRESS_2)
-
-        self.assertEqual(False, pubkey_refetched.sign_used)
-        self.assertEqual(False, pubkey2_refetched.sign_used)
-        self.assertEqual(pubkey.fingerprint, pubkey_refetched.fingerprint)
-        self.assertEqual(pubkey.key_data, pubkey_refetched.key_data)
-        self.assertEqual(pubkey2.fingerprint, pubkey2_refetched.fingerprint)
-        self.assertEqual(pubkey2.key_data, pubkey2_refetched.key_data)
-
-    @inlineCallbacks
     def test_openpgp_encrypt_decrypt(self):
         data = 'data'
         pgp = openpgp.OpenPGPScheme(

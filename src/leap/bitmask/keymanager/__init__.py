@@ -373,8 +373,6 @@ class KeyManager(object):
         self.log.info('Regenerating key for %s.' % self._address)
 
         new_key = yield self._openpgp.regenerate_key(self._address)
-        yield self._openpgp.reset_all_keys_sign_used()
-
         defer.returnValue(new_key)
 
     #
