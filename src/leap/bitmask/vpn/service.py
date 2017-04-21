@@ -48,7 +48,7 @@ class VPNService(HookableService):
 
     def __init__(self, basepath=None):
         """
-        Initialize VPN service
+        Initialize VPN service. This launches both the firewall and the vpn.
         """
         super(VPNService, self).__init__()
 
@@ -73,7 +73,10 @@ class VPNService(HookableService):
 
     @defer.inlineCallbacks
     def start_vpn(self, domain):
-        # TODO check if the VPN is started and return an error if it is.
+        if self._started:
+            exc = Exception('VPN already started')
+            exc.expected = True
+            raise exc
         yield self._setup(domain)
         try:
             self._vpn.start()
@@ -109,6 +112,7 @@ class VPNService(HookableService):
             'error': None,
             'childrenStatus': {}
         }
+
         if self._vpn:
             status = self._vpn.get_status()
 
@@ -116,7 +120,6 @@ class VPNService(HookableService):
             status['domain'] = self._domain
         else:
             status['domain'] = self._read_last()
-
         return status
 
     def do_check(self, domain=None):
