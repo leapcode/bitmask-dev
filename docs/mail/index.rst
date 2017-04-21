@@ -44,20 +44,18 @@ All the underlying data storage and sync is handled by a library called
 documents are stored locally as local ``sqlcipher`` tables, and syncs against
 the soledad sync service in the provider.
 
-OpenPGP key generation and keyring management are handled by another leap
-python library: `keymanager`_.
+OpenPGP key generation, discovery, validation, and keyring management are
+handled by the ``leap.bitmask.keymanager`` module.
 
-See :ref:`the life cycle of a leap email <mail_journey>` for an overview of the life cycle
-of an email through ``LEAP`` providers.
 
 .. _`Soledad`: https://leap.se/en/docs/design/soledad
 .. _`u1db`: https://en.wikipedia.org/wiki/U1DB
-.. _`keymanager`: https://github.com/leapcode/keymanager/
 
 The life cycle of a LEAP Email
 ------------------------------
 
-For a better picture, you are invited to read about :ref:`the whole journey of a mail in the LEAP system <journey>`.
+See :ref:`the life cycle of a leap email <mail_journey>` for an overview of the life cycle
+of an email through ``LEAP`` providers.
 
 
 Data model
@@ -65,9 +63,11 @@ Data model
 
 .. TODO clear document types documentation.
 
-The data model at the present moment consists of several *document types* that split email into different documents that are stored in ``Soledad``. The idea behind this is to
-keep clear the separation between *mutable* and *inmutable* parts, and still being able to
-reconstruct arbitrarily nested email structures easily.
+The data model at the present moment consists of several *document types* that
+split email into different documents that are stored in ``Soledad``. The idea
+behind this is to keep clear the separation between *mutable* and *inmutable*
+parts, and still being able to reconstruct arbitrarily nested email structures
+easily.
 
 Authentication
 ---------------------

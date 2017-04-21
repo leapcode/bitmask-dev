@@ -27,17 +27,19 @@ If you are developing against a non-published branch of ``leap.common`` or
 This expects ``leap_common`` and ``soledad`` repos to be checked out in the
 parent folder.
 
+.. _devenv:
+
 Setting up the development environment
 --------------------------------------
 
-Dependencies::
+Install the system-wide dependencies. For debian-based systems::
 
   sudo apt install build-essential python-dev python-virtualenv \
   libsqlcipher-dev libssl-dev libffi-dev \
   python-pyqt5 python-pyqt5.webkit
 
 
-Clone the repo::
+Clone the repo. The master branch has the latest code::
 
   git clone https://0xacab.org/leap/bitmask-dev
   cd bitmask-dev
@@ -53,6 +55,12 @@ consider using something like `pew`_, instead of the plain virtualenv.
 Now you should be able to install all the bitmask dependencies::
 
   make dev-latest-all
+
+You can also install some dependencies that are going to be useful during
+development::
+
+  pip install -r pkg/requirements-dev.pip
+
 
 .. _`pew`: https://pypi.python.org/pypi/pew
 
@@ -144,7 +152,7 @@ Making a new release
 
 A checklist for the release process can be found :ref:`here <release>`
 
-As part of the release we also tag upload snapshots of the `leap.bitmask_js`
+As part of the release we also tag upload snapshots of the ``leap.bitmask_js``
 package, in order to allow installation of the javascript application without
 needing to compile the javascript and html assets. This is done with::
 

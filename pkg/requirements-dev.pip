@@ -1,5 +1,6 @@
 ipython
 ptpython
 ipdb
+PyInstaller
 sphinx
 sphinx_rtd_theme
