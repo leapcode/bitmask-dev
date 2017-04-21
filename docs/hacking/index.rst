@@ -38,6 +38,12 @@ Install the system-wide dependencies. For debian-based systems::
   libsqlcipher-dev libssl-dev libffi-dev \
   python-pyqt5 python-pyqt5.webkit
 
+If you are going to be running tests that involve creating a lot of OpenPGP
+keys, and specially in vms, the following is also recommended to speed up
+things::
+
+  sudo apt install haveged
+
 
 Clone the repo. The master branch has the latest code::
 
