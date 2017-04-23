@@ -462,6 +462,7 @@ class MessageWrapper(object):
     # documents at the same time maybe, and defend against concurrent updates?
 
     implements(IMessageWrapper)
+    log = Logger()
 
     def __init__(self, mdoc, fdoc, hdoc, cdocs=None, is_copy=False):
         """
@@ -564,11 +565,14 @@ class MessageWrapper(object):
         # TODO check that the doc_ids in the mdoc are coherent
         self.d = []
 
-        mdoc_created = self.mdoc.create(store, is_copy=self._is_copy)
-        fdoc_created = self.fdoc.create(store, is_copy=self._is_copy)
-
-        mdoc_created.addErrback(logger.error)
-        fdoc_created.addErrback(logger.error)
+        try:
+            mdoc_created = self.mdoc.create(store, is_copy=self._is_copy)
+        except Exception:
+            self.log.failure("Error creating mdoc")
+        try:
+            fdoc_created = self.fdoc.create(store, is_copy=self._is_copy)
+        except Exception:
+            self.log.failure("Error creating fdoc")
 
         self.d.append(mdoc_created)
         self.d.append(fdoc_created)
@@ -590,7 +594,6 @@ class MessageWrapper(object):
         self.all_inserted_d = defer.gatherResults(self.d, consumeErrors=True)
         self.all_inserted_d.addCallback(log_all_inserted)
         self.all_inserted_d.addCallback(unblock_pending_insert)
-        self.all_inserted_d.addErrback(logger.error)
 
         if notify_just_mdoc:
             return mdoc_created
@@ -639,7 +642,6 @@ class MessageWrapper(object):
 
         d = new_wrapper.create(store)
         d.addCallback(lambda result: new_wrapper)
-        d.addErrback(logger.error)
         return d
 
     def set_mbox_uuid(self, mbox_uuid):
@@ -950,7 +952,6 @@ class SoledadMailAdaptor(SoledadIndexMixin):
             logger.debug(
                 "BUG: Error while retrieving part docs for mdoc id %s" %
                 mdoc_id)
-            logger.error(failure)
             logger.debug("BUG (please report above info) ---------------")
             return []
 
@@ -1041,8 +1042,6 @@ class SoledadMailAdaptor(SoledadIndexMixin):
         """
         Delete all messages flagged as deleted.
         """
-        def err(failure):
-            logger.error(failure)
 
         def delete_fdoc_and_mdoc_flagged(fdocs):
             # low level here, not using the wrappers...
@@ -1064,7 +1063,6 @@ class SoledadMailAdaptor(SoledadIndexMixin):
 
             d = store.get_docs(mdoc_ids)
             d.addCallback(delete_all_docs, fdocs)
-            d.addErrback(err)
             return d
 
         type_ = FlagsDocWrapper.model.type_
@@ -1072,7 +1070,7 @@ class SoledadMailAdaptor(SoledadIndexMixin):
         deleted_index = indexes.TYPE_MBOX_DEL_IDX
 
         d = store.get_from_index(deleted_index, type_, uuid, "1")
-        d.addCallbacks(delete_fdoc_and_mdoc_flagged, err)
+        d.addCallback(delete_fdoc_and_mdoc_flagged)
         return d
 
     # count messages
@@ -1178,7 +1176,7 @@ class SoledadMailAdaptor(SoledadIndexMixin):
         return MailboxWrapper.get_all(store)
 
     def _errback(self, failure):
-        logger.error(failure)
+        logger.failure()
 
 
 def _split_into_parts(raw):
