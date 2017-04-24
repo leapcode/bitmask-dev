@@ -116,6 +116,8 @@ Install and activate a virtualenv::
   virtualenv venv
   source venv/bin/activate
 
+(Refer to the `virtualenv documentation` if you're not using bash/zsh/dash).
+
 All the subsequent commands assume that you have activated the virtualenv.
 
 Install all the python dependencies::
@@ -125,6 +127,8 @@ Install all the python dependencies::
 Run application::
 
   bitmaskd
+
+.. _`virtualenv documentation`: https://virtualenv.pypa.io/en/stable/userguide/#activate-script
 
 Run user interface frontend
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
