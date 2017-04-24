@@ -207,7 +207,7 @@ def _start_in_single_user_mode(leap_session, config, resource,
         # without the needed callbacks for IMAP compatibility.
         # This should be better addressed at pixelated code, by using the mail
         # api to create the collection.
-        2, start_user_agent_in_single_user_mode,
+        3, start_user_agent_in_single_user_mode,
         resource, services_factory,
         leap_session.config.leap_home, leap_session)
 
