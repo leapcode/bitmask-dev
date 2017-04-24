@@ -50,8 +50,6 @@ from leap.soledad.common.crypto import ENC_SCHEME_KEY, ENC_JSON_KEY
 from leap.soledad.common.errors import InvalidAuthTokenError
 
 
-logger = Logger()
-
 MULTIPART_ENCRYPTED = "multipart/encrypted"
 MULTIPART_SIGNED = "multipart/signed"
 PGP_BEGIN = "-----BEGIN PGP MESSAGE-----"
@@ -102,6 +100,8 @@ class IncomingMail(Service):
     LEAP_SIGNATURE_COULD_NOT_VERIFY = 'could not verify'
 
     LEAP_ENCRYPTION_DECRYPTED = 'decrypted'
+
+    log = Logger()
 
     def __init__(self, keymanager, soledad, inbox, userid,
                  check_period=INCOMING_CHECK_PERIOD):
@@ -164,7 +164,7 @@ class IncomingMail(Service):
         Calls a deferred that will execute the fetch callback.
         """
         def _sync_errback(failure):
-            logger.error(failure)
+            self.log.failure('Error while fetching incoming mail')
 
         def syncSoledadCallback(_):
             # XXX this should be moved to adaptors
@@ -174,7 +174,7 @@ class IncomingMail(Service):
             d.addErrback(_sync_errback)
             return d
 
-        logger.debug("fetching mail for: %s %s" % (
+        self.log.debug("fetching mail for: %s %s" % (
             self._soledad.uuid, self._userid))
         d = self._sync_soledad()
         d.addCallbacks(syncSoledadCallback, self._errback)
@@ -219,7 +219,7 @@ class IncomingMail(Service):
     # synchronize incoming mail
 
     def _errback(self, failure):
-        logger.error(failure)
+        self.log.failure('Error while processing incoming mail')
 
     def _sync_soledad(self):
         """
@@ -229,16 +229,16 @@ class IncomingMail(Service):
         :rtype: iterable or None
         """
         def _log_synced(result):
-            logger.info('sync finished')
+            self.log.info('sync finished')
             return result
 
         def _handle_invalid_auth_token_error(failure):
             failure.trap(InvalidAuthTokenError)
-            logger.warn('sync failed because token is invalid: %r' % failure)
+            self.log.warn('sync failed because token is invalid: %r' % failure)
             self.stopService()
             emit_async(catalog.SOLEDAD_INVALID_AUTH_TOKEN, self._userid)
 
-        logger.info('starting sync...')
+        self.log.info('starting sync...')
         d = self._soledad.sync()
         d.addCallbacks(_log_synced, _handle_invalid_auth_token_error)
         return d
@@ -256,7 +256,7 @@ class IncomingMail(Service):
             fetched_ts = time.mktime(time.gmtime())
             num_mails = len(doclist) if doclist is not None else 0
             if num_mails != 0:
-                logger.info("there are %s mails" % (num_mails,))
+                self.log.info("there are %s mails" % (num_mails,))
             emit_async(catalog.MAIL_FETCHED_INCOMING, self._userid,
                        str(num_mails), str(fetched_ts))
             return doclist
@@ -271,15 +271,15 @@ class IncomingMail(Service):
         :type doclist: iterable.
         :returns: a list of deferreds for individual messages.
         """
-        logger.info('processing incoming mail')
+        self.log.info('Processing incoming mail')
         if not doclist:
-            logger.debug("no incoming messages found")
+            self.log.debug("no incoming messages found")
             return
         num_mails = len(doclist)
 
         deferreds = []
         for index, doc in enumerate(doclist):
-            logger.debug("processing incoming message: %d of %d"
+            self.log.debug("processing incoming message: %d of %d"
                          % (index + 1, num_mails))
             emit_async(catalog.MAIL_MSG_PROCESSING, self._userid,
                        str(index), str(num_mails))
@@ -297,7 +297,7 @@ class IncomingMail(Service):
                               DeprecationWarning)
 
             if has_errors:
-                logger.debug("skipping message with decrypting errors...")
+                self.log.debug("Skipping message with decrypting errors...")
             elif self._is_msg(keys):
                 # TODO this pipeline is a bit obscure!
                 d = self._decrypt_doc(doc)
@@ -323,7 +323,7 @@ class IncomingMail(Service):
                  decrypted message.
         :rtype: SoledadDocument, str
         """
-        logger.info('decrypting msg')
+        self.log.info('decrypting msg: %s' % doc.doc_id)
 
         def process_decrypted(res):
             if isinstance(res, tuple):
@@ -338,10 +338,9 @@ class IncomingMail(Service):
             return self._process_decrypted_doc(doc, decrdata)
 
         def log_doc_id_and_call_errback(failure):
-            logger.error(
+            self.log.failure(
                 '_decrypt_doc: Error decrypting document with '
                 'ID %s' % doc.doc_id)
-            self._errback(failure)
 
         d = self._keymanager.decrypt(doc.content[ENC_JSON_KEY], self._userid)
         d.addErrback(log_doc_id_and_call_errback)
@@ -363,15 +362,14 @@ class IncomingMail(Service):
                  data.
         :rtype: Deferred
         """
-        logger.info('processing decrypted doc')
+        self.log.info('Processing decrypted doc')
 
         # XXX turn this into an errBack for each one of
         # the deferreds that would process an individual document
         try:
             msg = json_loads(data)
-        except (UnicodeError, ValueError) as exc:
-            logger.error("Error while decrypting %s" % (doc.doc_id,))
-            logger.error(str(exc))
+        except (UnicodeError, ValueError):
+            self.log.failure("Error while decrypting %s" % (doc.doc_id,))
 
             # we flag the message as "with decrypting errors",
             # to avoid further decryption attempts during sync
@@ -408,7 +406,7 @@ class IncomingMail(Service):
         :param doc: the SoledadDocument to update
         :type doc: SoledadDocument
         """
-        logger.info("Updating Incoming MSG: SoledadDoc %s" % (doc.doc_id))
+        self.log.info("Updating Incoming MSG: SoledadDoc %s" % (doc.doc_id))
         return self._soledad.put_doc(doc)
 
     def _delete_incoming_message(self, doc):
@@ -418,7 +416,7 @@ class IncomingMail(Service):
         :param doc: the SoledadDocument to delete
         :type doc: SoledadDocument
         """
-        logger.info("Deleting Incoming message: %s" % (doc.doc_id,))
+        self.log.info("Deleting Incoming message: %s" % (doc.doc_id,))
         return self._soledad.delete_doc(doc)
 
     def _maybe_decrypt_msg(self, data):
@@ -433,7 +431,7 @@ class IncomingMail(Service):
         :rtype: Deferred
         """
         leap_assert_type(data, str)
-        logger.info('maybe decrypting doc')
+        self.log.info('Maybe decrypting doc')
 
         # parse the original message
         encoding = get_email_charset(data)
@@ -504,7 +502,7 @@ class IncomingMail(Service):
                  is valid or InvalidSignature or KeyNotFound.
         :rtype: Deferred
         """
-        logger.info('decrypting multipart encrypted msg')
+        self.log.debug('Decrypting multipart encrypted msg')
         msg = copy.deepcopy(msg)
         self._msg_multipart_sanity_check(msg)
 
@@ -563,7 +561,7 @@ class IncomingMail(Service):
                  is valid or InvalidSignature or KeyNotFound.
         :rtype: Deferred
         """
-        logger.info('maybe decrypting inline encrypted msg')
+        self.log.debug('Maybe decrypting inline encrypted msg')
 
         data = self._serialize_msg(origmsg)
 
@@ -637,14 +635,14 @@ class IncomingMail(Service):
         Check for known decryption errors
         """
         if failure.check(keymanager_errors.DecryptError):
-            logger.warn('Failed to decrypt encrypted message (%s). '
-                        'Storing message without modifications.'
-                        % str(failure.value))
+            self.log.warn('Failed to decrypt encrypted message (%s). '
+                          'Storing message without modifications.'
+                          % str(failure.value))
             return (msg, None)
         elif failure.check(keymanager_errors.KeyNotFound):
-            logger.error('Failed to find private key for decryption (%s). '
-                         'Storing message without modifications.'
-                         % str(failure.value))
+            self.log.error('Failed to find private key for decryption (%s). '
+                           'Storing message without modifications.'
+                           % str(failure.value))
             return (msg, None)
         else:
             return failure
@@ -727,7 +725,7 @@ class IncomingMail(Service):
                     isinstance(signkey, keymanager_errors.InvalidSignature))
 
         if previous_verify_failed() and key_imported:
-            logger.info('Decrypting again to verify with new key')
+            self.log.info('Decrypting again to verify with new key')
             data_signkey = yield self._decrypt_by_content_type(
                 origmsg, senderAddress, encoding)
 
@@ -756,20 +754,20 @@ class IncomingMail(Service):
                 urlparts.hostname == addressHostname
             ):
                 def log_key_added(ignored):
-                    logger.debug("Imported key from OpenPGP header %s"
-                                 % (url,))
+                    self.log.debug("Imported key from OpenPGP header %s"
+                                   % (url,))
                     return True
 
                 def fetch_error(failure):
                     if failure.check(keymanager_errors.KeyNotFound):
-                        logger.warn("Url from OpenPGP header %s failed"
-                                    % (url,))
+                        self.log.warn("Url from OpenPGP header %s failed"
+                                      % (url,))
                     elif failure.check(keymanager_errors.KeyAttributesDiffer):
-                        logger.warn("Key from OpenPGP header url %s didn't "
+                        self.log.warn("Key from OpenPGP header url %s didn't "
                                     "match the from address %s"
                                     % (url, address))
                     else:
-                        logger.warn("An error has ocurred adding key from "
+                        self.log.warn("An error has ocurred adding key from "
                                     "OpenPGP header url %s for %s: %s" %
                                     (url, address, failure.getErrorMessage()))
                     return False
@@ -778,10 +776,10 @@ class IncomingMail(Service):
                 d.addCallbacks(log_key_added, fetch_error)
                 return d
             else:
-                logger.debug("No valid url on OpenPGP header %s" % (url,))
+                self.log.debug("No valid url on OpenPGP header %s" % (url,))
         else:
-            logger.debug("There is no url on the OpenPGP header: %s"
-                         % (header,))
+            self.log.debug("There is no url on the OpenPGP header: %s"
+                           % (header,))
         return False
 
     def _maybe_extract_attached_key(self, attachments, address):
@@ -801,11 +799,11 @@ class IncomingMail(Service):
         MIME_KEY = "application/pgp-keys"
 
         def log_key_added(ignored):
-            logger.debug('Added key found in attachment for %s' % address)
+            self.log.debug('Added key found in attachment for %s' % address)
             return True
 
         def failed_put_key(failure):
-            logger.info("An error has ocurred adding attached key for %s: %s"
+            self.log.info("An error has ocurred adding attached key for %s: %s"
                         % (address, failure.getErrorMessage()))
             return False
 
@@ -836,7 +834,7 @@ class IncomingMail(Service):
         """
         doc, raw_data = msgtuple
         insertion_date = formatdate(time.time())
-        logger.info('adding message %s to local db' % (doc.doc_id,))
+        self.log.info('Adding message %s to local db' % (doc.doc_id,))
 
         def msgSavedCallback(result):
             if empty(result):
