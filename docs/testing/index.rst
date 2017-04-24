@@ -5,14 +5,17 @@
 .. _qa:
 
 Testing and Reporting
-================================
+================================ 
 
 `Latest bundles`_ for the next release cycle are automatically built by our
 Gitlab CI for every commit in master.
 
-NOTE that, for compatibility reasons, these bundles only support email for the
-time being (no VPN support yet in this latest branch), and have to be tested
-against the latest, unreleased provider at https://cdev.bitmask.net
+Beginning with 0.9.5, we have ported again the VPN service into the Bitmask
+client. Choose the following testing providers (beware that no guarantee about
+continuity of the accounts is made at this point): 
+
+* For Encrypted Email, test against ``https://cdev.bitmask.net``
+* For VPN, test against ``https://demo.bitmask.net``
 
 .. _`Latest bundles`: https://0xacab.org/leap/bitmask-dev/builds/artifacts/master/download?job=bitmask_latest_bundle
 
