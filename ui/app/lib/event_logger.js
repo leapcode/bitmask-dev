@@ -59,7 +59,7 @@ export default class EventLogger {
     this.logEvent = this.logEvent.bind(this)
     for (let event of EVENTS) {
       console.log('register event ' + event)
-      bitmask.events.register(event, this.logEvent)
+      bitmask.events.register(event, 'logger ' + event, this.logEvent)
     }
   }
   logEvent(event, msg) {

@@ -2,6 +2,9 @@ import bitmask from 'lib/bitmask'
 import Account from 'models/account'
 import Provider from 'models/provider'
 
+require('css/bootstrap.less')
+require('css/common.less')
+
 class Application {
   constructor() {
   }
@@ -15,6 +18,13 @@ class Application {
     this.start()
   }
 
+  //
+  // (1) check to see if any accounts are authenticated.
+  //     if any are, show main panel
+  // (2) check to see if any accounts are 'vpn ready'.
+  //     if any are, show main panel.
+  // (3) otherwise, show login greeter
+  //
   start() {
     Provider.list(false).then(
       domains => {
@@ -22,7 +32,13 @@ class Application {
         Account.active().then(
           accounts => {
             if (0 == accounts.length) {
-              this.show('greeter')
+              Account.vpnReady().then(accounts => {
+                if (0 == accounts.length) {
+                  this.show('greeter', {showLogin: true})
+                } else {
+                  this.show('main', {initialAccount: accounts[0]})
+                }
+              })
             } else {
               accounts.forEach(account => {
                 Account.addActive(account)

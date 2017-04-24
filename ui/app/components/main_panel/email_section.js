@@ -30,11 +30,11 @@ export default class EmailSection extends React.Component {
 
   componentWillMount() {
     this.updateStatus(this.props.account.address)
-    bitmask.events.register("MAIL_STATUS_CHANGED", this.updateStatus)
+    bitmask.events.register("MAIL_STATUS_CHANGED", 'email section update', this.updateStatus)
   }
 
   componentWillUnmount() {
-    bitmask.events.unregister("MAIL_STATUS_CHANGED")
+    bitmask.events.unregister("MAIL_STATUS_CHANGED", 'email section update', this.updateStatus)
   }
 
   updateStatus(address) {
@@ -46,7 +46,7 @@ export default class EmailSection extends React.Component {
           status: status.status,
           error: status.error
         })
-      }, 
+      },
       error => {
         this.setState({
           error: error,

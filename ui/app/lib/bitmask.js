@@ -90,10 +90,12 @@ var bitmask = function(){
         if (api_token) {
             call(['events', 'poll']).then(function(response) {
                 if (response !== null) {
-                    var evnt = response[0];
+                    var event = response[0];
                     var content = response[1];
-                    if (evnt in event_handlers) {
-                        event_handlers[evnt](evnt, content);
+                    if (event in event_handlers) {
+                        Object.values(event_handlers[event]).forEach(function(handler) {
+                            handler(event, content);
+                        })
                     }
                 }
                 event_polling();
@@ -401,24 +403,36 @@ var bitmask = function(){
             /**
              * Register func for an event
              *
-             * @param {string} evnt The event to register
+             * @param {string} event The event to register
+             * @param {string} name The unique name for the callback
              * @param {function} func The function that will be called on each event.
              *                        It has to be like: function(event, content) {}
              *                        Where content will be a list of strings.
              */
-            register: function(evnt, func) {
-                event_handlers[evnt] = func;
-                return call(['events', 'register', evnt])
+            register: function(event, name, func) {
+                event_handlers[event] = event_handlers[event] || {}
+                if (event_handlers[event][name]) {
+                    return null;
+                } else {
+                    event_handlers[event][name] = func;
+                    return call(['events', 'register', event])
+                }
             },
 
             /**
              * Unregister from an event
              *
-             * @param {string} evnt The event to unregister
+             * @param {string} event The event to unregister
+             * @param {string} name The unique name of the callback to remove
              */
-            unregister: function(evnt) {
-                delete event_handlers[evnt];
-                return call(['events', 'unregister', evnt])
+            unregister: function(event, name) {
+                event_handlers[event] = event_handlers[event] || {}
+                delete event_handlers[event][name]
+                if (Object.keys(event_handlers[event]).length == 0) {
+                  return call(['events', 'unregister', event]);
+                } else {
+                  return null;
+                }
             }
         }
     };

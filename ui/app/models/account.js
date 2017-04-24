@@ -98,7 +98,12 @@ export default class Account {
     })
     // failing that, search by domain
     if (!account) {
-      let domain = '@' + address.split('@')[1]
+      let domain = null
+      if (address.indexOf('@') == -1) {
+        domain = '@' + address
+      } else {
+        domain = '@' + address.split('@')[1]
+      }
       account = Account.list.find(i => {
         return i.address == domain
       })
@@ -131,6 +136,32 @@ export default class Account {
         return list
       }
     )
+  }
+
+  static vpnReady() {
+    return Provider.list(false).then(domains => {
+      let promises = domains.map(domain => {
+        return new Promise((resolve, reject) => {
+          bitmask.vpn.check(domain).then(status => {
+            if (status.vpn != 'disabled' && status.installed && status.vpn_ready) {
+              resolve(domain)
+            } else {
+              resolve("")
+            }
+          }, error => {
+            resolve("")
+          })
+        })
+      })
+      return Promise.all(promises).then(domains => {
+        domains = domains.filter(i => {
+          return i != ""
+        })
+        return domains.map(domain => {
+          return Account.find(domain)
+        })
+      })
+    })
   }
 
   static add(account) {

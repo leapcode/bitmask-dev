@@ -31,6 +31,30 @@ var config = {
       {
         test: /\.less$/,
         loader: "style!css!less?noIeCompat"
+      },
+      {
+        test: /\.png$/,
+        loader: "file-loader"
+      },
+      {
+        test: /\.jpg$/,
+        loader: "file-loader"
+      },
+      {
+        test: /\.(woff|woff2)(\?v=\d+\.\d+\.\d+)?$/,
+        loader: 'file-loader'
+      },
+      {
+        test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
+        loader: 'file-loader'
+      },
+      {
+        test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+        loader: 'file-loader'
+      },
+      {
+        test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+        loader: 'file-loader'
       }
     ]
   },
@@ -50,12 +74,8 @@ var config = {
     // For more information: https://github.com/kevlened/copy-webpack-plugin
     //
     new CopyWebpackPlugin([
-      { from: 'css/*.css' },
       { from: 'img/*'},
       { from: 'index.html' },
-      { from: '../node_modules/bootstrap/dist/css/bootstrap.min.css', to: 'css' },
-      { from: '../node_modules/bootstrap/dist/fonts/glyphicons-halflings-regular.woff2', to: 'fonts' },
-      { from: '../node_modules/bootstrap/dist/fonts/glyphicons-halflings-regular.woff', to: 'fonts' },
       { from: '../node_modules/zxcvbn/dist/zxcvbn.js', to: 'js' }
     ])
   ],

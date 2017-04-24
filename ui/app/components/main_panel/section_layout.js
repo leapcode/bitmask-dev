@@ -16,6 +16,7 @@ export default class SectionLayout extends React.Component {
     header: null,     // the first line content
     body: null,       // expanded content
     message: null,    // alert content
+    error: null,      // error content
     onExpand: null,   // callback
     className: "",
     style: {}
@@ -55,9 +56,13 @@ export default class SectionLayout extends React.Component {
       )
     }
     if (status) {
+      let className = 'status'
+      if (status == 'wait') {
+        className = 'status spin'
+      }
       statusIcon = (
-        <div className="status">
-          <img src={'img/' + status + '.svg' } />
+        <div className={className}>
+          <img width="24px" height="24px" src={'img/' + status + '.svg' } />
         </div>
       )
     }
@@ -79,6 +84,7 @@ export default class SectionLayout extends React.Component {
       body = (
         <div className="body-row">
           {this.props.message}
+          {this.props.error}
           {this.props.body}
         </div>
       )

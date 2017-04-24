@@ -44,6 +44,7 @@
 
 .main-panel > .body {
   padding: 20px;
+  background-color: white;
 }
 
 .main-panel .accounts {
@@ -196,7 +197,6 @@
         }
       }
       .body-row {
-
       }
     }
 
@@ -244,7 +244,12 @@
       padding: 0;
       font-size: @icon-size - 10;
       line-height: @icon-size;
+      display: inline;
       word-break: break-all;
+    }
+    span.info {
+      word-break: break-all;
+      margin-left: 10px;
     }
   }
   .buttons {
@@ -255,12 +260,33 @@
     padding-left: @section-padding;
     width: @section-padding + @status-size;
     img {
-      width: @status-size;
-      height: @status-size;
+      // this fixes a bug where sometimes the status icons are not
+      // correctly rendered in the web widget
+      width: 100%;
+      height: auto;
+    }
+    &.spin img {
+      animation: icon-spin 10s linear infinite;
+      -webkit-animation: icon-spin 10s linear infinite;
     }
   }
   .body-row {
-    padding-top: @section-padding;
+    .alert {
+      margin-bottom: 0px;
+    }
+    // all immediate child divs are considered to be separate sections in
+    // in the body row of the section.
+    & > div {
+      margin-top: @section-padding;
+    }
   }
 }
 
+@-webkit-keyframes icon-spin {
+    from { -webkit-transform: rotate(0deg); }
+    to { -webkit-transform: rotate(360deg); }
+}
+@keyframes icon-spin {
+    from {transform:rotate(0deg);}
+    to {transform:rotate(360deg);}
+}

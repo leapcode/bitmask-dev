@@ -69,7 +69,9 @@ export default class UserSection extends React.Component {
       )
     }
     if (this.state.expanded) {
-      body = <UserPasswordForm account={this.props.account} />
+      body = <div>
+        <UserPasswordForm account={this.props.account} />
+      </div>
     }
     if (this.state.loading) {
       button = <Button disabled={true}><Spinner /></Button>

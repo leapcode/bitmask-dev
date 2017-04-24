@@ -68,7 +68,8 @@ export default class MainPanel extends React.Component {
     if (this.state.account && this.state.provider) {
       return this.renderPanel()
     } else {
-      return <Spinner />
+      return <div className="main-panel">
+      </div>
     }
   }
 
