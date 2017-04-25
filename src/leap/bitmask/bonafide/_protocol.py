@@ -38,8 +38,6 @@ from twisted.logger import Logger
 # TODO [ ] enable-disable services
 # TODO [ ] read provider info
 
-logger = Logger()
-
 
 COMMANDS = 'signup', 'authenticate', 'logout', 'stats'
 _preffix = get_path_prefix()
@@ -52,6 +50,8 @@ class BonafideProtocol(object):
 
     _apis = defaultdict(None)
     _sessions = defaultdict(None)
+
+    log = Logger()
 
     def _get_api(self, provider):
         # TODO should get deferred
@@ -85,7 +85,7 @@ class BonafideProtocol(object):
     # Service public methods
 
     def do_signup(self, full_id, password, invite=None, autoconf=False):
-        logger.debug('SIGNUP for %s' % full_id)
+        self.log.debug('SIGNUP for %s' % full_id)
         _, provider_id = config.get_username_and_provider(full_id)
 
         provider = config.Provider(provider_id, autoconf=autoconf)
@@ -132,7 +132,7 @@ class BonafideProtocol(object):
                 # TODO -- turn this into JSON response
                 return str(_session.token), str(_session.uuid)
 
-        logger.debug('AUTH for %s' % full_id)
+        self.log.debug('AUTH for %s' % full_id)
 
         # XXX get deferred?
         session = self._get_session(provider, full_id, password)
@@ -143,7 +143,7 @@ class BonafideProtocol(object):
 
     def do_logout(self, full_id):
         # XXX use the AVATAR here
-        logger.debug('LOGOUT for %s' % full_id)
+        self.log.debug('LOGOUT for %s' % full_id)
         if (full_id not in self._sessions or
                 not self._sessions[full_id].is_authenticated):
             return fail(RuntimeError("There is no session for such user"))
@@ -162,7 +162,7 @@ class BonafideProtocol(object):
         return users
 
     def do_change_password(self, full_id, current_password, new_password):
-        logger.debug('change password for %s' % full_id)
+        self.log.debug('Change password for %s' % full_id)
         if (full_id not in self._sessions or
                 not self._sessions[full_id].is_authenticated):
             return fail(RuntimeError("There is no session for such user"))
@@ -208,7 +208,7 @@ class BonafideProtocol(object):
         pass
 
     def do_stats(self):
-        logger.debug('calculating Bonafide Service STATS')
+        self.log.debug('Calculating Bonafide Service STATS')
         mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
         return {'sessions': len(self._sessions),
                 'mem': '%s KB' % (mem / 1024)}

@@ -40,18 +40,14 @@ from leap.bitmask.keymanager.refresher import RandomRefreshPublicKey
 from leap.bitmask.keymanager.validation import ValidationLevels, can_upgrade
 from leap.bitmask.keymanager.openpgp import OpenPGPScheme
 
-logger = Logger()
-
-
-#
-# The Key Manager
-#
 
 class KeyManager(object):
 
     #
     # server's key storage constants
     #
+
+    log = Logger()
 
     OPENPGP_KEY = 'openpgp'
     PUBKEY_KEY = "user[public_key]"
@@ -94,7 +90,7 @@ class KeyManager(object):
         try:
             self._combined_ca_bundle = combined_ca_bundle or create()
         except Exception:
-            logger.warn('error while creating combined ca bundle')
+            self.log.warn('Error while creating combined ca bundle')
             self._combined_ca_bundle = ''
 
         self._async_client = HTTPClient(self._combined_ca_bundle)
@@ -155,17 +151,17 @@ class KeyManager(object):
         except keymanager_errors.KeyNotFound:
             raise
         except IOError as e:
-            logger.warn("HTTP error retrieving key: %r" % (e,))
-            logger.warn("%s" % (content,))
+            self.log.warn("HTTP error retrieving key: %r" % (e,))
+            self.log.warn("%s" % (content,))
             raise keymanager_errors.KeyNotFound(e.message), \
                 None, sys.exc_info()[2]
         except ValueError as v:
-            logger.warn("invalid JSON data from key: %s" % (uri,))
+            self.log.warn("Invalid JSON data from key: %s" % (uri,))
             raise keymanager_errors.KeyNotFound(v.message + ' - ' + uri), \
                 None, sys.exc_info()[2]
 
         except Exception as e:
-            logger.warn("error retrieving key: %r" % (e,))
+            self.log.warn("Error retrieving key: %r" % (e,))
             raise keymanager_errors.KeyNotFound(e.message), \
                 None, sys.exc_info()[2]
         # Responses are now text/plain, although it's json anyway, but
@@ -190,7 +186,7 @@ class KeyManager(object):
         def check_404(response):
             if response.code == NOT_FOUND:
                 message = '%s: %s key not found.' % (response.code, address)
-                logger.warn(message)
+                self.log.warn(message)
                 raise KeyNotFound(message), None, sys.exc_info()[2]
             return response
 
@@ -218,7 +214,7 @@ class KeyManager(object):
         try:
             content = yield self._async_client.request(str(uri), 'GET')
         except Exception as e:
-            logger.warn("There was a problem fetching key: %s" % (e,))
+            self.log.warn("There was a problem fetching key: %s" % (e,))
             raise keymanager_errors.KeyNotFound(uri)
         if not content:
             raise keymanager_errors.KeyNotFound(uri)
@@ -307,8 +303,7 @@ class KeyManager(object):
 
         :raise UnsupportedKeyTypeError: if invalid key type
         """
-        logger.debug("getting key for %s" % (address,))
-
+        self.log.debug('Getting key for %s' % (address,))
         emit_async(catalog.KEYMANAGER_LOOKING_FOR_KEY, address)
 
         def key_found(key):
@@ -455,7 +450,6 @@ class KeyManager(object):
 
         :raise UnsupportedKeyTypeError: if invalid key type
         """
-
         @defer.inlineCallbacks
         def encrypt(keys):
             pubkey, signkey = keys
@@ -726,7 +720,7 @@ class KeyManager(object):
         :raise UnsupportedKeyTypeError: if invalid key type
         """
 
-        logger.info("fetch key for %s from %s" % (address, uri))
+        self.log.info('Fetch key for %s from %s' % (address, uri))
         key_content = yield self._get_with_combined_ca_bundle(uri)
 
         # XXX parse binary keys

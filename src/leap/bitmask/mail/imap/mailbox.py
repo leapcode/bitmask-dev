@@ -39,37 +39,10 @@ from leap.common.check import leap_assert_type
 from leap.bitmask.mail.constants import INBOX_NAME, MessageFlags
 from leap.bitmask.mail.imap.messages import IMAPMessage
 
-logger = Logger()
-
 # TODO LIST
-# [ ] Restore profile_cmd instrumentation
 # [ ] finish the implementation of IMailboxListener
 # [ ] implement the rest of ISearchableMailbox
 
-
-"""
-If the environment variable `LEAP_SKIPNOTIFY` is set, we avoid
-notifying clients of new messages. Use during stress tests.
-"""
-NOTIFY_NEW = not os.environ.get('LEAP_SKIPNOTIFY', False)
-PROFILE_CMD = os.environ.get('LEAP_PROFILE_IMAPCMD', False)
-
-if PROFILE_CMD:
-
-    def _debugProfiling(result, cmdname, start):
-        took = (time.time() - start) * 1000
-        logger.debug("CMD " + cmdname + " TOOK: " + str(took) + " msec")
-        return result
-
-    def do_profile_cmd(d, name):
-        """
-        Add the profiling debug to the passed callback.
-        :param d: deferred
-        :param name: name of the command
-        :type name: str
-        """
-        d.addCallback(_debugProfiling, name, time.time())
-        d.addErrback(lambda f: logger.error(f.getTraceback()))
 
 INIT_FLAGS = (MessageFlags.SEEN_FLAG, MessageFlags.ANSWERED_FLAG,
               MessageFlags.FLAGGED_FLAG, MessageFlags.DELETED_FLAG,
@@ -107,6 +80,7 @@ def make_collection_listener(mailbox):
 
 
 class IMAPMailbox(object):
+
     """
     A Soledad-backed IMAP mailbox.
 
@@ -115,6 +89,7 @@ class IMAPMailbox(object):
     MessageCollection class. We receive an instance of it and it is made
     accessible in the `collection` attribute.
     """
+
     implements(
         imap4.IMailbox,
         imap4.IMailboxInfo,
@@ -132,6 +107,8 @@ class IMAPMailbox(object):
     CMD_UIDNEXT = "UIDNEXT"
     CMD_UIDVALIDITY = "UIDVALIDITY"
     CMD_UNSEEN = "UNSEEN"
+
+    log = Logger()
 
     # TODO we should turn this into a datastructure with limited capacity
     _listeners = defaultdict(set)
@@ -184,12 +161,10 @@ class IMAPMailbox(object):
         :param listener: listener to add
         :type listener: an object that implements IMailboxListener
         """
-        if not NOTIFY_NEW:
-            return
 
         listeners = self.listeners
-        logger.debug('adding mailbox listener: %s. Total: %s' % (
-            listener, len(listeners)))
+        self.log.debug('Adding mailbox listener: %s. Total: %s' % (
+                       listener, len(listeners)))
         listeners.add(listener)
 
     def removeListener(self, listener):
@@ -407,7 +382,8 @@ class IMAPMailbox(object):
 
         d = self.collection.add_msg(message, flags, date=date,
                                     notify_just_mdoc=notify_just_mdoc)
-        d.addErrback(lambda failure: logger.error(failure))
+        d.addErrback(
+            lambda failure: self.log.failure('Error while adding msg'))
         return d
 
     def notify_new(self, *args):
@@ -432,7 +408,7 @@ class IMAPMailbox(object):
         d = self._get_notify_count()
         d.addCallback(cbNotifyNew)
         d.addCallback(self.collection.cb_signal_unread_to_ui)
-        d.addErrback(lambda failure: logger.error(failure))
+        d.addErrback(lambda failure: self.log.failure('Error while notify'))
 
     def _get_notify_count(self):
         """
@@ -451,7 +427,7 @@ class IMAPMailbox(object):
 
         def log_num_msg(result):
             exists, recent = tuple(result)
-            logger.debug("NOTIFY (%r): there are %s messages, %s recent" % (
+            self.log.debug("NOTIFY (%r): there are %s messages, %s recent" % (
                          self.mbox_name, exists, recent))
             return result
 
@@ -515,7 +491,8 @@ class IMAPMailbox(object):
         d = self._bound_seq(messages_asked, uid)
         if uid:
             d.addCallback(get_range)
-        d.addErrback(lambda f: logger.error(f))
+        d.addErrback(
+            lambda f: self.log.failure('Error getting msg range'))
         return d
 
     def _bound_seq(self, messages_asked, uid):
@@ -619,12 +596,15 @@ class IMAPMailbox(object):
             d = defer.gatherResults(d_msg, consumeErrors=True)
             d.addCallback(_get_imap_msg)
             d.addCallback(_zip_msgid)
-            d.addErrback(lambda failure: logger.error(failure))
+            d.addErrback(
+                lambda failure: self.log.error(
+                    'Error getting msg for range'))
             return d
 
         d = self._get_messages_range(messages_asked, uid)
         d.addCallback(get_imap_messages_for_range)
-        d.addErrback(lambda failure: logger.error(failure))
+        d.addErrback(
+            lambda failure: self.log.failure('Error on fetch'))
         return d
 
     def fetch_flags(self, messages_asked, uid):
@@ -802,17 +782,15 @@ class IMAPMailbox(object):
                                 read-write.
         """
         if not self.isWriteable():
-            logger.info('read only mailbox!')
+            self.log.info('Read only mailbox!')
             raise imap4.ReadOnlyMailbox
 
         d = defer.Deferred()
         reactor.callLater(0, self._do_store, messages_asked, flags,
                           mode, uid, d)
-        if PROFILE_CMD:
-            do_profile_cmd(d, "STORE")
 
         d.addCallback(self.collection.cb_signal_unread_to_ui)
-        d.addErrback(lambda f: logger.error(f))
+        d.addErrback(lambda f: self.log.error('Error on store'))
         return d
 
     def _do_store(self, messages_asked, flags, mode, uid, observer):
@@ -888,14 +866,14 @@ class IMAPMailbox(object):
         if len(query) > 2:
             if query[1] == 'HEADER' and query[2].lower() == "message-id":
                 msgid = str(query[3]).strip()
-                logger.debug("Searching for %s" % (msgid,))
+                self.log.debug('Searching for %s' % (msgid,))
 
                 d = self.collection.get_uid_from_msgid(str(msgid))
                 d.addCallback(lambda result: [result])
                 return d
 
         # nothing implemented for any other query
-        logger.warn("Cannot process query: %s" % (query,))
+        self.log.warn('Cannot process query: %s' % (query,))
         return []
 
     # IMessageCopier

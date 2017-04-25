@@ -28,7 +28,7 @@ from leap.common.files import which
 
 STANDALONE = getattr(sys, 'frozen', False)
 
-logger = Logger()
+log = Logger()
 
 
 def here(module=None):
@@ -108,7 +108,7 @@ def get_gpg_bin_path():
                     gpgbin = path
                     break
         except IndexError as e:
-            logger.debug("couldn't find the gpg binary!: %s" % (e,))
+            log.debug("Couldn't find the gpg binary!: %s" % (e,))
 
     if gpgbin is not None:
         return gpgbin
@@ -124,8 +124,8 @@ def get_gpg_bin_path():
                 gpgbin = opt
                 break
     except IndexError as e:
-        logger.debug("couldn't find the gpg1 binary!: %s" % (e,))
+        log.debug("Couldn't find the gpg1 binary!: %s" % (e,))
 
     if gpgbin is None:
-        logger.debug("Could not find gpg1 binary")
+        log.debug("Could not find gpg1 binary")
     return gpgbin

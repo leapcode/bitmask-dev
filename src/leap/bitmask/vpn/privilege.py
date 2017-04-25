@@ -31,7 +31,7 @@ from abc import ABCMeta, abstractmethod
 from twisted.logger import Logger
 from twisted.python.procutils import which
 
-logger = Logger()
+log = Logger()
 
 
 flags_STANDALONE = False
@@ -71,8 +71,8 @@ def is_missing_policy_permissions():
     if not policy_checker:
         # it is true that we miss permission to escalate
         # privileges without asking for password each time.
-        logger.debug("we could not find a policy checker implementation "
-                     "for %s" % (_system,))
+        log.debug('we could not find a policy checker implementation '
+                  'for %s' % (_system,))
         return True
     return policy_checker().is_missing_policy_permissions()
 
@@ -146,18 +146,15 @@ class LinuxPolicyChecker(PolicyChecker):
                 time.sleep(2)
             if self.is_up():
                 pkexec_possibilities = which(self.PKEXEC_BIN)
-                # leap_assert(len(pkexec_possibilities) > 0,
-                #             "We couldn't find pkexec")
                 if not pkexec_possibilities:
-                    logger.error("We couldn't find pkexec")
                     raise Exception("We couldn't find pkexec")
                 return pkexec_possibilities
             else:
-                logger.warn("No polkit auth agent found. pkexec " +
-                            "will use its own auth agent.")
+                log.warn('No polkit auth agent found. pkexec ' +
+                         'will use its own auth agent.')
                 raise NoPolkitAuthAgentAvailable()
         else:
-            logger.warn("System has no pkexec")
+            log.warn('System has no pkexec')
             raise NoPkexecAvailable()
 
     @classmethod
@@ -178,11 +175,11 @@ class LinuxPolicyChecker(PolicyChecker):
             # will do "sh -c 'foo'", so if we do not quoute it we'll end
             # up with a invocation to the python interpreter. And that
             # is bad.
-            logger.debug("Trying to launch polkit agent")
+            log.debug('Trying to launch polkit agent')
             subprocess.call(["python -m leap.bitmask.util.polkit_agent"],
                             shell=True, env=env)
-        except Exception as exc:
-            logger.error(str(exc))
+        except Exception:
+            log.failure('Error while launching vpn')
 
     @classmethod
     def is_up(self):

@@ -43,7 +43,7 @@ from leap.bitmask.mail.plugins import soledad_sync_hooks
 from leap.bitmask.mail.utils import find_charset, CaseInsensitiveDict
 from leap.bitmask.mail.utils import lowerdict
 
-logger = Logger()
+log = Logger()
 
 
 # TODO LIST
@@ -98,7 +98,7 @@ def _encode_payload(payload, ctype=""):
         if isinstance(payload, unicode):
             payload = payload.encode(charset)
     except UnicodeError as exc:
-        logger.error(
+        log.error(
             "Unicode error, using 'replace'. {0!r}".format(exc))
         payload = payload.encode(charset, 'replace')
     return payload
@@ -122,12 +122,16 @@ def _unpack_headers(headers_dict):
 
 
 class MessagePart(object):
+
     # TODO This class should be better abstracted from the data model.
     # TODO support arbitrarily nested multiparts (right now we only support
     #      the trivial case)
+
     """
     Represents a part of a multipart MIME Message.
     """
+
+    log = Logger()
 
     def __init__(self, part_map, cdocs=None, nested=False):
         """
@@ -191,7 +195,7 @@ class MessagePart(object):
         try:
             part_map = sub_pmap[str(part)]
         except KeyError:
-            logger.debug("getSubpart for %s: KeyError" % (part,))
+            self.log.debug('get_subpart for %s: KeyError' % (part,))
             raise IndexError
         return MessagePart(part_map, cdocs=self._cdocs, nested=True)
 
@@ -203,6 +207,7 @@ class MessagePart(object):
 
 
 class Message(object):
+
     """
     Represents a single message, and gives access to all its attributes.
     """
@@ -325,6 +330,7 @@ class Flagsmode(object):
 
 
 class MessageCollection(object):
+
     """
     A generic collection of messages. It can be messages sharing the same
     mailbox, tag, the result of a given query, or just a bunch of ids for
@@ -339,6 +345,8 @@ class MessageCollection(object):
     Store is a reference to a particular instance of the message store (soledad
     instance or proxy, for instance).
     """
+
+    log = Logger()
 
     # TODO LIST
     # [ ] look at IMessageSet methods
@@ -438,7 +446,7 @@ class MessageCollection(object):
         d.addCallback(
             lambda uid: self.get_message_by_uid(
                 uid, get_cdocs=get_cdocs))
-        d.addErrback(logger.error)
+        d.addErrback(self.log.error('Error getting msg by seq'))
         return d
 
     def get_message_by_uid(self, uid, absolute=True, get_cdocs=False):
@@ -611,7 +619,7 @@ class MessageCollection(object):
         headers = lowerdict(msg.get_headers())
         moz_draft_hdr = "X-Mozilla-Draft-Info"
         if moz_draft_hdr.lower() in headers:
-            logger.debug("setting fast notify to False, Draft detected")
+            self.log.debug('Setting fast notify to False, Draft detected')
             notify_just_mdoc = False
 
         if notify_just_mdoc:
@@ -635,9 +643,9 @@ class MessageCollection(object):
                 # --- BUG -----------------------------------------
                 # XXX watch out, sometimes mdoc doesn't have doc_id
                 # but it has future_id. Should be solved already.
-                logger.error("BUG: (please report) Null doc_id for "
-                             "document %s" %
-                             (wrapper.mdoc.serialize(),))
+                self.log.error('BUG: (please report) Null doc_id for '
+                               'document %s' %
+                               (wrapper.mdoc.serialize(),))
                 return defer.succeed("mdoc_id not inserted")
                 # XXX BUG -----------------------------------------
 
@@ -656,7 +664,7 @@ class MessageCollection(object):
         d.addCallback(insert_mdoc_id, wrapper)
         d.addCallback(self.cb_signal_unread_to_ui)
         d.addCallback(self.notify_new_to_listeners)
-        d.addErrback(logger.error)
+        d.addErrback(lambda f: self.log.error('Error adding msg!'))
 
         return d
 
@@ -743,7 +751,6 @@ class MessageCollection(object):
             def insert_doc(_, mbox_uuid, doc_id):
                 d = self.mbox_indexer.get_uid_from_doc_id(mbox_uuid, doc_id)
                 d.addCallback(insert_conditionally, mbox_uuid, doc_id)
-                d.addErrback(logger.error)
                 d.addCallback(log_result)
                 return d
 
@@ -801,7 +808,6 @@ class MessageCollection(object):
             self.store, self.mbox_uuid)
         mdocs_deleted.addCallback(get_uid_list)
         mdocs_deleted.addCallback(delete_uid_entries)
-        mdocs_deleted.addErrback(logger.error)
         return mdocs_deleted
 
     # TODO should add a delete-by-uid to collection?

@@ -14,12 +14,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 """
 Soledad PostSync Hooks.
 
 Process every new document of interest after every soledad synchronization,
 using the hooks that soledad exposes via plugins.
 """
+
 from re import compile as regex_compile
 
 from zope.interface import implements
@@ -30,7 +32,7 @@ from twisted.logger import Logger
 from leap.bitmask.mail import constants
 from leap.soledad.client.interfaces import ISoledadPostSyncPlugin
 
-logger = Logger()
+log = Logger()
 
 
 def _get_doc_type_preffix(s):
@@ -38,6 +40,7 @@ def _get_doc_type_preffix(s):
 
 
 class MailProcessingPostSyncHook(object):
+
     implements(IPlugin, ISoledadPostSyncPlugin)
 
     META_DOC_PREFFIX = _get_doc_type_preffix(constants.METAMSGID)
@@ -56,7 +59,7 @@ class MailProcessingPostSyncHook(object):
 
         for doc_id in doc_id_list:
             if _get_doc_type_preffix(doc_id) in self.watched_doc_types:
-                logger.info("Mail post-sync hook: processing %s" % doc_id)
+                log.info("Mail post-sync hook: processing %s" % doc_id)
                 process_fun(doc_id)
 
         return defer.gatherResults(self._processing_deferreds)
@@ -77,7 +80,7 @@ class MailProcessingPostSyncHook(object):
         mbox_uuid = _get_mbox_uuid(mdoc_id)
         if mbox_uuid:
             chash = _get_chash_from_mdoc(mdoc_id)
-            logger.debug('making index table for %s:%s' % (mbox_uuid, chash))
+            log.debug('Making index table for %s:%s' % (mbox_uuid, chash))
             index_docid = constants.METAMSGID.format(
                 mbox_uuid=mbox_uuid.replace('-', '_'),
                 chash=chash)
@@ -91,7 +94,7 @@ class MailProcessingPostSyncHook(object):
     def _process_queued_docs(self):
         assert(self._has_configured_account())
         pending = self._pending_docs
-        logger.info("Mail post-sync hook: processing queued docs")
+        log.info('Mail post-sync hook: processing queued docs')
 
         def remove_pending_docs(res):
             self._pending_docs = []

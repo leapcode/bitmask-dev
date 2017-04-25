@@ -27,9 +27,6 @@ from twisted.logger import Logger
 from leap.bitmask.hooks import HookableService
 
 
-logger = Logger()
-
-
 class SessionService(HookableService):
 
     """
@@ -49,6 +46,7 @@ class SessionService(HookableService):
     """
 
     name = 'sessions'
+    log = Logger()
 
     def __init__(self, basedir, tokens):
         service.Service.__init__(self)
@@ -56,7 +54,7 @@ class SessionService(HookableService):
         self._tokens = tokens
 
     def startService(self):
-        logger.info('starting Session Service')
+        self.log.info('Starting Session Service')
         super(SessionService, self).startService()
 
     def stopService(self):

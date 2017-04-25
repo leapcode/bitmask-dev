@@ -34,7 +34,7 @@ from email.generator import (
     _make_boundary,
 )
 
-logger = Logger()
+log = Logger()
 
 #
 # A generator that solves http://bugs.python.org/issue14983
@@ -166,7 +166,7 @@ def encode_base64(msg):
         except KeyError:
             msg['Content-Transfer-Encoding'] = 'base64'
     elif encoding is not 'base64':
-        logger.error('Unknown content-transfer-encoding: %s' % encoding)
+        log.error('Unknown content-transfer-encoding: %s' % encoding)
 
 
 def encode_base64_rec(msg):

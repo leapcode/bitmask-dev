@@ -37,7 +37,7 @@ from leap.bitmask.mail.imap.server import LEAPIMAPServer
 
 # TODO: leave only an implementor of IService in here
 
-logger = Logger()
+log = Logger()
 
 DO_MANHOLE = os.environ.get("LEAP_MAIL_MANHOLE", None)
 if DO_MANHOLE:
@@ -137,23 +137,15 @@ class LeapIMAPFactory(ServerFactory):
         :param addr: remote ip address
         :type addr:  str
         """
-        # TODO should reject anything from addr != localhost,
-        # just in case.
-        logger.debug("Building protocol for connection %s" % addr)
         imapProtocol = self.protocol(self._soledad_sessions)
         self._connections[addr] = imapProtocol
         return imapProtocol
 
     def stopFactory(self):
-        # say bye!
         for conn, proto in self._connections.items():
-            logger.debug("Closing connections for %s" % conn)
             proto.close_server_connection()
 
     def doStop(self):
-        """
-        Stops imap service (fetcher, factory and port).
-        """
         return ServerFactory.doStop(self)
 
 
@@ -182,10 +174,10 @@ def run_service(soledad_sessions, port=IMAP_PORT, factory=None):
         tport = reactor.listenTCP(port, factory,
                                   interface=interface)
     except CannotListenError:
-        logger.error("IMAP Service failed to start: "
-                     "cannot listen in port %s" % (port,))
+        log.error('IMAP Service failed to start: '
+                  'cannot listen in port %s' % (port,))
     except Exception as exc:
-        logger.error("Error launching IMAP service: %r" % (exc,))
+        log.error("Error launching IMAP service: %r" % (exc,))
     else:
         # all good.
 
@@ -198,7 +190,7 @@ def run_service(soledad_sessions, port=IMAP_PORT, factory=None):
             # TODO  use Endpoints !!!
             reactor.listenTCP(manhole.MANHOLE_PORT, manhole_factory,
                               interface="127.0.0.1")
-        logger.debug("IMAP4 Server is RUNNING in port  %s" % (port,))
+        log.debug('IMAP4 Server is RUNNING in port  %s' % (port,))
         emit_async(catalog.IMAP_SERVICE_STARTED, str(port))
 
         # FIXME -- change service signature

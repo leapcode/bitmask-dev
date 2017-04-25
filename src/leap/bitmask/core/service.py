@@ -37,9 +37,6 @@ from leap.bitmask.core.web.service import HTTPDispatcherService
 from leap.bitmask.vpn.service import VPNService
 from leap.common.events import server as event_server
 
-logger = Logger()
-
-
 backend = flags.BACKEND
 
 if backend == 'default':
@@ -50,6 +47,9 @@ elif backend == 'dummy':
     from leap.bitmask.core.dummy import BonafideService
 else:
     raise RuntimeError('Backend not supported')
+
+
+log = Logger()
 
 
 class BitmaskBackend(configurable.ConfigurableService):
@@ -68,7 +68,8 @@ class BitmaskBackend(configurable.ConfigurableService):
         # The global token is used for authenticating some of the channels that
         # expose the dispatcher. For the moment being, this is the REST API.
         self.global_tokens = [uuid.uuid4().hex]
-        logger.info('Global token: {0}'.format(self.global_tokens[0]))
+        log.debug(
+            'Global token: {0}'.format(self.global_tokens[0]))
         self._touch_token_file()
 
         # These tokens are user-session tokens. Implemented and rolled back,
@@ -129,13 +130,13 @@ class BitmaskBackend(configurable.ConfigurableService):
         sessions.setServiceParent(self)
 
     def _start_child_service(self, name):
-        logger.debug('starting backend child service: %s' % name)
+        log.debug('Starting backend child service: %s' % name)
         service = self.getServiceNamed(name)
         if service:
             service.startService()
 
     def _stop_child_service(self, name):
-        logger.debug('stopping backend child service: %s' % name)
+        log.debug('Stopping backend child service: %s' % name)
         service = self.getServiceNamed(name)
         if service:
             service.stopService()
@@ -203,7 +204,6 @@ class BitmaskBackend(configurable.ConfigurableService):
         try:
             service = self.getServiceNamed(label)
         except KeyError:
-            logger.debug("initializing service: %s" % label)
             service = klass(*args, **kw)
             service.setName(label)
             service.setServiceParent(self)
@@ -282,8 +282,6 @@ class BackendCommands(object):
         return {'version_core': __version__}
 
     def do_stats(self):
-        print "DO STATS"
-        logger.debug('BitmaskCore Service STATS')
         mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
         return {'mem_usage': '%s MB' % (mem / 1024)}
 

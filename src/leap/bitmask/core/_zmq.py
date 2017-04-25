@@ -29,7 +29,7 @@ from leap.bitmask.core import ENDPOINT
 from leap.bitmask.core.dispatcher import CommandDispatcher
 
 
-logger = Logger()
+log = Logger()
 
 
 class ZMQServerService(service.Service):
@@ -64,8 +64,8 @@ class _DispatcherREPConnection(ZmqREPConnection):
         reactor.callLater(0, self.reply, msgId, str(response))
 
     def log_err(self, failure, msgId):
-        logger.error(failure)
+        log.failure('Error on dispatcher')
         self.defer_reply("ERROR: %r" % failure, msgId)
 
     def do_greet(self):
-        logger.info('starting ZMQ dispatcher')
+        log.info('Starting ZMQ dispatcher')

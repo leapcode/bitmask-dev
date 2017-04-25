@@ -40,7 +40,8 @@ class Api(Resource):
 
         d = self.dispatcher.dispatch(command)
         d.addCallback(self._write_response, request)
-        d.addErrback(log.error)
+        d.addErrback(
+            lambda f: log.error('Error on POST: {0!r}'.format(f)))
         return NOT_DONE_YET
 
     def _write_response(self, response, request):

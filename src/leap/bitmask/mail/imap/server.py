@@ -32,10 +32,8 @@ from twisted.mail.imap4 import LiteralString, LiteralFile
 from leap.common.events import emit_async, catalog
 
 
-logger = Logger()
-
-
 def _getContentType(msg):
+
     """
     Return a two-tuple of the main and subtype of the given message.
     """
@@ -62,15 +60,20 @@ def _getContentType(msg):
         major = minor = None
     return major, minor, attrs
 
+
 # Monkey-patch _getContentType to avoid bug that passes lower-case boundary in
 # BODYSTRUCTURE response.
+
 imap4._getContentType = _getContentType
 
 
 class LEAPIMAPServer(imap4.IMAP4Server):
+
     """
     An IMAP4 Server with a LEAP Storage Backend.
     """
+
+    log = Logger()
 
     #############################################################
     #
@@ -167,7 +170,7 @@ class LEAPIMAPServer(imap4.IMAP4Server):
             msg = line[:7] + " [...]"
         else:
             msg = copy(line)
-        logger.debug('rcv (%s): %s' % (self.state, msg))
+        self.log.debug('rcv (%s): %s' % (self.state, msg))
         imap4.IMAP4Server.lineReceived(self, line)
 
     def close_server_connection(self):
@@ -452,7 +455,7 @@ class LEAPIMAPServer(imap4.IMAP4Server):
 
         def _subscribeEb(failure):
             m = failure.value
-            logger.error()
+            self.log.error('Error on SUBSCRIBE')
             if failure.check(imap4.MailboxException):
                 self.sendNegativeResponse(tag, str(m))
             else:
@@ -477,7 +480,7 @@ class LEAPIMAPServer(imap4.IMAP4Server):
 
         def _unsubscribeEb(failure):
             m = failure.value
-            logger.error()
+            self.log.error('Error on UNSUBSCRIPBE')
             if failure.check(imap4.MailboxException):
                 self.sendNegativeResponse(tag, str(m))
             else:
@@ -512,7 +515,7 @@ class LEAPIMAPServer(imap4.IMAP4Server):
             elif failure.check(imap4.MailboxException):
                 self.sendNegativeResponse(tag, str(m))
             else:
-                logger.error()
+                self.log.error('Error on RENAME')
                 self.sendBadResponse(
                     tag,
                     "Server error encountered while "
@@ -539,7 +542,7 @@ class LEAPIMAPServer(imap4.IMAP4Server):
             if failure.check(imap4.MailboxException):
                 self.sendNegativeResponse(tag, str(c))
             else:
-                logger.error()
+                self.log.error('Error on CREATE')
                 self.sendBadResponse(
                     tag, "Server error encountered while creating mailbox")
 
@@ -564,7 +567,7 @@ class LEAPIMAPServer(imap4.IMAP4Server):
             if failure.check(imap4.MailboxException):
                 self.sendNegativeResponse(tag, str(m))
             else:
-                logger.error()
+                self.log.error('Error on DELETE')
                 self.sendBadResponse(
                     tag,
                     "Server error encountered while deleting mailbox")
@@ -600,7 +603,7 @@ class LEAPIMAPServer(imap4.IMAP4Server):
     def _ebAppendGotMailbox(self, failure, tag):
         self.sendBadResponse(
             tag, "Server error encountered while opening mailbox.")
-        logger.error(failure)
+        self.log.failure('Error appending')
 
     def __cbAppend(self, result, tag, mbox):
 

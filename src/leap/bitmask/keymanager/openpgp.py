@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # openpgp.py
-# Copyright (C) 2013-2016 LEAP
+# Copyright (C) 2013-2017 LEAP
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,9 +14,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 """
 Infrastructure for using OpenPGP keys in Key Manager.
 """
+
 import os
 import re
 import tempfile
@@ -74,13 +76,6 @@ except ImportError:
             return bool(result.key)
 
 
-logger = Logger()
-
-
-#
-# A temporary GPG keyring wrapped to provide OpenPGP functionality.
-#
-
 # This function will be used to call blocking GPG functions outside
 # of Twisted reactor and match the concurrent calls to the amount of CPU cores
 cpu_core_semaphore = defer.DeferredSemaphore(cpu_count())
@@ -91,15 +86,21 @@ def from_thread(func, *args, **kwargs):
     return cpu_core_semaphore.run(call)
 
 
+log = Logger()
+
+
 #
 # The OpenPGP wrapper
 #
 
 class OpenPGPScheme(object):
+
     """
     A wrapper for OpenPGP keys management and use (encryption, decyption,
     signing and verification).
     """
+
+    log = Logger()
 
     # type used on the soledad documents
     KEY_TYPE = OpenPGPKey.__name__
@@ -186,11 +187,11 @@ class OpenPGPScheme(object):
                     name_real=address,
                     name_email=address,
                     name_comment='')
-                logger.info("About to generate keys... "
-                            "This might take SOME time.")
+                self.log.info('About to generate keys... '
+                              'This might take SOME time.')
                 yield from_thread(gpg.gen_key, params)
-                logger.info("Keys for %s have been successfully "
-                            "generated." % (address,))
+                self.log.info('Keys for %s have been successfully '
+                              'generated.' % (address,))
                 pubkeys = gpg.list_keys()
 
                 # assert for new key characteristics
@@ -509,8 +510,8 @@ class OpenPGPScheme(object):
             if len(docs) == 0:
                 raise errors.KeyNotFound(key)
             elif len(docs) > 1:
-                logger.warn("There is more than one key for fingerprint %s"
-                            % key.fingerprint)
+                self.log.warn('There is more than one key for fingerprint %s'
+                              % key.fingerprint)
 
             has_deleted = False
             deferreds = []
@@ -559,7 +560,7 @@ class OpenPGPScheme(object):
         """
         stderr = getattr(result, 'stderr', None)
         if stderr:
-            logger.debug("%s" % (stderr,))
+            log.debug("%s" % (stderr,))
         if getattr(result, 'ok', None) is not True:
             raise errors.GPGError(
                 'Failed to encrypt/decrypt: %s' % stderr)
@@ -612,7 +613,7 @@ class OpenPGPScheme(object):
                 self._assert_gpg_result_ok(result)
                 defer.returnValue(result.data)
             except errors.GPGError as e:
-                logger.warn('Failed to encrypt: %s.' % str(e))
+                self.log.warn('Failed to encrypt: %s.' % str(e))
                 raise errors.EncryptError()
 
     @defer.inlineCallbacks
@@ -658,7 +659,7 @@ class OpenPGPScheme(object):
 
                 defer.returnValue((result.data, sign_valid))
             except errors.GPGError as e:
-                logger.warn('Failed to decrypt: %s.' % str(e))
+                self.log.warn('Failed to decrypt: %s.' % str(e))
                 raise errors.DecryptError(str(e))
 
     def is_encrypted(self, data):
@@ -803,8 +804,8 @@ class OpenPGPScheme(object):
         :rtype: Deferred
         """
         def log_key_doc(doc):
-            logger.error("\t%s: %s" % (doc.content[KEY_UIDS_KEY],
-                                       doc.content[KEY_FINGERPRINT_KEY]))
+            self.log.error("\t%s: %s" % (doc.content[KEY_UIDS_KEY],
+                                         doc.content[KEY_FINGERPRINT_KEY]))
 
         def cmp_key(d1, d2):
             return cmp(d1.content[KEY_REFRESHED_AT_KEY],
@@ -833,8 +834,8 @@ class OpenPGPScheme(object):
                 pass
 
         def log_active_doc(doc):
-            logger.error("\t%s: %s" % (doc.content[KEY_ADDRESS_KEY],
-                                       doc.content[KEY_FINGERPRINT_KEY]))
+            self.log.error("\t%s: %s" % (doc.content[KEY_ADDRESS_KEY],
+                                         doc.content[KEY_FINGERPRINT_KEY]))
 
         def cmp_active(d1, d2):
             # XXX: for private keys it will be nice to check which key is known
@@ -857,9 +858,9 @@ class OpenPGPScheme(object):
         defer.returnValue(doc)
 
     def _repair_docs(self, doclist, cmp_func, log_func):
-        logger.error("BUG ---------------------------------------------------")
-        logger.error("There is more than one doc of type %s:"
-                     % (doclist[0].content[KEY_TYPE_KEY],))
+        self.log.error("BUG -------------------------------------------------")
+        self.log.error("There is more than one doc of type %s:"
+                       % (doclist[0].content[KEY_TYPE_KEY],))
 
         doclist.sort(cmp=cmp_func, reverse=True)
         log_func(doclist[0])
@@ -869,9 +870,8 @@ class OpenPGPScheme(object):
             d = self._soledad.delete_doc(doc)
             deferreds.append(d)
 
-        logger.error("")
-        logger.error(traceback.extract_stack())
-        logger.error("BUG (please report above info) ------------------------")
+        self.log.error('Error repairing')
+        self.log.error("BUG (please report above info) ----------------------")
         d = defer.gatherResults(deferreds, consumeErrors=True)
         d.addCallback(lambda _: doclist[0])
         return d

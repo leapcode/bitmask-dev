@@ -56,8 +56,6 @@ generator.Generator = RFC3156CompliantGenerator
 
 LOCAL_FQDN = "bitmask.local"
 
-logger = Logger()
-
 
 @implementer(IRealm)
 class LocalSMTPRealm(object):
@@ -221,9 +219,12 @@ class SMTPFactory(protocol.ServerFactory):
 
 @implementer(smtp.IMessageDelivery)
 class SMTPDelivery(object):
+
     """
     Validate email addresses and handle message delivery.
     """
+
+    log = Logger()
 
     def __init__(self, userid, keymanager, encrypted_only, outgoing_mail):
         """
@@ -298,7 +299,7 @@ class SMTPDelivery(object):
 
         # verify if recipient key is available in keyring
         def found(_):
-            logger.debug("Accepting mail for %s..." % user.dest.addrstr)
+            self.log.debug('Accepting mail for %s...' % user.dest.addrstr)
             emit_async(catalog.SMTP_RECIPIENT_ACCEPTED_ENCRYPTED,
                        self._userid, user.dest.addrstr)
 
@@ -310,7 +311,7 @@ class SMTPDelivery(object):
                 emit_async(catalog.SMTP_RECIPIENT_REJECTED, self._userid,
                            user.dest.addrstr)
                 raise smtp.SMTPBadRcpt(user.dest.addrstr)
-            logger.warn(
+            self.log.warn(
                 'Warning: will send an unencrypted message (because '
                 '"encrypted_only" is set to False).')
             emit_async(
@@ -344,7 +345,7 @@ class SMTPDelivery(object):
         # accept mail from anywhere. To reject an address, raise
         # smtp.SMTPBadSender here.
         if str(origin) != str(self._userid):
-            logger.error(
+            self.log.error(
                 "Rejecting sender {0}, expected {1}".format(origin,
                                                             self._userid))
             raise smtp.SMTPBadSender(origin)
@@ -362,6 +363,7 @@ class EncryptedMessage(object):
     recipient.
     """
     implements(smtp.IMessage)
+    log = Logger()
 
     def __init__(self, user, outgoing_mail):
         """
@@ -396,7 +398,7 @@ class EncryptedMessage(object):
 
         :returns: a deferred
         """
-        logger.debug("Message data complete.")
+        self.log.debug('Message data complete.')
         self._lines.append('')  # add a trailing newline
         raw_mail = '\r\n'.join(self._lines)
 
@@ -406,8 +408,7 @@ class EncryptedMessage(object):
         """
         Log an error when the connection is lost.
         """
-        logger.error("Connection lost unexpectedly!")
-        logger.error()
+        self.log.error('Connection lost unexpectedly!')
         emit_async(catalog.SMTP_CONNECTION_LOST, self._userid,
                    self._user.dest.addrstr)
         # unexpected loss of connection; don't save

@@ -38,7 +38,7 @@ from leap.bitmask.mail.testing.common import SoledadTestMixin
 TEST_USER = "testuser@leap.se"
 TEST_PASSWD = "1234"
 
-logger = Logger()
+log = Logger()
 
 
 #
@@ -182,7 +182,7 @@ class IMAP4HelperMixin(SoledadTestMixin):
         self.client.transport.loseConnection()
         self.server.transport.loseConnection()
         if hasattr(self, 'function'):
-            logger.error(failure, "Problem with %r" % (self.function,))
+            log.error("Problem with %r" % (self.function,))
 
     def loopback(self):
         return loopback.loopbackAsync(self.server, self.client)

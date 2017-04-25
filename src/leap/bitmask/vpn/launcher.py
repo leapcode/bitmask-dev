@@ -33,7 +33,7 @@ from leap.bitmask.vpn.constants import IS_LINUX
 from leap.bitmask.vpn.utils import force_eval
 
 
-logger = Logger()
+log = Logger()
 
 
 flags_STANDALONE = False
@@ -62,18 +62,18 @@ def _has_updown_scripts(path, warn=True):
     """
     is_file = os.path.isfile(path)
     if warn and not is_file:
-        logger.error("Could not find up/down script %s. "
-                     "Might produce DNS leaks." % (path,))
+        log.error('Could not find up/down script %s. '
+                  'Might produce DNS leaks.' % (path,))
 
     # XXX check if applies in win
     is_exe = False
     try:
         is_exe = (stat.S_IXUSR & os.stat(path)[stat.ST_MODE] != 0)
     except OSError as e:
-        logger.warn("%s" % (e,))
+        log.warn("%s" % (e,))
     if warn and not is_exe:
-        logger.error("Up/down script %s is not executable. "
-                     "Might produce DNS leaks." % (path,))
+        log.error('Up/down script %s is not executable. '
+                  'Might produce DNS leaks.' % (path,))
     return is_file and is_exe
 
 
@@ -91,8 +91,8 @@ def _has_other_files(path, warn=True):
     """
     is_file = os.path.isfile(path)
     if warn and not is_file:
-        logger.warning("Could not find file during checks: %s. " % (
-            path,))
+        log.warn('Could not find file during checks: %s. ' % (
+                 path,))
     return is_file
 
 
@@ -109,6 +109,7 @@ class VPNLauncher(object):
 
     PREFERRED_PORTS = ("443", "80", "53", "1194")
 
+    # FIXME -- dead code?
     @classmethod
     @abstractmethod
     def get_gateways(kls, vpnconfig, providerconfig):
@@ -138,7 +139,7 @@ class VPNLauncher(object):
             gws = [gateway_conf]
 
         if not gws:
-            logger.error('No gateway was found!')
+            log.error('No gateway was found!')
             raise VPNLauncherException('No gateway was found!')
 
         for idx, gw in enumerate(gws):
@@ -156,7 +157,7 @@ class VPNLauncher(object):
 
             gateways.append((gw, the_port))
 
-        logger.debug("Using gateways (ip, port): {0!r}".format(gateways))
+        log.debug('Using gateways (ip, port): {0!r}'.format(gateways))
         return gateways
 
     @classmethod
@@ -198,8 +199,8 @@ class VPNLauncher(object):
         openvpn_path = force_eval(kls.OPENVPN_BIN_PATH)
 
         if not os.path.isfile(openvpn_path):
-            logger.warning("Could not find openvpn bin in path %s" % (
-                openvpn_path))
+            log.warn('Could not find openvpn bin in path %s' % (
+                     openvpn_path))
             raise OpenVPNNotFoundException()
 
         args = []
@@ -321,11 +322,6 @@ class VPNLauncher(object):
 
         :rtype: list
         """
-        # leap_assert(kls.OTHER_FILES is not None,
-        #             "Need to define OTHER_FILES for this particular "
-        #             "auncher before calling this method")
-
-        # TODO assert vs except?
         if kls.OTHER_FILES is None:
             raise Exception(
                 "Need to define OTHER_FILES for this particular "

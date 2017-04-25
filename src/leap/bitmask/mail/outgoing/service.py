@@ -55,11 +55,6 @@ from leap.bitmask.mail.rfc3156 import PGPEncrypted
 # [ ] rename this module to something else, service should be the implementor
 #     of IService
 
-logger = Logger()
-
-
-logger = Logger()
-
 
 class SSLContextFactory(ssl.ClientContextFactory):
     def __init__(self, cert, key):
@@ -98,6 +93,8 @@ class OutgoingMail(object):
     """
     Sends Outgoing Mail, encrypting and signing if needed.
     """
+
+    log = Logger()
 
     def __init__(self, from_address, keymanager, cert, key, host, port,
                  bouncer=None):
@@ -167,7 +164,7 @@ class OutgoingMail(object):
         """
         dest_addrstr = smtp_sender_result[1][0][0]
         fromaddr = self._from_address
-        logger.info('Message sent from %s to %s' % (fromaddr, dest_addrstr))
+        self.log.info('Message sent from %s to %s' % (fromaddr, dest_addrstr))
         emit_async(catalog.SMTP_SEND_MESSAGE_SUCCESS,
                    fromaddr, dest_addrstr)
 
@@ -190,7 +187,7 @@ class OutgoingMail(object):
         # temporal error. We might want to notify the permanent errors
         # differently.
 
-        logger.error(failure)
+        self.log.error('Error while sending: {0!r}'.format(failure))
 
         if self._bouncer:
             self._bouncer.bounce_message(
@@ -208,7 +205,7 @@ class OutgoingMail(object):
         :type encrypt_and_sign_result: tuple
         """
         message, recipient = encrypt_and_sign_result
-        logger.info(
+        self.log.info(
             'Connecting to SMTP server %s:%s' % (self._host, self._port))
         msg = message.as_string(False)
 
@@ -302,7 +299,7 @@ class OutgoingMail(object):
         def if_key_not_found_send_unencrypted(failure, message):
             failure.trap(KeyNotFound, KeyAddressMismatch)
 
-            logger.info('Will send unencrypted message to %s.' % to_address)
+            self.log.info('Will send unencrypted message to %s.' % to_address)
             emit_async(catalog.SMTP_START_SIGN, self._from_address, to_address)
             d = self._sign(message, from_address)
             d.addCallback(signal_sign)
@@ -312,8 +309,8 @@ class OutgoingMail(object):
             emit_async(catalog.SMTP_END_SIGN, self._from_address)
             return newmsg, recipient
 
-        logger.info("Will encrypt the message with %s and sign with %s."
-                    % (to_address, from_address))
+        self.log.info("Will encrypt the message with %s and sign with %s."
+                      % (to_address, from_address))
         emit_async(catalog.SMTP_START_ENCRYPT_AND_SIGN,
                    self._from_address,
                    "%s,%s" % (self._from_address, to_address))

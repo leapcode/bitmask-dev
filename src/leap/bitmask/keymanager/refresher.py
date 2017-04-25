@@ -28,17 +28,17 @@ from random import choice, randrange
 
 DEBUG_STOP_REFRESH = "Stop to refresh the key directory ..."
 DEBUG_START_REFRESH = "Start to refresh the key directory ..."
-ERROR_UNEQUAL_FINGERPRINTS = "[WARNING] Your provider might be cheat " \
-                             "on you, and gave a wrong key back. " \
-                             "Fingerprints are unequal, old %s new %s "
+ERROR_UNEQUAL_FINGERPRINTS = "[WARNING] Your provider *might* be cheating " \
+                             "on you, and given a wrong key back. " \
+                             "Fingerprints do not match: old-> %s, new-> %s "
 
 MIN_RANDOM_INTERVAL_RANGE = 4 * 60  # four minutes
 MAX_RANDOM_INTERVAL_RANGE = 6 * 60  # six minutes
 
-logger = Logger()
-
 
 class RandomRefreshPublicKey(object):
+
+    log = Logger()
 
     def __init__(self, openpgp, keymanager):
         """
@@ -59,14 +59,14 @@ class RandomRefreshPublicKey(object):
         :rtype: A deferred.
         """
         self._loop.start(self._get_random_interval_to_refresh(), False)
-        logger.debug(DEBUG_START_REFRESH)
+        self.log.debug(DEBUG_START_REFRESH)
 
     def stop(self):
         """
         Stop the looping call with random interval.
         """
         self._loop.stop()
-        logger.debug(DEBUG_STOP_REFRESH)
+        self.log.debug(DEBUG_STOP_REFRESH)
 
     @defer.inlineCallbacks
     def _get_random_key(self):
@@ -110,7 +110,7 @@ class RandomRefreshPublicKey(object):
             fetch_key_with_fingerprint(old_key.fingerprint)
 
         if old_updated_key.fingerprint != old_key.fingerprint:
-            logger.error(ERROR_UNEQUAL_FINGERPRINTS %
+            self.log.error(ERROR_UNEQUAL_FINGERPRINTS %
                          (old_key.fingerprint, old_updated_key.fingerprint))
             defer.returnValue(None)
 

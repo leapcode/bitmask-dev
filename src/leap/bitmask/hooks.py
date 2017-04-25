@@ -25,7 +25,7 @@ from twisted.logger import Logger
 from zope.interface import implementer
 
 
-logger = Logger()
+log = Logger()
 
 
 @implementer(IService)
@@ -47,7 +47,7 @@ class HookableService(Service):
     def register_hook(self, name, listener):
         if not hasattr(self, 'event_listeners'):
             self.event_listeners = defaultdict(list)
-        logger.debug('registering hook %s->%s' % (name, listener))
+        log.debug('registering hook %s->%s' % (name, listener))
         self.event_listeners[name].append(listener)
 
     def trigger_hook(self, name, **data):
@@ -55,8 +55,8 @@ class HookableService(Service):
         def react_to_hook(listener, name, **kw):
             try:
                 getattr(listener, 'hook_' + name)(**kw)
-            except AttributeError as exc:
-                logger.failure('Error while triggering hook')
+            except AttributeError:
+                log.failure('Error while triggering hook')
                 raise RuntimeError(
                     "Tried to notify a hook, but the listener "
                     "service class %s does not seem to have "

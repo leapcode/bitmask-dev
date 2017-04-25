@@ -54,9 +54,6 @@ from leap.bitmask.core.uuid_map import UserMap
 from leap.bitmask.core.configurable import DEFAULT_BASEDIR
 
 
-logger = Logger()
-
-
 class Container(object):
 
     def __init__(self, service=None):
@@ -152,12 +149,14 @@ def is_service_ready(service, provider):
 
 class SoledadService(HookableService):
 
+    log = Logger()
+
     def __init__(self, basedir):
         service.Service.__init__(self)
         self._basedir = basedir
 
     def startService(self):
-        logger.info('starting Soledad Service')
+        self.log.info('Starting Soledad Service')
         self._container = SoledadContainer(service=self)
         super(SoledadService, self).startService()
 
@@ -174,12 +173,12 @@ class SoledadService(HookableService):
             password = kw.get('password')
             uuid = kw.get('uuid')
             container = self._container
-            logger.debug("on_passphrase_entry: "
-                         "New Soledad Instance: %s" % userid)
+            self.log.debug('On_passphrase_entry: '
+                           'New Soledad Instance: %s' % userid)
             if not container.get_instance(userid):
                 container.add_instance(userid, password, uuid=uuid, token=None)
         else:
-            logger.debug('service MX is not ready...')
+            self.log.debug('Service MX is not ready...')
 
     def hook_on_bonafide_auth(self, **kw):
         userid = kw['username']
@@ -195,10 +194,10 @@ class SoledadService(HookableService):
 
             container = self._container
             if container.get_instance(userid):
-                logger.debug("passing a new SRP Token to Soledad: %s" % userid)
+                self.log.debug('Passing a new SRP Token to Soledad: %s' % userid)
                 container.set_remote_auth_token(userid, token)
             else:
-                logger.debug("adding a new Soledad Instance: %s" % userid)
+                self.log.debug('Adding a new Soledad Instance: %s' % userid)
                 container.add_instance(
                     userid, password, uuid=uuid, token=token)
 
@@ -210,11 +209,13 @@ class SoledadService(HookableService):
         password = kw['password']
         soledad = self._container.get_instance(userid)
         if soledad is not None:
-            logger.info("Change soledad passphrase for %s" % userid)
+            self.log.info('Change soledad passphrase for %s' % userid)
             soledad.change_passphrase(unicode(password))
 
 
 class KeymanagerContainer(Container):
+
+    log = Logger()
 
     def __init__(self, service=None, basedir=DEFAULT_BASEDIR):
         self._basedir = os.path.expanduser(basedir)
@@ -222,7 +223,7 @@ class KeymanagerContainer(Container):
         super(KeymanagerContainer, self).__init__(service=service)
 
     def add_instance(self, userid, token, uuid, soledad):
-        logger.debug("adding Keymanager instance for: %s" % userid)
+        self.log.debug('Adding Keymanager instance for: %s' % userid)
         self._set_status(userid, "starting")
         keymanager = self._create_keymanager_instance(
             userid, token, uuid, soledad)
@@ -252,15 +253,15 @@ class KeymanagerContainer(Container):
     def _get_or_generate_keys(self, keymanager, userid):
 
         def _get_key(_):
-            logger.info("looking up private key for %s" % userid)
+            self.log.info('Looking up private key for %s' % userid)
             return keymanager.get_key(userid, private=True, fetch_remote=False)
 
         def _found_key(key):
-            logger.info("found key: %r" % key)
+            self.log.info('Found key: %r' % key)
 
         def _if_not_found_generate(failure):
             failure.trap(KeyNotFound)
-            logger.info("key not found, generating key for %s" % (userid,))
+            self.log.info('Key not found, generating key for %s' % (userid,))
             self._set_status(userid, "starting", keys="generating")
             d = keymanager.gen_key()
             d.addCallbacks(_send_key, _log_key_error("generating"))
@@ -272,25 +273,25 @@ class KeymanagerContainer(Container):
             # but this hasn't been successfully uploaded. How do we know that?
             # XXX Should this be a method of bonafide instead?
             # -----------------------------------------------------------------
-            logger.info("key generated for %s" % userid)
+            self.log.info('Key generated for %s' % userid)
 
             if not keymanager.token:
-                logger.debug(
-                    "token not available, scheduling "
-                    "a new key sending attempt...")
+                self.log.debug(
+                    'Token not available, scheduling '
+                    'a new key sending attempt...')
                 return task.deferLater(reactor, 5, _send_key, None)
 
-            logger.info("sending public key to server")
+            self.log.info('Sending public key to server')
             d = keymanager.send_key()
             d.addCallbacks(
-                lambda _: logger.info("key sent to server"),
+                lambda _: self.log.info('Key sent to server'),
                 _log_key_error("sending"))
             return d
 
         def _log_key_error(step):
             def log_error(failure):
-                logger.error("Error while %s key!" % step)
-                logger.error(failure)
+                self.log.error('Error while %s key!' % step)
+                self.log.failure('error!')
                 error = "Error generating key: %s" % failure.getErrorMessage()
                 self._set_status(userid, "failure", error=error)
                 return failure
@@ -298,22 +299,22 @@ class KeymanagerContainer(Container):
 
         def _sync_if_never_synced(ever_synced):
             if ever_synced:
-                logger.debug("soledad has synced in the past")
+                self.log.debug('Soledad has synced in the past')
                 return defer.succeed(None)
 
-            logger.debug("soledad has never synced")
+            self.log.debug('Soledad has never synced')
 
             if not keymanager.token:
-                logger.debug("no token to sync now, scheduling a new check")
+                self.log.debug('No token to sync now, scheduling a new check')
                 d = task.deferLater(reactor, 5, keymanager.ever_synced)
                 d.addCallback(_sync_if_never_synced)
                 return d
 
-            logger.debug("syncing soledad for the first time...")
+            self.log.debug('Syncing soledad for the first time...')
             self._set_status(userid, "starting", keys="sync")
             return keymanager._soledad.sync()
 
-        logger.debug("checking if soledad has ever synced...")
+        self.log.debug('Checking if soledad has ever synced...')
         d = keymanager.ever_synced()
         d.addCallback(_sync_if_never_synced)
         d.addCallback(_get_key)
@@ -355,13 +356,15 @@ class KeymanagerContainer(Container):
 
 class KeymanagerService(HookableService):
 
+    log = Logger()
+
     def __init__(self, basedir=DEFAULT_BASEDIR):
         service.Service.__init__(self)
         self._basedir = basedir
         self._container = None
 
     def startService(self):
-        logger.debug('starting Keymanager Service')
+        self.log.debug('Starting Keymanager Service')
         self._container = KeymanagerContainer(self._basedir)
         self._container.service = self
         self.tokens = {}
@@ -376,7 +379,7 @@ class KeymanagerService(HookableService):
         uuid = kw['uuid']
         soledad = kw['soledad']
         if not container.get_instance(user):
-            logger.debug('Adding a new Keymanager instance for %s' % user)
+            self.log.debug('Adding a new Keymanager instance for %s' % user)
             if not token:
                 token = self.tokens.get(user)
             container.add_instance(user, token, uuid, soledad)
@@ -393,12 +396,12 @@ class KeymanagerService(HookableService):
 
             container = self._container
             if container.get_instance(userid):
-                logger.debug(
-                    'passing a new SRP Token '
+                self.log.debug(
+                    'Passing a new SRP Token '
                     'to Keymanager: %s' % userid)
                 container.set_remote_auth_token(userid, token)
             else:
-                logger.debug('storing the keymanager token... %s ' % token)
+                self.log.debug('Storing the keymanager token... %s ' % token)
                 self.tokens[userid] = token
 
     # commands
@@ -464,6 +467,7 @@ class StandardMailService(service.MultiService, HookableService):
     """
 
     name = 'mail'
+    log = Logger()
 
     # TODO factor out Mail Service to inside mail package.
 
@@ -487,11 +491,11 @@ class StandardMailService(service.MultiService, HookableService):
         self.addService(IncomingMailService(self))
 
     def startService(self):
-        logger.info('starting mail service')
+        self.log.info('Starting Mail Service')
         super(StandardMailService, self).startService()
 
     def stopService(self):
-        logger.info('stopping mail service')
+        self.log.info('Stopping Mail service')
         super(StandardMailService, self).stopService()
 
     def startInstance(self, userid, soledad, keymanager):
@@ -541,14 +545,14 @@ class StandardMailService(service.MultiService, HookableService):
         """
         try to turn on incoming mail service for the user that just logged in
         """
-        logger.debug(
-            'looking for incoming mail service for auth: %s' % userid)
+        self.log.debug(
+            'Looking for incoming mail service for auth: %s' % userid)
         multiservice = self.getServiceNamed('incoming_mail')
         try:
             incoming = multiservice.getServiceNamed(userid)
             incoming.startService()
         except KeyError:
-            logger.debug('no incoming service for %s' % userid)
+            self.log.debug('No incoming service for %s' % userid)
 
     @defer.inlineCallbacks
     def _maybe_fetch_smtp_certificate(self, userid):
@@ -579,7 +583,7 @@ class StandardMailService(service.MultiService, HookableService):
             except KeyError:
                 incoming = None
             if incoming:
-                logger.debug(
+                self.log.debug(
                     'looking for incoming mail service '
                     'for logout: %s' % username)
                 incoming.stopService()
@@ -624,8 +628,8 @@ class StandardMailService(service.MultiService, HookableService):
             try:
                 shutil.rmtree(tokens_folder)
             except OSError as e:
-                logger.warn("Can't remove tokens folder %s: %s"
-                            % (tokens_folder, e))
+                self.log.warn("Can't remove tokens folder %s: %s"
+                              % (tokens_folder, e))
                 return
         os.mkdir(tokens_folder, 0700)
 
@@ -646,6 +650,7 @@ class StandardMailService(service.MultiService, HookableService):
 class IMAPService(service.Service):
 
     name = 'imap'
+    log = Logger()
 
     def __init__(self, soledad_sessions):
         self._soledad_sessions = soledad_sessions
@@ -654,7 +659,7 @@ class IMAPService(service.Service):
         super(IMAPService, self).__init__()
 
     def startService(self):
-        logger.info('starting imap service')
+        self.log.info('Starting IMAP Service')
         port, factory = imap_service.run_service(
             self._soledad_sessions, factory=self._factory)
         self._port = port
@@ -662,7 +667,7 @@ class IMAPService(service.Service):
         super(IMAPService, self).startService()
 
     def stopService(self):
-        logger.info("stopping imap service")
+        self.log.info('Stopping IMAP Service')
         if self._port:
             self._port.stopListening()
             self._port = None
@@ -680,6 +685,7 @@ class IMAPService(service.Service):
 class SMTPService(service.Service):
 
     name = 'smtp'
+    log = Logger()
 
     def __init__(self, soledad_sessions, keymanager_sessions, sendmail_opts,
                  basedir=DEFAULT_BASEDIR):
@@ -693,7 +699,7 @@ class SMTPService(service.Service):
         super(SMTPService, self).__init__()
 
     def startService(self):
-        logger.info('starting smtp service')
+        self.log.info('starting smtp service')
         port, factory = smtp_service.run_service(
             self._soledad_sessions,
             self._keymanager_sessions,
@@ -704,7 +710,7 @@ class SMTPService(service.Service):
         super(SMTPService, self).startService()
 
     def stopService(self):
-        logger.info('stopping smtp service')
+        self.log.info('Stopping SMTP Service')
         if self._port:
             self._port.stopListening()
             self._port = None
@@ -725,6 +731,7 @@ class IncomingMailService(service.MultiService):
     """
 
     name = 'incoming_mail'
+    log = Logger()
 
     def __init__(self, mail_service):
         super(IncomingMailService, self).__init__()
@@ -732,7 +739,7 @@ class IncomingMailService(service.MultiService):
         self._status = {}
 
     def startService(self):
-        logger.info('starting incoming mail service')
+        self.log.info('Starting Incoming Mail Service')
         super(IncomingMailService, self).startService()
 
     def stopService(self):
@@ -745,7 +752,7 @@ class IncomingMailService(service.MultiService):
         soledad = self._mail.get_soledad_session(userid)
         keymanager = self._mail.get_keymanager_session(userid)
 
-        logger.info('setting up incoming mail service for %s' % userid)
+        self.log.info('Setting up Incoming Mail Service for %s' % userid)
         self._start_incoming_mail_instance(
             keymanager, soledad, userid)
 
@@ -773,7 +780,7 @@ class IncomingMailService(service.MultiService):
                 keymanager, soledad,
                 inbox, userid,
                 check_period=INCOMING_CHECK_PERIOD)
-            logger.debug('setting incoming mail service for %s' % userid)
+            self.log.debug('Setting Incoming Mail Service for %s' % userid)
             incoming_mail.setName(userid)
             self.addService(incoming_mail)
 
@@ -791,7 +798,7 @@ class IncomingMailService(service.MultiService):
 
     def _errback(self, failure, userid):
         self._set_status(userid, "failure", error=str(failure))
-        logger.error(str(failure))
+        self.log.failure('failure!')
 
 # --------------------------------------------------------------------
 #

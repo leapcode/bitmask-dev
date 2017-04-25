@@ -32,19 +32,20 @@ from leap.bitmask.vpn.utils import get_vpn_launcher
 from leap.bitmask.vpn import _status
 from leap.bitmask.vpn import _management
 
-logger = Logger()
-
 
 # OpenVPN verbosity level - from flags.py
 OPENVPN_VERBOSITY = 1
 
 
 class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
+
     """
     A ProcessProtocol class that can be used to spawn a process that will
     launch openvpn and connect to its management interface to control it
     programmatically.
     """
+
+    log = Logger()
 
     # TODO do we really need the vpnconfig/providerconfig objects in here???
 
@@ -123,7 +124,7 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         line = data[:-1]
         if 'SIGTERM[soft,ping-restart]' in line:
             self.restarting = True
-        logger.info(line)
+        self.log.info(line)
         self._status.watch(line)
 
     def processExited(self, failure):
@@ -140,9 +141,9 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         elif err == internet_error.ProcessTerminated:
             status, errmsg = 'failure', failure.value.exitCode
             if errmsg:
-                logger.debug("processExited, status %d" % (errmsg,))
+                self.log.debug('processExited, status %d' % (errmsg,))
             else:
-                logger.warn('%r' % failure.value)
+                self.log.warn('%r' % failure.value)
 
         self._status.set_status(status, errmsg)
         self._alive = False
@@ -156,9 +157,9 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         """
         exit_code = reason.value.exitCode
         if isinstance(exit_code, int):
-            logger.debug("processEnded, status %d" % (exit_code,))
+            self.log.debug('processEnded, status %d' % (exit_code,))
             if self.restarting:
-                logger.debug('Restarting VPN process')
+                self.log.debug('Restarting VPN process')
                 reactor.callLater(2, self._restartfun)
 
     # polling
@@ -202,8 +203,8 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
             if not isinstance(c, str):
                 command[i] = c.encode(encoding)
 
-        logger.debug("Running VPN with command: ")
-        logger.debug("{0}".format(" ".join(command)))
+        self.log.debug("Running VPN with command: ")
+        self.log.debug("{0}".format(" ".join(command)))
         return command
 
     def getGateways(self):
@@ -227,4 +228,4 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         try:
             self.transport.signalProcess('KILL')
         except internet_error.ProcessExitedAlready:
-            logger.debug('Process Exited Already')
+            self.log.debug('Process Exited Already')

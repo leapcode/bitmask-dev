@@ -8,7 +8,7 @@ from twisted.logger import Logger
 from .process import VPNProcess
 from .constants import IS_MAC
 
-logger = Logger()
+log = Logger()
 
 # NOTE: We need to set a bigger poll time in OSX because it seems
 # openvpn malfunctions when you ask it a lot of things in a short
@@ -47,7 +47,7 @@ class VPNControl(object):
         self._port = socket_port
 
     def start(self):
-        logger.debug('VPN: start')
+        log.debug('VPN: start')
 
         self._user_stopped = False
         self._stop_pollers()
@@ -58,13 +58,13 @@ class VPNControl(object):
             restartfun=self.restart)
 
         if vpnproc.get_openvpn_process():
-            logger.info("Another vpn process is running. Will try to stop it.")
+            log.info('Another vpn process is running. Will try to stop it.')
             vpnproc.stop_if_already_running()
 
         try:
             cmd = vpnproc.getCommand()
         except Exception as e:
-            logger.error("Error while getting vpn command... {0!r}".format(e))
+            log.error('Error while getting vpn command... {0!r}'.format(e))
             raise
 
         env = os.environ
@@ -118,7 +118,7 @@ class VPNControl(object):
             reactor.callLater(
                 self.TERMINATE_WAIT, self._kill_if_left_alive)
         else:
-            logger.debug("VPN is not running.")
+            log.debug('VPN is not running.')
 
         return True
 
@@ -153,7 +153,7 @@ class VPNControl(object):
         """
         self._stop_pollers()
         if self._vpnproc is None:
-            logger.debug("There's no vpn process running to kill.")
+            log.debug("There's no vpn process running to kill.")
         else:
             self._vpnproc.aborted = True
             self._vpnproc.killProcess()
@@ -168,10 +168,9 @@ class VPNControl(object):
         """
         while tries < self.TERMINATE_MAXTRIES:
             if self._vpnproc.transport.pid is None:
-                logger.debug("Process has been happily terminated.")
                 return
             else:
-                logger.debug("Process did not die, waiting...")
+                log.debug('Process did not die, waiting...')
 
             tries += 1
             reactor.callLater(self.TERMINATE_WAIT,
@@ -179,11 +178,11 @@ class VPNControl(object):
             return
 
         # after running out of patience, we try a killProcess
-        logger.debug("Process did not died. Sending a SIGKILL.")
+        log.debug('Process did not die. Sending a SIGKILL.')
         try:
             self._killit()
         except OSError:
-            logger.error("Could not kill process!")
+            log.error('Could not kill process!')
 
     def _start_pollers(self):
         """

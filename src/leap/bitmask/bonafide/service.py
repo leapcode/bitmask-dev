@@ -30,11 +30,12 @@ from twisted.internet import defer
 from twisted.logger import Logger
 
 
-logger = Logger()
 _preffix = get_path_prefix()
 
 
 class BonafideService(HookableService):
+
+    log = Logger()
 
     def __init__(self, basedir=None):
         if not basedir:
@@ -44,7 +45,7 @@ class BonafideService(HookableService):
         self.service_hooks = defaultdict(list)
 
     def startService(self):
-        logger.debug('starting Bonafide Service')
+        self.log.debug('Starting Bonafide Service')
         super(BonafideService, self).startService()
 
     # Commands
@@ -58,7 +59,7 @@ class BonafideService(HookableService):
         def notify_bonafide_auth(result):
             if not result:
                 msg = "authentication hook did not return anything"
-                logger.debug(msg)
+                self.log.debug(msg)
                 raise RuntimeError(msg)
 
             token, uuid = result

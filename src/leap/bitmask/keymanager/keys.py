@@ -30,7 +30,7 @@ from leap.bitmask.keymanager.wrapper import TempGPGWrapper
 from leap.bitmask.keymanager.validation import ValidationLevels
 from leap.bitmask.keymanager import documents as doc
 
-logger = Logger()
+log = Logger()
 
 
 #
@@ -71,9 +71,9 @@ def build_key_from_dict(key, active=None):
         try:
             validation = ValidationLevels.get(active[doc.KEY_VALIDATION_KEY])
         except ValueError:
-            logger.error("Not valid validation level (%s) for key %s",
-                         (active[doc.KEY_VALIDATION_KEY],
-                          active[doc.KEY_FINGERPRINT_KEY]))
+            log.error('Not valid validation level (%s) for key %s',
+                      (active[doc.KEY_VALIDATION_KEY],
+                       active[doc.KEY_FINGERPRINT_KEY]))
         last_audited_at = _to_datetime(active[doc.KEY_LAST_AUDITED_AT_KEY])
         encr_used = active[doc.KEY_ENCR_USED_KEY]
         sign_used = active[doc.KEY_SIGN_USED_KEY]
@@ -112,6 +112,7 @@ def _to_unix_time(date):
 
 
 class OpenPGPKey(object):
+
     """
     Base class for OpenPGP keys.
     """
@@ -120,6 +121,7 @@ class OpenPGPKey(object):
                  'private', 'length', 'expiry_date', 'validation',
                  'last_audited_at', 'refreshed_at',
                  'encr_used', 'sign_used', '_index', '_gpgbinary')
+    log = Logger()
 
     def __init__(self, address=None, gpgbinary=None, uids=[], fingerprint="",
                  key_data="", private=False, length=0, expiry_date=None,
@@ -184,7 +186,7 @@ class OpenPGPKey(object):
 
     def merge(self, newkey):
         if newkey.fingerprint != self.fingerprint:
-            logger.critical(
+            self.log.critical(
                 "Can't put a key whith the same key_id and different "
                 "fingerprint: %s, %s"
                 % (newkey.fingerprint, self.fingerprint))

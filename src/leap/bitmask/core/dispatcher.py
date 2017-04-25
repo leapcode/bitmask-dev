@@ -35,7 +35,7 @@ from leap.common.events import catalog
 from .api import APICommand, register_method
 
 
-logger = Logger()
+log = Logger()
 
 
 class DispatchError(Exception):
@@ -546,11 +546,9 @@ def _format_error(failure):
 
     expected = getattr(failure.value, 'expected', False)
     if not expected:
-        try:
-            logger.failure('[DISPATCHER] Unexpected error:')
-        except:
-            logger.debug('[DISPATCHER] Unexpected error: %r' % failure.value)
-            logger.warn(failure.getTraceback())
+        log.error('[DISPATCHER] Unexpected error!')
+        log.error('{0!r}'.format(failure.value))
+        log.error(failure.getTraceback())
 
     # if needed, we could add here the exception type as an extra field
     return json.dumps({'error': failure.value.message, 'result': None})

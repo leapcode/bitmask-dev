@@ -35,7 +35,6 @@ except ImportError:
     GNUPG_NG = False
 
 
-logger = Logger()
 
 
 class TempGPGWrapper(object):
@@ -43,6 +42,7 @@ class TempGPGWrapper(object):
     A context manager that wraps a temporary GPG keyring which only contains
     the keys given at object creation.
     """
+    log = Logger()
 
     def __init__(self, keys=None, gpgbinary=None):
         """
@@ -160,6 +160,6 @@ class TempGPGWrapper(object):
             homedir = os.path.normpath(homedir).replace("\\", "/")
             homedir = str(homedir.replace("c:/", "c://"))
             if platform.system() == "Windows":
-                logger.error("BUG! Not erasing folder in Windows")
+                self.log.error("BUG! Not erasing folder in Windows")
                 return
             shutil.rmtree(homedir)

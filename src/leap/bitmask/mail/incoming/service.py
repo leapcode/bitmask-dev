@@ -164,7 +164,8 @@ class IncomingMail(Service):
         Calls a deferred that will execute the fetch callback.
         """
         def _sync_errback(failure):
-            self.log.failure('Error while fetching incoming mail')
+            self.log.error(
+                'Error while fetching incoming mail {0!r}'.format(failure))
 
         def syncSoledadCallback(_):
             # XXX this should be moved to adaptors
@@ -219,7 +220,8 @@ class IncomingMail(Service):
     # synchronize incoming mail
 
     def _errback(self, failure):
-        self.log.failure('Error while processing incoming mail')
+        self.log.error(
+            'Error while processing incoming mail {0!r}'.format(failure))
 
     def _sync_soledad(self):
         """
@@ -234,7 +236,7 @@ class IncomingMail(Service):
 
         def _handle_invalid_auth_token_error(failure):
             failure.trap(InvalidAuthTokenError)
-            self.log.warn('sync failed because token is invalid: %r' % failure)
+            self.log.warn('Sync failed because token is invalid: %r' % failure)
             self.stopService()
             emit_async(catalog.SOLEDAD_INVALID_AUTH_TOKEN, self._userid)
 
@@ -338,7 +340,7 @@ class IncomingMail(Service):
             return self._process_decrypted_doc(doc, decrdata)
 
         def log_doc_id_and_call_errback(failure):
-            self.log.failure(
+            self.log.error(
                 '_decrypt_doc: Error decrypting document with '
                 'ID %s' % doc.doc_id)
 
@@ -368,8 +370,10 @@ class IncomingMail(Service):
         # the deferreds that would process an individual document
         try:
             msg = json_loads(data)
-        except (UnicodeError, ValueError):
-            self.log.failure("Error while decrypting %s" % (doc.doc_id,))
+        except (UnicodeError, ValueError) as exc:
+            self.log.error('Error while decrypting %s' %
+                           (doc.doc_id,))
+            self.log.error(str(exc))
 
             # we flag the message as "with decrypting errors",
             # to avoid further decryption attempts during sync
@@ -764,12 +768,13 @@ class IncomingMail(Service):
                                       % (url,))
                     elif failure.check(keymanager_errors.KeyAttributesDiffer):
                         self.log.warn("Key from OpenPGP header url %s didn't "
-                                    "match the from address %s"
-                                    % (url, address))
+                                      "match the from address %s"
+                                      % (url, address))
                     else:
-                        self.log.warn("An error has ocurred adding key from "
-                                    "OpenPGP header url %s for %s: %s" %
-                                    (url, address, failure.getErrorMessage()))
+                        self.log.warn(
+                            "An error has ocurred adding key from "
+                            "OpenPGP header url %s for %s: %s" %
+                            (url, address, failure.getErrorMessage()))
                     return False
 
                 d = self._keymanager.fetch_key(address, url)
@@ -804,7 +809,7 @@ class IncomingMail(Service):
 
         def failed_put_key(failure):
             self.log.info("An error has ocurred adding attached key for %s: %s"
-                        % (address, failure.getErrorMessage()))
+                          % (address, failure.getErrorMessage()))
             return False
 
         deferreds = []

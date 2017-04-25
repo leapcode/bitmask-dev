@@ -41,8 +41,6 @@ from leap.soledad.common import l2db
 from leap.soledad.common.document import SoledadDocument
 
 
-logger = Logger()
-
 # TODO
 # [ ] Convenience function to create mail specifying subject, date, etc?
 
@@ -67,6 +65,7 @@ def cleanup_deferred_locks():
 
 
 class SoledadDocumentWrapper(models.DocumentWrapper):
+
     """
     A Wrapper object that can be manipulated, passed around, and serialized in
     a format that the Soledad Store understands.
@@ -74,6 +73,9 @@ class SoledadDocumentWrapper(models.DocumentWrapper):
     It ensures atomicity of the document operations on creation, update and
     deletion.
     """
+
+    log = Logger()
+
     # TODO we could also use a _dirty flag (in models)
     # TODO add a get_count() method ??? -- that is extended over l2db.
 
@@ -186,7 +188,7 @@ class SoledadDocumentWrapper(models.DocumentWrapper):
         # error, we should mark them in the copy so there is no attempt to
         # create/update them.
         failure.trap(l2db.errors.RevisionConflict)
-        logger.debug("got conflict while putting %s" % doc_id)
+        self.log.debug('Got conflict while putting %s' % doc_id)
 
     def delete(self, store):
         """
@@ -506,7 +508,7 @@ class MessageWrapper(object):
             for (key, doc) in cdocs.items()])
         for doc_id, cdoc in zip(self.mdoc.cdocs, self.cdocs.values()):
             if cdoc.raw == "":
-                logger.warn("Empty raw field in cdoc %s" % doc_id)
+                self.log.warn('Empty raw field in cdoc %s' % doc_id)
             cdoc.set_future_doc_id(doc_id)
 
     def create(self, store, notify_just_mdoc=False, pending_inserts_dict=None):
@@ -588,7 +590,7 @@ class MessageWrapper(object):
                 self.d.append(cdoc.create(store))
 
         def log_all_inserted(result):
-            logger.debug("All parts inserted for msg!")
+            self.log.debug('All parts inserted for msg!')
             return result
 
         self.all_inserted_d = defer.gatherResults(self.d, consumeErrors=True)
@@ -850,6 +852,8 @@ class SoledadMailAdaptor(SoledadIndexMixin):
 
     mboxwrapper_klass = MailboxWrapper
 
+    log = Logger()
+
     def __init__(self):
         SoledadIndexMixin.__init__(self)
 
@@ -948,15 +952,15 @@ class SoledadMailAdaptor(SoledadIndexMixin):
             # See https://leap.se/code/issues/7495.
             # This avoids blocks, but the real cause still needs to be
             # isolated (0.9.0rc3) -- kali
-            logger.debug("BUG ------------------------------------------")
-            logger.debug(
+            self.log.debug("BUG ------------------------------------------")
+            self.log.debug(
                 "BUG: Error while retrieving part docs for mdoc id %s" %
                 mdoc_id)
-            logger.debug("BUG (please report above info) ---------------")
+            self.log.debug("BUG (please report above info) ---------------")
             return []
 
         def _err_log_cannot_find_msg(failure):
-            logger.error("BUG: Error while getting msg (uid=%s)" % uid)
+            self.log.error('BUG: Error while getting msg (uid=%s)' % uid)
             return None
 
         if get_cdocs:
@@ -1089,7 +1093,7 @@ class SoledadMailAdaptor(SoledadIndexMixin):
         unseen_index = indexes.TYPE_MBOX_SEEN_IDX
 
         d = store.get_count_from_index(unseen_index, type_, uuid, "0")
-        d.addErrback(self._errback)
+        d.addErrback(lambda f: self.log.error('Error on count_unseen'))
         return d
 
     def get_count_recent(self, store, mbox_uuid):
@@ -1106,7 +1110,7 @@ class SoledadMailAdaptor(SoledadIndexMixin):
         recent_index = indexes.TYPE_MBOX_RECENT_IDX
 
         d = store.get_count_from_index(recent_index, type_, uuid, "1")
-        d.addErrback(self._errback)
+        d.addErrback(lambda f: self.log.error('Error on count_recent'))
         return d
 
     # search api
@@ -1124,7 +1128,7 @@ class SoledadMailAdaptor(SoledadIndexMixin):
 
         def get_mdoc_id(hdoc):
             if not hdoc:
-                logger.warn("Could not find a HDOC with MSGID %s" % msgid)
+                self.log.warn("Could not find a HDOC with MSGID %s" % msgid)
                 return None
             hdoc = hdoc[0]
             mdoc_id = hdoc.doc_id.replace("H-", "M-%s-" % uuid)
@@ -1174,9 +1178,6 @@ class SoledadMailAdaptor(SoledadIndexMixin):
         :rtype: defer.Deferred
         """
         return MailboxWrapper.get_all(store)
-
-    def _errback(self, failure):
-        logger.failure()
 
 
 def _split_into_parts(raw):

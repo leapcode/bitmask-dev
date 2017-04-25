@@ -32,16 +32,6 @@ from leap.bitmask.mail.mail import Account
 from leap.bitmask.mail.imap.mailbox import IMAPMailbox, normalize_mailbox
 from leap.soledad.client import Soledad
 
-logger = Logger()
-
-PROFILE_CMD = os.environ.get('LEAP_PROFILE_IMAPCMD', False)
-
-if PROFILE_CMD:
-    def _debugProfiling(result, cmdname, start):
-        took = (time.time() - start) * 1000
-        logger.debug("CMD " + cmdname + " TOOK: " + str(took) + " msec")
-        return result
-
 
 #######################################
 # Soledad IMAP Account
@@ -49,6 +39,7 @@ if PROFILE_CMD:
 
 
 class IMAPAccount(object):
+
     """
     An implementation of an imap4 Account
     that is backed by Soledad Encrypted Documents.
@@ -57,6 +48,7 @@ class IMAPAccount(object):
     implements(imap4.IAccount, imap4.INamespacePresenter)
 
     selected = None
+    log = Logger()
 
     def __init__(self, store, user_id, d=defer.Deferred()):
         """
@@ -246,7 +238,7 @@ class IMAPAccount(object):
 
         def check_it_exists(mailboxes):
             if name not in mailboxes:
-                logger.warn('SELECT: No such mailbox!')
+                self.log.warn('SELECT: No such mailbox!')
                 return None
             return name
 

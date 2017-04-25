@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # nicknym.py
-# Copyright (C) 2016 LEAP
+# Copyright (C) 2016-2017 LEAP
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,10 +17,10 @@
 
 import json
 import sys
-import logging
 import urllib
 
 from twisted.internet import defer
+from twisted.logger import Logger
 from twisted.web import client
 from twisted.web._responses import NOT_FOUND
 
@@ -30,13 +30,13 @@ from leap.common.http import HTTPClient
 from leap.common.decorators import memoized_method
 
 
-logger = logging.getLogger(__name__)
-
-
 class Nicknym(object):
+
     """
     Responsible for communication to the nicknym server.
     """
+
+    log = Logger()
 
     PUBKEY_KEY = "user[public_key]"
 
@@ -83,12 +83,12 @@ class Nicknym(object):
                                                           body=str(data),
                                                           headers=headers)
         except Exception as e:
-            logger.warning("Error uploading key: %r" % (e,))
+            self.log.warn('Error uploading key: %r' % (e,))
             raise e
         if 'error' in res:
             # FIXME: That's a workaround for 500,
             # we need to implement a readBody to assert response code
-            logger.warning("Error uploading key: %r" % (res,))
+            self.log.warn('Error uploading key: %r' % (res,))
             raise Exception(res)
 
     @defer.inlineCallbacks
@@ -105,19 +105,17 @@ class Nicknym(object):
         try:
             content = yield self._fetch_and_handle_404_from_nicknym(uri)
             json_content = json.loads(content)
-
         except KeyNotFound:
             raise
         except IOError as e:
-            logger.warning("HTTP error retrieving key: %r" % (e,))
-            logger.warning("%s" % (content,))
+            self.log.warn('HTTP error retrieving key: %r' % (e,))
+            self.log.warn("%s" % (content,))
             raise KeyNotFound(e.message), None, sys.exc_info()[2]
         except ValueError as v:
-            logger.warning("Invalid JSON data from key: %s" % (uri,))
+            self.log.warn('Invalid JSON data from key: %s' % (uri,))
             raise KeyNotFound(v.message + ' - ' + uri), None, sys.exc_info()[2]
-
         except Exception as e:
-            logger.warning("Error retrieving key: %r" % (e,))
+            self.log.warn('Error retrieving key: %r' % (e,))
             raise KeyNotFound(e.message), None, sys.exc_info()[2]
         # Responses are now text/plain, although it's json anyway, but
         # this will fail when it shouldn't
@@ -141,7 +139,7 @@ class Nicknym(object):
             if response.code == NOT_FOUND:
                 message = ' %s: Key not found. Request: %s' \
                           % (response.code, uri)
-                logger.warning(message)
+                self.log.warn(message)
                 raise KeyNotFound(message), None, sys.exc_info()[2]
             return response
 

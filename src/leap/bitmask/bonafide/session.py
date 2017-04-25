@@ -24,7 +24,6 @@ from leap.bitmask.bonafide import _srp
 from leap.bitmask.bonafide import provider
 from leap.bitmask.bonafide._http import httpRequest, cookieAgentFactory
 
-logger = Logger()
 
 OK = 'ok'
 
@@ -44,6 +43,8 @@ def _auth_required(func):
 
 
 class Session(object):
+
+    log = Logger()
 
     def __init__(self, credentials, api, provider_cert):
         # TODO check if an anonymous credentials is passed.
@@ -91,7 +92,7 @@ class Session(object):
     def authenticate(self):
         uri = self._api.get_handshake_uri()
         met = self._api.get_handshake_method()
-        logger.debug("%s to %s" % (met, uri))
+        self.log.debug('%s to %s' % (met, uri))
         params = self._srp_auth.get_handshake_params()
 
         handshake = yield self._request(self._agent, uri, values=params,
@@ -101,7 +102,7 @@ class Session(object):
         uri = self._api.get_authenticate_uri(login=self.username)
         met = self._api.get_authenticate_method()
 
-        logger.debug("%s to %s" % (met, uri))
+        self.log.debug('%s to %s' % (met, uri))
         params = self._srp_auth.get_authentication_params()
 
         auth = yield self._request(self._agent, uri, values=params,
@@ -119,9 +120,7 @@ class Session(object):
     def logout(self):
         uri = self._api.get_logout_uri()
         met = self._api.get_logout_method()
-        auth = yield self._request(self._agent, uri, method=met)
-        print 'AUTH', auth
-        print 'resetting user/pass'
+        yield self._request(self._agent, uri, method=met)
         self.username = None
         self.password = None
         self._initialize_session()
@@ -211,6 +210,8 @@ if __name__ == "__main__":
     import sys
     from twisted.cred.credentials import UsernamePassword
 
+    log = Logger()
+
     if len(sys.argv) != 4:
         print "Usage:", sys.argv[0], "provider", "username", "password"
         sys.exit()
@@ -229,7 +230,7 @@ if __name__ == "__main__":
         reactor.stop()
 
     def auth_eb(failure):
-        logger.error(failure)
+        log.error(failure)
 
     d = session.authenticate()
     d.addCallback(print_result)
