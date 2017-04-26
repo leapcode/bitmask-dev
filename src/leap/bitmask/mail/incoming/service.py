@@ -281,8 +281,9 @@ class IncomingMail(Service):
 
         deferreds = []
         for index, doc in enumerate(doclist):
-            self.log.debug("processing incoming message: %d of %d"
-                         % (index + 1, num_mails))
+            self.log.debug(
+                'processing incoming message: %d of %d'
+                % (index + 1, num_mails))
             emit_async(catalog.MAIL_MSG_PROCESSING, self._userid,
                        str(index), str(num_mails))
 

@@ -427,8 +427,9 @@ class IMAPMailbox(object):
 
         def log_num_msg(result):
             exists, recent = tuple(result)
-            self.log.debug("NOTIFY (%r): there are %s messages, %s recent" % (
-                         self.mbox_name, exists, recent))
+            self.log.debug(
+                'NOTIFY (%r): there are %s messages, %s recent' % (
+                    self.mbox_name, exists, recent))
             return result
 
         d = defer.gatherResults(d_list)

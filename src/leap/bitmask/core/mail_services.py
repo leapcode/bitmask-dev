@@ -194,10 +194,12 @@ class SoledadService(HookableService):
 
             container = self._container
             if container.get_instance(userid):
-                self.log.debug('Passing a new SRP Token to Soledad: %s' % userid)
+                self.log.debug(
+                    'Passing a new SRP Token to Soledad: %s' % userid)
                 container.set_remote_auth_token(userid, token)
             else:
-                self.log.debug('Adding a new Soledad Instance: %s' % userid)
+                self.log.debug(
+                    'Adding a new Soledad Instance: %s' % userid)
                 container.add_instance(
                     userid, password, uuid=uuid, token=token)
 

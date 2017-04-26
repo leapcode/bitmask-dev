@@ -110,8 +110,9 @@ class RandomRefreshPublicKey(object):
             fetch_key_with_fingerprint(old_key.fingerprint)
 
         if old_updated_key.fingerprint != old_key.fingerprint:
-            self.log.error(ERROR_UNEQUAL_FINGERPRINTS %
-                         (old_key.fingerprint, old_updated_key.fingerprint))
+            self.log.error(
+                ERROR_UNEQUAL_FINGERPRINTS % (
+                    old_key.fingerprint, old_updated_key.fingerprint))
             defer.returnValue(None)
 
         yield self._maybe_unactivate_key(old_updated_key)

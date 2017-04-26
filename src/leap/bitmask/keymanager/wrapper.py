@@ -35,8 +35,6 @@ except ImportError:
     GNUPG_NG = False
 
 
-
-
 class TempGPGWrapper(object):
     """
     A context manager that wraps a temporary GPG keyring which only contains
