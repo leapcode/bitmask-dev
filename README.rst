@@ -43,8 +43,6 @@ bonafide, mail, keymanager, bitmask.
 The previous Qt client has been deprecated (bitmask version 0.9.2, still
 available at the http://github.com/leapcode/bitmask_client repo).
 
-Note that this repo still doesn't have support for VPN: its porting will
-follow soon.
 
 Read the Docs!
 -----------------------------------------------------------
