@@ -424,7 +424,7 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         """
         km = self._key_manager()
 
-        km._nicknym._async_client_pinned.request = \
+        km._async_client.request = \
             mock.Mock(return_value=defer.succeed(""))
         d = km.fetch_key(ADDRESS, "http://site.domain/key")
         return self.assertFailure(d, errors.KeyNotFound)

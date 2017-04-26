@@ -140,7 +140,8 @@ class TestOutgoingMail(KeyManagerWithSoledadTestCase):
         Test if message is signed with sender key.
         """
         # mock the key fetching
-        self.km._fetch_keys_from_server = Mock(
+        # XXX this is fucking ugly.
+        self.km._fetch_keys_from_server_and_store_local = Mock(
             return_value=fail(errors.KeyNotFound()))
         recipient = User('ihavenopubkey@nonleap.se',
                          'gateway.leap.se', self.proto, ADDRESS)
@@ -191,6 +192,7 @@ class TestOutgoingMail(KeyManagerWithSoledadTestCase):
             d.addCallback(assert_verify)
             return d
 
+        # TODO shouldn't depend on private method on this test
         d = self.outgoing_mail._maybe_encrypt_and_sign(self.raw, recipient)
         d.addCallback(check_signed)
         d.addCallback(verify)
