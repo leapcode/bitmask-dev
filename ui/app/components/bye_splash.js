@@ -23,13 +23,13 @@ export default class ByeSplash extends React.Component {
 
   componentDidMount() {
     this.interval = setInterval(this.tick, this.props.delay)
-     bitmask.core.stop().then(msg => {
-       console.log(msg)
-       this.setState({readyToQuit: true})
-     }, error => {
-       console.log(error)
-       this.setState({errorMessage: error})
-     })
+    bitmask.core.stop().then(msg => {
+      console.log(msg)
+      this.setState({readyToQuit: true})
+    }, error => {
+      console.log(error)
+      this.setState({errorMessage: error})
+    })
   }
 
   componentWillUnmount() {
