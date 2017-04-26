@@ -13,8 +13,8 @@ class Application {
   // main entry point for the application
   //
   initialize() {
-    window.addEventListener("error", this.showError.bind(this))
-    window.addEventListener("unhandledrejection", this.showError.bind(this))
+    //window.addEventListener("error", this.showError.bind(this))
+    //window.addEventListener("unhandledrejection", this.showError.bind(this))
     this.start()
   }
 
