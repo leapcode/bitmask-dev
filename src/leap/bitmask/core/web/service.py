@@ -138,7 +138,8 @@ class HTTPDispatcherService(service.Service):
 
     def stopService(self):
         self.site.stopFactory()
-        self.listener.stopListening()
+        if hasattr(self, 'listener'):
+            self.listener.stopListening()
         self.running = False
 
     def do_status(self):
