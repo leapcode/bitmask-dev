@@ -104,6 +104,11 @@ This extension gets published to the `mozilla addons page`_.
 .. _`this repo`: https://0xacab.org/leap/bitmask_thunderbird
 .. _`mozilla addons page`: https://addons.mozilla.org/en-US/thunderbird/addon/bitmask
 
+Debugging Bitmask
+---------------------------------
+
+A must-read for debugging the Bitmask Core daemon is the :ref:`manhole HowTo <manhole>`.
+
 
 How to contribute code
 ---------------------------------

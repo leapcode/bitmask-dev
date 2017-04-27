@@ -19,6 +19,7 @@ Features
 - VPN and Mail status displayed in the UI
 - Port Pixelated UA integration from legacy bitmask
 - Add Pixelated Button to the UI
+- Add ability to ssh into the bitmask daemon for debug
 
 Bugfixes
 ~~~~~~~~

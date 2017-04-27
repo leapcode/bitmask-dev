@@ -6,28 +6,6 @@ Hacking  on Bitmask Mail
 Some hints oriented to `leap.mail` hackers. These notes are mostly related to
 the imap server, although they probably will be useful for other pieces too.
 
-Don't panic! Just manhole into it
----------------------------------
-
-
-If you want to inspect the objects living in your application memory, in
-realtime, you can manhole into it.
-
-First of all, check that the modules ``PyCrypto`` and ``pyasn1`` are installed
-into your system, they are needed for it to work.
-
-You just have to pass the ``LEAP_MAIL_MANHOLE=1`` enviroment variable while
-launching the client::
-
-  LEAP_MAIL_MANHOLE=1 bitmask --debug
-
-And then you can ssh into your application! (password is "leap")::
-
-  ssh boss@localhost -p 2222
-
-Did I mention how *awesome* twisted is?? ``:)``
-
-
 Profiling
 ----------
 
