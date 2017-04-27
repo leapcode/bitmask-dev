@@ -20,18 +20,22 @@ Bitmask-core Service.
 import json
 import os
 import uuid
+import tempfile
 try:
     import resource
 except ImportError:
     pass
 
+from twisted.conch import manhole_tap
 from twisted.internet import reactor
+from twisted.internet.endpoints import TCP4ServerEndpoint
 from twisted.logger import Logger
 
 from leap.bitmask import __version__
 from leap.bitmask.core import configurable
-from leap.bitmask.core import _zmq
+from leap.bitmask.core import manhole
 from leap.bitmask.core import flags
+from leap.bitmask.core import _zmq
 from leap.bitmask.core import _session
 from leap.bitmask.core.web.service import HTTPDispatcherService
 from leap.bitmask.vpn.service import VPNService
@@ -80,6 +84,15 @@ class BitmaskBackend(configurable.ConfigurableService):
         def enabled(service):
             return self.get_config('services', service, False, boolean=True)
 
+        def with_manhole():
+            user = self.get_config('manhole', 'user', None)
+            passwd = self.get_config('manhole', 'passwd', None)
+            port = self.get_config('manhole', 'port', None)
+            if user and passwd:
+                conf = {'user': user, 'passwd': passwd, 'port': port}
+                return conf
+            return None
+
         on_start = reactor.callWhenRunning
 
         on_start(self.init_events)
@@ -101,6 +114,10 @@ class BitmaskBackend(configurable.ConfigurableService):
 
         if enabled('websockets'):
             on_start(self._init_websockets)
+
+        manholecfg = with_manhole()
+        if manhole:
+            on_start(self._init_manhole, manholecfg)
 
     def _touch_token_file(self):
         path = os.path.join(self.basedir, 'authtoken')
@@ -208,6 +225,19 @@ class BitmaskBackend(configurable.ConfigurableService):
             service.setName(label)
             service.setServiceParent(self)
         return service
+
+    def _init_manhole(self, cfg):
+        try:
+            port = int(cfg.get('port'))
+        except ValueError:
+            port = manhole.PORT
+        user, passwd = cfg['user'], cfg['passwd']
+        sshFactory = manhole.getManholeFactory(
+            {'core': self}, user, passwd)
+        endpoint = TCP4ServerEndpoint(reactor, port)
+        endpoint.listen(sshFactory)
+
+        log.info('Started manhole in PORT {0!s}'.format(port))
 
     def do_stats(self):
         return self.core_commands.do_stats()

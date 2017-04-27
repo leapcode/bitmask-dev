@@ -39,12 +39,8 @@ from leap.bitmask.mail.imap.server import LEAPIMAPServer
 
 log = Logger()
 
-DO_MANHOLE = os.environ.get("LEAP_MAIL_MANHOLE", None)
-if DO_MANHOLE:
-    from leap.bitmask.mail.imap.service import manhole
 
 # The default port in which imap service will run
-
 IMAP_PORT = 1984
 
 #
@@ -180,16 +176,6 @@ def run_service(soledad_sessions, port=IMAP_PORT, factory=None):
         log.error("Error launching IMAP service: %r" % (exc,))
     else:
         # all good.
-
-        if DO_MANHOLE:
-            # TODO get pass from env var.too.
-            manhole_factory = manhole.getManholeFactory(
-                {'f': factory,
-                 'gm': factory.theAccount.getMailbox},
-                "boss", "leap")
-            # TODO  use Endpoints !!!
-            reactor.listenTCP(manhole.MANHOLE_PORT, manhole_factory,
-                              interface="127.0.0.1")
         log.debug('IMAP4 Server is RUNNING in port  %s' % (port,))
         emit_async(catalog.IMAP_SERVICE_STARTED, str(port))
 
