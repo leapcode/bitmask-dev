@@ -50,7 +50,6 @@ SUBCOMMANDS:
         self.data.append('user')
 
     def create(self, raw_args):
-        args = tuple([command.appname] + sys.argv[1:4])
         passwd = None
 
         for (index, item) in enumerate(raw_args):
@@ -60,7 +59,7 @@ SUBCOMMANDS:
 
         parser = argparse.ArgumentParser(
             description='Bitmask user',
-            prog='%s %s %s  %s' % args)
+            prog='%s %s %s' % tuple(sys.argv[:3]))
         parser.add_argument('--invitecode', **_invitecode_kw)
         parser.add_argument('username', **_username_kw)
 
@@ -124,10 +123,9 @@ SUBCOMMANDS:
         return defer.succeed(None)
 
     def _username(self, raw_args, needed=False):
-        args = tuple([command.appname] + sys.argv[1:3])
         parser = argparse.ArgumentParser(
             description='Bitmask user',
-            prog='%s %s %s' % args)
+            prog='%s %s %s' % tuple(sys.argv[:3]))
         parser.add_argument('username', **_username_kw)
         subargs = parser.parse_args(raw_args)
 
