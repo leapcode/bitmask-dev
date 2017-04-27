@@ -636,7 +636,7 @@ class LEAPIMAP4ServerTestCase(IMAP4HelperMixin):
         for details.
         """
         # TODO implement the IMAP4ClientExamineTests testcase.
-        mbox_name = "test_mailbox_e"
+        mbox_name = "test_mailbox_examine"
         acc = self.server.theAccount
         self.examinedArgs = None
 

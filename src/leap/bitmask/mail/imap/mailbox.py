@@ -64,14 +64,14 @@ def make_collection_listener(mailbox):
         def __init__(self, mbox):
             self.mbox = mbox
 
-            # See #8083, pixelated adaptor seems to be misusing this class.
-            self.mailbox_name = self.mbox.mbox_name
+            # See #8083, pixelated adaptor introduces conflicts in the usage
+            self.mailbox_name = self.mbox.mbox_name + 'IMAP'
 
         def __hash__(self):
-            return hash(self.mbox.mbox_name)
+            return hash(self.mailbox_name)
 
         def __eq__(self, other):
-            return self.mbox.mbox_name == other.mbox.mbox_name
+            return self.mailbox_name == other.mbox.mbox_name + 'IMAP'
 
         def notify_new(self):
             self.mbox.notify_new()
@@ -397,8 +397,6 @@ class IMAPMailbox(object):
 
         :param args: ignored.
         """
-        if not NOTIFY_NEW:
-            return
 
         def cbNotifyNew(result):
             exists, recent = result
@@ -887,15 +885,8 @@ class IMAPMailbox(object):
                  uid when the copy succeed.
         :rtype: Deferred
         """
-        # A better place for this would be  the COPY/APPEND dispatcher
-        # in server.py, but qtreactor hangs when I do that, so this seems
-        # to work fine for now.
-        # d.addCallback(lambda r: self.reactor.callLater(0, self.notify_new))
-        # deferLater(self.reactor, 0, self._do_copy, message, d)
-        # return d
-
-        d = self.collection.copy_msg(message.message,
-                                     self.collection.mbox_uuid)
+        d = self.collection.copy_msg(
+            message.message, self.collection.mbox_uuid)
         return d
 
     # convenience fun

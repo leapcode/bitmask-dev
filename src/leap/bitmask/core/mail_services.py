@@ -509,18 +509,19 @@ class StandardMailService(service.MultiService, HookableService):
         sendmail_opts = _get_sendmail_opts(self._basedir, provider, username)
         self._sendmail_opts[userid] = sendmail_opts
 
-        incoming = self.getServiceNamed('incoming_mail')
-        incoming.startInstance(userid)
-
         def registerToken(token):
             self._service_tokens[userid] = token
             self._active_user = userid
             return token
 
-        d = soledad.get_or_create_service_token('mail_auth')
+        incoming = self.getServiceNamed('incoming_mail')
+        d = incoming.startInstance(userid)
+        d.addCallback(
+            lambda _: soledad.get_or_create_service_token('mail_auth'))
         d.addCallback(registerToken)
         d.addCallback(self._write_tokens_file, userid)
-        d.addCallback(self._maybe_start_pixelated, userid, soledad, keymanager)
+        d.addCallback(
+            self._maybe_start_pixelated, userid, soledad, keymanager)
         return d
 
     # hooks
@@ -537,10 +538,9 @@ class StandardMailService(service.MultiService, HookableService):
 
     @defer.inlineCallbacks
     def hook_on_bonafide_auth(self, **kw):
-        # TODO: if it's expired we should renew it
         userid = kw['username']
-
         self._maybe_start_incoming_service(userid)
+        # TODO: if it's expired we should renew it
         yield self._maybe_fetch_smtp_certificate(userid)
 
     def _maybe_start_incoming_service(self, userid):
@@ -642,10 +642,11 @@ class StandardMailService(service.MultiService, HookableService):
             json.dump(token_dict, ftokens)
 
     def _maybe_start_pixelated(self, passthrough, userid, soledad, keymanager):
+        incoming = self.getServiceNamed('incoming_mail')
+        account = incoming.getServiceNamed(userid).account
         if pixelizer.HAS_PIXELATED:
-            reactor.callFromThread(
-                pixelizer.start_pixelated_user_agent,
-                userid, soledad, keymanager)
+            pixelizer.start_pixelated_user_agent(
+                userid, soledad, keymanager, account)
         return passthrough
 
 
@@ -750,12 +751,13 @@ class IncomingMailService(service.MultiService):
     # Individual accounts
 
     def startInstance(self, userid):
+        """returns: a deferred"""
         self._set_status(userid, "starting")
         soledad = self._mail.get_soledad_session(userid)
         keymanager = self._mail.get_keymanager_session(userid)
 
         self.log.info('Setting up Incoming Mail Service for %s' % userid)
-        self._start_incoming_mail_instance(
+        return self._start_incoming_mail_instance(
             keymanager, soledad, userid)
 
     @defer.inlineCallbacks
@@ -777,11 +779,12 @@ class IncomingMailService(service.MultiService):
     def _start_incoming_mail_instance(self, keymanager, soledad,
                                       userid, start_sync=True):
 
-        def setUpIncomingMail(inbox):
+        def setUpIncomingMail(inbox, acc):
             incoming_mail = IncomingMail(
                 keymanager, soledad,
                 inbox, userid,
                 check_period=INCOMING_CHECK_PERIOD)
+            incoming_mail.account = acc
             self.log.debug('Setting Incoming Mail Service for %s' % userid)
             incoming_mail.setName(userid)
             self.addService(incoming_mail)
@@ -790,10 +793,17 @@ class IncomingMailService(service.MultiService):
             self._set_status(userid, "on")
             return res
 
+        # XXX ----------------------------------------------------------------
+        # TODO we probably want to enforce a SINGLE ACCOUNT INSTANCE
+        # earlier in the bootstrap process (ie, upper in the hierarchy of
+        # services) so that the single instance can be shared by the imap and
+        # the pixelated mua.
+        # XXX ----------------------------------------------------------------
+
         acc = Account(soledad, userid)
         d = acc.callWhenReady(
             lambda _: acc.get_collection_by_mailbox(INBOX_NAME))
-        d.addCallback(setUpIncomingMail)
+        d.addCallback(setUpIncomingMail, acc)
         d.addCallback(setStatusOn)
         d.addErrback(self._errback, userid)
         return d

@@ -851,6 +851,7 @@ class SoledadMailAdaptor(SoledadIndexMixin):
     wait_for_indexes = ['get_or_create_mbox', 'update_mbox', 'get_all_mboxes']
 
     mboxwrapper_klass = MailboxWrapper
+    atomic = defer.DeferredLock()
 
     log = Logger()
 

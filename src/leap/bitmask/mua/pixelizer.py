@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# pix.py
-# Copyright (C) 2016 LEAP
+# pixelizer.py
+# Copyright (C) 2016-2017 LEAP
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,9 +14,22 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 """
-Pixelated plugin integration.
+Pixelizer: the pixelated integrator.
+
+Right now this module is kind of hardcoded, but it should be possible for
+bitmask to use this as an optional plugin. For the moment we fail gracefully if
+we cannot find the pixelated modules in the import path.
+
+There's a lot of code duplication right now in this double game of adaptors for
+pixelated adaptors. Refactoring pixelated and bitmask should be possible so
+that we converge the mail apis and stop needing this nasty proliferation of
+adaptors.
+
+However, some care has to be taken to avoid certain types of concurrency bugs.
 """
+
 import json
 import os
 import sys
@@ -25,12 +38,10 @@ from twisted.internet import defer, reactor
 from twisted.logger import Logger
 
 from leap.common.config import get_path_prefix
-from leap.bitmask.mail.mail import Account
 from leap.bitmask.keymanager import KeyNotFound
 
 try:
     from pixelated.adapter.mailstore import LeapMailStore
-    from pixelated.adapter.welcome_mail import add_welcome_mail
     from pixelated.application import SingleUserServicesFactory
     from pixelated.application import UserAgentMode
     from pixelated.application import start_site
@@ -51,10 +62,13 @@ log = Logger()
 # [ ] pre-authenticate
 
 
-def start_pixelated_user_agent(userid, soledad, keymanager):
+def start_pixelated_user_agent(userid, soledad, keymanager, account):
 
-    leap_session = LeapSessionAdapter(
-        userid, soledad, keymanager)
+    try:
+        leap_session = LeapSessionAdapter(
+            userid, soledad, keymanager, account)
+    except Exception as exc:
+        log.error("Got error! %r" % exc)
 
     config = Config()
     leap_home = os.path.join(get_path_prefix(), 'leap')
@@ -134,9 +148,23 @@ class NickNym(object):
         return self.keymanager.send_key()
 
 
+class _LeapMailStore(LeapMailStore):
+
+    def __init__(self, soledad, account):
+        self.account = account
+        super(_LeapMailStore, self).__init__(soledad)
+
+    # We should rewrite the LeapMailStore in the coming pixelated fork so that
+    # we reuse the account instance.
+    @defer.inlineCallbacks
+    def add_mail(self, mailbox_name, raw_msg):
+        inbox = yield self.account.get_collection_by_mailbox(mailbox_name)
+        yield inbox.add_msg(raw_msg, ('\\Recent',), notify_just_mdoc=False)
+
+
 class LeapSessionAdapter(object):
 
-    def __init__(self, userid, soledad, keymanager):
+    def __init__(self, userid, soledad, keymanager, account):
 
         self.userid = userid
         self.soledad = soledad
@@ -144,14 +172,16 @@ class LeapSessionAdapter(object):
         # XXX this needs to be converged with our public apis.
         _n = NickNym(keymanager, userid)
         self.nicknym = self.keymanager = _n
-        self.mail_store = LeapMailStore(soledad)
+
+        self.mail_store = _LeapMailStore(soledad, account)
+
+        self.account = account
 
         self.user_auth = Config()
         self.user_auth.uuid = soledad.uuid
 
         self.fresh_account = False
         self.incoming_mail_fetcher = None
-        self.account = Account(soledad, userid)
 
         username, provider = userid.split('@')
         smtp_client_cert = os.path.join(
@@ -201,13 +231,7 @@ def _start_in_single_user_mode(leap_session, config, resource,
                                services_factory):
     start_site(config, resource)
     reactor.callLater(
-        # workaround for #8798
-        # we need to make pixelated initialization a bit behind
-        # the own leap initialization, because otherwise the inbox is created
-        # without the needed callbacks for IMAP compatibility.
-        # This should be better addressed at pixelated code, by using the mail
-        # api to create the collection.
-        3, start_user_agent_in_single_user_mode,
+        0, start_user_agent_in_single_user_mode,
         resource, services_factory,
         leap_session.config.leap_home, leap_session)
 
@@ -221,10 +245,10 @@ def start_user_agent_in_single_user_mode(root_resource,
     _services = services.Services(leap_session)
     yield _services.setup()
 
-    if leap_session.fresh_account:
-        yield add_welcome_mail(leap_session.mail_store)
+    # TODO we might want to use a Bitmask specific mail
+    # if leap_session.fresh_account:
+    #   yield add_welcome_mail(leap_session.mail_store)
 
     services_factory.add_session(leap_session.user_auth.uuid, _services)
-
     root_resource.initialize(provider=leap_session.provider)
     log.info('Done, the Pixelated User Agent is ready to be used')

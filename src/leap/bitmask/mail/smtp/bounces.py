@@ -84,6 +84,8 @@ class Bouncer(object):
 
 def bouncerFactory(soledad):
     user_id = soledad.uuid
+    # TODO should reuse same account that is used in other places, otherwise
+    # new mail in here won't be notified.
     acc = Account(soledad, user_id)
     d = acc.callWhenReady(lambda _: acc.get_collection_by_mailbox(INBOX_NAME))
     d.addCallback(lambda inbox: Bouncer(inbox))

@@ -140,19 +140,6 @@ class IncomingMail(Service):
         # initialize a mail parser only once
         self._parser = Parser()
 
-    def add_listener(self, listener):
-        """
-        Add a listener to inbox insertions.
-
-        This listener function will be called for each message added to the
-        inbox with its uid as parameter. This function should not be blocking
-        or it will block the incoming queue.
-
-        :param listener: the listener function
-        :type listener: callable
-        """
-        self._listeners.append(listener)
-
     #
     # Public API: fetch, start_loop, stop.
     #
@@ -165,17 +152,18 @@ class IncomingMail(Service):
         """
         def _sync_errback(failure):
             self.log.error(
-                'Error while fetching incoming mail {0!r}'.format(failure))
+                'Error while fetching incoming mail: {0!r}'.format(failure))
 
         def syncSoledadCallback(_):
             # XXX this should be moved to adaptors
+            # TODO  we can query the blobs store instead.
             d = self._soledad.get_from_index(
                 fields.JUST_MAIL_IDX, "1", "0")
             d.addCallback(self._process_incoming_mail)
             d.addErrback(_sync_errback)
             return d
 
-        self.log.debug("fetching mail for: %s %s" % (
+        self.log.debug('Fetching mail for: %s %s' % (
             self._soledad.uuid, self._userid))
         d = self._sync_soledad()
         d.addCallbacks(syncSoledadCallback, self._errback)
@@ -231,7 +219,7 @@ class IncomingMail(Service):
         :rtype: iterable or None
         """
         def _log_synced(result):
-            self.log.info('sync finished')
+            self.log.info('Sync finished')
             return result
 
         def _handle_invalid_auth_token_error(failure):
@@ -240,7 +228,7 @@ class IncomingMail(Service):
             self.stopService()
             emit_async(catalog.SOLEDAD_INVALID_AUTH_TOKEN, self._userid)
 
-        self.log.info('starting sync...')
+        self.log.info('Starting sync...')
         d = self._soledad.sync()
         d.addCallbacks(_log_synced, _handle_invalid_auth_token_error)
         return d
@@ -258,7 +246,7 @@ class IncomingMail(Service):
             fetched_ts = time.mktime(time.gmtime())
             num_mails = len(doclist) if doclist is not None else 0
             if num_mails != 0:
-                self.log.info("there are %s mails" % (num_mails,))
+                self.log.info('There are {0!s} mails'.format(num_mails))
             emit_async(catalog.MAIL_FETCHED_INCOMING, self._userid,
                        str(num_mails), str(fetched_ts))
             return doclist
@@ -282,7 +270,7 @@ class IncomingMail(Service):
         deferreds = []
         for index, doc in enumerate(doclist):
             self.log.debug(
-                'processing incoming message: %d of %d'
+                'Processing Incoming Message: %d of %d'
                 % (index + 1, num_mails))
             emit_async(catalog.MAIL_MSG_PROCESSING, self._userid,
                        str(index), str(num_mails))
@@ -292,15 +280,15 @@ class IncomingMail(Service):
             # TODO Compatibility check with the index in pre-0.6 mx
             # that does not write the ERROR_DECRYPTING_KEY
             # This should be removed in 0.7
+            # TODO deprecate this already
 
             has_errors = doc.content.get(fields.ERROR_DECRYPTING_KEY, None)
-
             if has_errors is None:
-                warnings.warn("JUST_MAIL_COMPAT_IDX will be deprecated!",
+                warnings.warn('JUST_MAIL_COMPAT_IDX will be deprecated!',
                               DeprecationWarning)
 
             if has_errors:
-                self.log.debug("Skipping message with decrypting errors...")
+                self.log.debug('Skipping message with decrypting errors...')
             elif self._is_msg(keys):
                 # TODO this pipeline is a bit obscure!
                 d = self._decrypt_doc(doc)
@@ -784,7 +772,7 @@ class IncomingMail(Service):
             else:
                 self.log.debug("No valid url on OpenPGP header %s" % (url,))
         else:
-            self.log.debug("There is no url on the OpenPGP header: %s"
+            self.log.debug('There is no url on the OpenPGP header: %s'
                            % (header,))
         return False
 
@@ -843,11 +831,9 @@ class IncomingMail(Service):
         self.log.info('Adding message %s to local db' % (doc.doc_id,))
 
         def msgSavedCallback(result):
+
             if empty(result):
                 return
-
-            for listener in self._listeners:
-                listener(result)
 
             def signal_deleted(doc_id):
                 emit_async(catalog.MAIL_MSG_DELETED_INCOMING,

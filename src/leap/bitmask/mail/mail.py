@@ -970,6 +970,10 @@ class Account(object):
         return d
 
     def add_mailbox(self, name, creation_ts=None):
+        return self.adaptor.atomic.run(
+            self._add_mailbox, name, creation_ts=creation_ts)
+
+    def _add_mailbox(self, name, creation_ts=None):
 
         if creation_ts is None:
             # by default, we pass an int value
@@ -1004,6 +1008,10 @@ class Account(object):
         return d
 
     def delete_mailbox(self, name):
+        return self.adaptor.atomic.run(
+            self._delete_mailbox, name)
+
+    def _delete_mailbox(self, name):
 
         def delete_uid_table_cb(wrapper):
             d = self.mbox_indexer.delete_table(wrapper.uuid)
@@ -1017,6 +1025,10 @@ class Account(object):
         return d
 
     def rename_mailbox(self, oldname, newname):
+        return self.adaptor.atomic.run(
+            self._rename_mailbox, oldname, newname)
+
+    def _rename_mailbox(self, oldname, newname):
 
         def _rename_mbox(wrapper):
             wrapper.mbox = newname
@@ -1035,6 +1047,10 @@ class Account(object):
         :rtype: deferred
         :return: a deferred that will fire with a MessageCollection
         """
+        return self.adaptor.atomic.run(
+            self._get_collection_by_mailbox, name)
+
+    def _get_collection_by_mailbox(self, name):
         collection = self._collection_mapping[self.user_id].get(
             name, None)
         if collection:
@@ -1056,8 +1072,7 @@ class Account(object):
         :rtype: MessageCollection
         """
         # get a collection of docs by a list of doc_id
-        # get.docs(...) --> it should be a generator. does it behave in the
-        # threadpool?
+        # get.docs(...) --> it should be a generator
         raise NotImplementedError()
 
     def get_collection_by_tag(self, tag):
