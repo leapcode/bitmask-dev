@@ -8,13 +8,16 @@ import Validate from 'lib/validate'
 
 export default class PasswordField extends React.Component {
 
-  static get defaultProps() {return{
-    id: null,                // required. controlId of the element
-    label: "Password",
-    onChange: null,          // callback passed current password
-    validationMode: "crack", // one of 'none', 'match', 'crack'
-    matchText: null,         // used if validationMode == 'match'
-  }}
+  static get defaultProps() {
+    return {
+      id: null,                // required. controlId of the element
+      label: "Password",
+      onChange: null,          // callback passed current password
+      validationMode: "crack", // one of 'none', 'match', 'crack'
+      matchText: null,         // used if validationMode == 'match'
+      inputRef: null,          // a ref to the input. Used to set focus
+    }
+  }
 
   constructor(props) {
     super(props)
@@ -43,14 +46,15 @@ export default class PasswordField extends React.Component {
       <FormGroup controlId={this.props.id} validationState={this.state.passwordState}>
         <ControlLabel>{this.props.label}</ControlLabel>
         <FormControl
-          type="password"
-          ref="password"
-          value={this.state.password || ""}
-          onChange={this.keypress} />
+            type="password"
+            inputRef={this.props.inputRef}
+            value={this.state.password || ""}
+            onChange={this.keypress}
+        />
         {this.state.passwordState == 'success' ? null : <FormControl.Feedback/>}
         {passwordHelp}
       </FormGroup>
-     )
+    )
   }
 
   keypress(e) {

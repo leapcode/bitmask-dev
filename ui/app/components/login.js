@@ -1,5 +1,4 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
 
 import { FormGroup, ControlLabel, FormControl, HelpBlock, Button,
   Checkbox, Glyphicon, Overlay, Tooltip, Alert } from 'react-bootstrap'
@@ -59,6 +58,7 @@ class Login extends React.Component {
     this.onPassword2 = this.onPassword2.bind(this)
     this.onInvite    = this.onInvite.bind(this)
     this.onSubmit    = this.onSubmit.bind(this)
+    this.onKeyPress  = this.onKeyPress.bind(this)
     this.onRemember  = this.onRemember.bind(this)
   }
 
@@ -70,6 +70,19 @@ class Login extends React.Component {
           this.setState({requireInvite: true})
         }
       })
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    // If the user changes anything in the domain (which follows the @ sign)
+    // it gets replaced reverted to the domain name. This moves the cursor to
+    // before the @ sign when that happens
+    if (this.props.domain && this.state.username){
+      let textarea = this.usernameref
+      let start = this.state.username.indexOf('@')
+      if (textarea.selectionStart > start) {
+        textarea.setSelectionRange(start, start)
+      }
     }
   }
 
@@ -147,10 +160,11 @@ class Login extends React.Component {
         <FormGroup controlId="loginPassword2" validationState={this.state.password2State}>
           <ControlLabel>Repeat Password</ControlLabel>
           <FormControl
-            type="password"
-            ref="password"
-            value={this.state.password2 || ""}
-            onChange={this.onPassword2} />
+              type="password"
+              inputRef={ref => this.password2ref = ref}
+              value={this.state.password2 || ""}
+              onChange={this.onPassword2}
+          />
           {this.state.password2State == 'success' ? null : <FormControl.Feedback/>}
           {password2Help}
         </FormGroup>
@@ -161,8 +175,10 @@ class Login extends React.Component {
           <FormGroup controlId="invite" validationState={this.state.inviteState}>
             <ControlLabel>Invite Code</ControlLabel>
             <FormControl
-              value={this.state.invite || ""}
-              onChange={this.onInvite} />
+                value={this.state.invite || ""}
+                onChange={this.onInvite}
+                inputRef={ref => this.inviteref = ref}
+            />
             {inviteHelp}
           </FormGroup>
         )
@@ -175,64 +191,54 @@ class Login extends React.Component {
       disabled: !this.maySubmit()
     }
     if (this.state.loading) {
-       submitButton = <Button block {...buttonProps}><Spinner /></Button>
+      submitButton = <Button block {...buttonProps}><Spinner /></Button>
     } else {
-       submitButton = <Button block {...buttonProps}>{buttonText}</Button>
+      submitButton = <Button block {...buttonProps}>{buttonText}</Button>
     }
-
-    let usernameref = null
     let usernameDisabled = false
     let usernameValue = this.state.username || ""
     if (this.props.address) {
       usernameDisabled = true
       usernameValue = this.props.address
-    } else if (this.props.domain) {
-      usernameref = function(c) {
-        if (c != null) {
-          let textarea = ReactDOM.findDOMNode(c)
-          let start = textarea.value.indexOf('@')
-          if (textarea.selectionStart > start) {
-            textarea.setSelectionRange(start, start)
-          }
-        }
-      }
     }
+    const form = (
+      <form onSubmit={this.onSubmit} onKeyPress={this.onKeyPress}>
+        {message}
+        <FormGroup style={{marginBottom: '10px' }} controlId="loginUsername" validationState={this.state.usernameState}>
+          <ControlLabel>Username</ControlLabel>
+          <FormControl
+              componentClass="textarea"
+              style={{resize: "none"}}
+              rows="1"
+              inputRef={(ref) => this.usernameref = ref}
+              autoFocus
+              value={usernameValue}
+              disabled={usernameDisabled}
+              onChange={this.onUsernameChange}
+              onBlur={this.onUsernameBlur}
+          />
+          {this.state.usernameState == 'success' ? null : <FormControl.Feedback/>}
+          {usernameHelp}
+        </FormGroup>
 
-    let form = <form onSubmit={this.onSubmit}>
-      {message}
-      <FormGroup style={{marginBottom: '10px' }} controlId="loginUsername" validationState={this.state.usernameState}>
-        <ControlLabel>Username</ControlLabel>
-        <FormControl
-          componentClass="textarea"
-          style={{resize: "none"}}
-          rows="1"
-          ref={usernameref}
-          autoFocus
-          value={usernameValue}
-          disabled={usernameDisabled}
-          onChange={this.onUsernameChange}
-          onBlur={this.onUsernameBlur} />
-        {this.state.usernameState == 'success' ? null : <FormControl.Feedback/>}
-        {usernameHelp}
-      </FormGroup>
+        <FormGroup controlId="loginPassword" validationState={this.state.passwordState}>
+          <ControlLabel>Password</ControlLabel>
+          <FormControl
+              type="password"
+              inputRef={ref => this.passwordref = ref}
+              value={this.state.password || ""}
+              onChange={this.onPassword}
+          />
+          {this.state.passwordState == 'success' ? null : <FormControl.Feedback/>}
+          {passwordHelp}
+        </FormGroup>
 
-      <FormGroup controlId="loginPassword" validationState={this.state.passwordState}>
-        <ControlLabel>Password</ControlLabel>
-        <FormControl
-          type="password"
-          ref="password"
-          value={this.state.password || ""}
-          onChange={this.onPassword} />
-        {this.state.passwordState == 'success' ? null : <FormControl.Feedback/>}
-        {passwordHelp}
-      </FormGroup>
-
-      {password2Elem}
-      {inviteElem}
-      {submitButton}
-      {rememberCheck}
-    </form>
-
+        {password2Elem}
+        {inviteElem}
+        {submitButton}
+        {rememberCheck}
+      </form>
+    )
     return form
   }
 
@@ -387,6 +393,33 @@ class Login extends React.Component {
       this.doLogin()
     } else if (this.props.mode == 'signup') {
       this.doSignup()
+    }
+  }
+
+  /**
+   * Handle key presses
+   */
+  onKeyPress(e) {
+    // On "Enter", move the focus to the first mounted but unfilled field,
+    // or submit the form if there are none.
+    if (e.key === 'Enter') {
+      // Ignore the @ and domain when checking the username
+      if (this.usernameref.value.split('@')[0] === ''){
+        this.usernameref.focus()
+        return
+      }
+
+      const firstUnfilledField = [
+        this.passwordref,
+        this.password2ref,
+        this.inviteref,
+      ].find(ref => ref != null && ref.value == "")
+
+      if (firstUnfilledField) {
+        firstUnfilledField.focus()
+      } else {
+        this.onSubmit(e);
+      }
     }
   }
 

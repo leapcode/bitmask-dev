@@ -20,7 +20,8 @@ class ListEdit extends React.Component {
     selected: null,  // string of the selected item
     onRemove: null,
     onAdd: null,
-    onSelect: null
+    onSelect: null,
+    onKeyDown: null
   }}
 
   constructor(props) {
@@ -64,6 +65,18 @@ class ListEdit extends React.Component {
     }
   }
 
+  componentDidMount() {
+    if (this.props.onKeyDown) {
+      this.listEditorDiv.addEventListener("keydown", this.props.onKeyDown)
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.props.onKeyDown) {
+      this.listEditorDiv.removeEventListener("keydown", this.props.onKeyDown)
+    }
+  }
+
   render() {
     let options = null
     if (this.props.items) {
@@ -72,11 +85,16 @@ class ListEdit extends React.Component {
       }, this)
     }
     return(
-      <div className="list-editor">
+      <div
+        ref={(div) => { this.listEditorDiv = div; }}
+        className="list-editor" >
         <FormControl
           value={this.row(this.props.selected)}
           className="list-select"
-          componentClass="select" size="5" onChange={this.click}>
+          componentClass="select"
+          size="5"
+          onChange={this.click}
+        >
           {options}
         </FormControl>
         <ButtonToolbar className="pull-right list-toolbar">

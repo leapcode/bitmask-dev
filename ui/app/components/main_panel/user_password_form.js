@@ -26,6 +26,7 @@ export default class UserPasswordForm extends React.Component {
       repeatPassword: null
     }
     this.submit = this.submit.bind(this)
+    this.onKeyPress = this.onKeyPress.bind(this)
     this.setNew = this.setNew.bind(this)
     this.setCurrent = this.setCurrent.bind(this)
     this.setRepeat = this.setRepeat.bind(this)
@@ -79,6 +80,22 @@ export default class UserPasswordForm extends React.Component {
     )
   }
 
+  onKeyPress(e) {
+    if (e.key === 'Enter') {
+      const firstUnfilledField = [
+        this.currentPasswordRef,
+        this.newPasswordRef,
+        this.repeatPasswordRef,
+      ].find(ref => ref != null && ref.value == "")
+
+      if (firstUnfilledField) {
+        firstUnfilledField.focus()
+      } else {
+        this.submit(e);
+      }
+    }
+  }
+
   render () {
     let submitButton = null
     let message = null
@@ -100,21 +117,30 @@ export default class UserPasswordForm extends React.Component {
       submitButton = <Button block disabled={!this.maySubmit()} onClick={this.submit}>Change</Button>
     }
     return (
-      <form onSubmit={this.submit}>
+      <form onSubmit={this.submit} onKeyPress={this.onKeyPress}>
         {message}
-        <PasswordField id={this.props.account.id + "-current-password"}
-          label="Current Password"
-          validationMode="none"
-          onChange={this.setCurrent} />
-        <PasswordField id={this.props.account.id + "-new-password"}
-          label="New Password"
-          validationMode="crack"
-          onChange={this.setNew} />
-        <PasswordField id={this.props.account.id + "-repeat-password"}
-          label="Repeat Password"
-          validationMode="match"
-          matchText={this.state.newPassword}
-          onChange={this.setRepeat} />
+        <PasswordField
+            id={this.props.account.id + "-current-password"}
+            inputRef={ref => this.currentPasswordRef = ref}
+            label="Current Password"
+            validationMode="none"
+            onChange={this.setCurrent}
+        />
+        <PasswordField
+            id={this.props.account.id + "-new-password"}
+            inputRef={ref => this.newPasswordRef = ref}
+            label="New Password"
+            validationMode="crack"
+            onChange={this.setNew}
+        />
+        <PasswordField
+            id={this.props.account.id + "-repeat-password"}
+            inputRef={ref => this.repeatPasswordRef = ref}
+            label="Repeat Password"
+            validationMode="match"
+            matchText={this.state.newPassword}
+            onChange={this.setRepeat}
+        />
         {submitButton}
       </form>
     )

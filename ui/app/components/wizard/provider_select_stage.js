@@ -33,12 +33,13 @@ export default class ProviderSelectStage extends React.Component {
       provider: null,     // Provider object, if selected
       error: null         // error message
     }
-    this.add      = this.add.bind(this)
-    this.remove   = this.remove.bind(this)
-    this.select   = this.select.bind(this)
-    this.close    = this.close.bind(this)
-    this.cancel   = this.cancel.bind(this)
-    this.next     = this.next.bind(this)
+    this.add       = this.add.bind(this)
+    this.remove    = this.remove.bind(this)
+    this.select    = this.select.bind(this)
+    this.close     = this.close.bind(this)
+    this.cancel    = this.cancel.bind(this)
+    this.next      = this.next.bind(this)
+    this.onKeyDown = this.onKeyDown.bind(this)
   }
 
   componentWillMount() {
@@ -134,6 +135,13 @@ export default class ProviderSelectStage extends React.Component {
     })
   }
 
+  onKeyDown(e) {
+    // Check for enter key
+    if (e.keyCode === 13) {
+      this.next();
+    }
+  }
+
   render() {
     let modal = null
     let info = null
@@ -171,9 +179,15 @@ export default class ProviderSelectStage extends React.Component {
         </ButtonToolbar>
       </div>
     )
-    let editlist = <ListEditor ref="list" items={this.state.domains}
-      selected={this.state.selected} onRemove={this.remove} onAdd={this.add}
-      onSelect={this.select} />
+    let editlist = <ListEditor
+                       ref="list"
+                       items={this.state.domains}
+                       selected={this.state.selected}
+                       onRemove={this.remove}
+                       onAdd={this.add}
+                       onSelect={this.select}
+                       onKeyDown={this.onKeyDown}
+                   />
     return(
       <StageLayout title={this.props.title} subtitle={this.props.subtitle} buttons={buttons}>
         <HorizontalLayout equalWidths={true}>
