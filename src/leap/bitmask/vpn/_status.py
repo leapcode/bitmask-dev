@@ -1,10 +1,7 @@
 from itertools import chain, repeat
-from twisted.logger import Logger
 from ._human import bytes2human
 
 from leap.common.events import catalog, emit_async
-
-logger = Logger()
 
 
 # TODO implement a state machine in this class
