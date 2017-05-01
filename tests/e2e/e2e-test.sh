@@ -28,7 +28,7 @@
 
 set -e
 
-PROVIDER='cdev.bitmask.net'
+PROVIDER='ci.leap.se'
 BCTL='bitmaskctl'
 LEAP_HOME="$HOME/.config/leap"
 MAIL_UUID=$(uuidgen)
