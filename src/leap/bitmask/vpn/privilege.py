@@ -31,6 +31,8 @@ from abc import ABCMeta, abstractmethod
 from twisted.logger import Logger
 from twisted.python.procutils import which
 
+from leap.bitmask.util import STANDALONE, here
+
 log = Logger()
 
 
@@ -38,15 +40,25 @@ flags_STANDALONE = False
 
 
 def install_helpers():
+    cmd = 'bitmask_helpers install'
+    if STANDALONE:
+        binary_path = os.path.join(here(), "bitmask")
+        cmd = "%s %s" % (binary_path, cmd)
+
     # TODO  check if the command has succeeded, and display error
     # if failed
-    commands.getoutput('pkexec bitmask_helpers install')
+    commands.getoutput('pkexec ' + cmd)
 
 
 def uninstall_helpers():
+    cmd = 'bitmask_helpers uninstall'
+    if STANDALONE:
+        binary_path = os.path.join(here(), "bitmask")
+        cmd = "%s %s" % (binary_path, cmd)
+
     # TODO  check if the command has succeeded, and display error
     # if failed
-    commands.getoutput('pkexec bitmask_helpers uninstall')
+    commands.getoutput('pkexec ' + cmd)
 
 
 class NoPolkitAuthAgentAvailable(Exception):

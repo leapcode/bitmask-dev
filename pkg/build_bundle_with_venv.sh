@@ -44,4 +44,4 @@ $VIRTUAL_ENV/bin/pip install dist/*.whl
 pip install pixelated-www pixelated-user-agent --find-links https://downloads.leap.se/libs/pixelated/
 
 make bundle
-make bundle_gpg
+make bundle_apps

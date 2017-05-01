@@ -244,6 +244,10 @@ def start_app():
 
     # DEBUG ====================================
     if STANDALONE and len(sys.argv) > MIN_ARGS:
+        if sys.argv[1] == 'bitmask_helpers':
+            from leap.bitmask.vpn.helpers import main
+            return main()
+
         from leap.bitmask.cli import bitmask_cli
         return bitmask_cli.main()
 

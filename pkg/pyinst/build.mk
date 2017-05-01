@@ -26,6 +26,13 @@ bundle_gpg:
 	mkdir -p $(DIST_VERSION)/apps/mail
 	cp /usr/bin/gpg $(DIST_VERSION)/apps/mail/
 
+bundle_linux_helpers:
+	mkdir -p $(DIST_VERSION)/apps/helpers
+	cp src/leap/bitmask/vpn/helpers/linux/bitmask-root $(DIST_VERSION)/apps/helpers/
+	cp src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.bundle.policy $(DIST_VERSION)/apps/helpers/
+
+bundle_apps: bundle_gpg bundle_linux_helpers
+
 bundle_tar:
 	cd dist/ && tar cvzf Bitmask.$(NEXT_VERSION).tar.gz bitmask-$(NEXT_VERSION)
 

@@ -1,14 +1,24 @@
+import os.path
 import pkg_resources
-from .constants import IS_LINUX
 
+from .constants import IS_LINUX
+from leap.bitmask.util import STANDALONE, here
 
 if IS_LINUX:
 
     def get_bitmask_helper_path():
+        if STANDALONE:
+            return os.path.join(here(), "..", "apps", "helpers",
+                                "bitmask-root")
+
         return pkg_resources.resource_filename(
             'leap.bitmask.vpn.helpers.linux', 'bitmask-root')
 
     def get_bitmask_polkit_policy_path():
+        if STANDALONE:
+            return os.path.join(here(), "..", "apps", "helpers",
+                                "se.leap.bitmask.bundle.policy")
+
         return pkg_resources.resource_filename(
             'leap.bitmask.vpn.helpers.linux', 'se.leap.bitmask.bundle.policy')
 
