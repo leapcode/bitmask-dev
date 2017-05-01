@@ -17,12 +17,6 @@ capabities::
 ``--profiler`` option allows you to select different profilers (default is
 "hotshot").
 
-You can also do profiling when using the ``bitmask`` client. Enable the
-``LEAP_PROFILE_IMAPCMD`` environment flag to get profiling of certain IMAP
-commands::
-
- LEAP_PROFILE_IMAPCMD=1 bitmask --debug
-
 
 Mutt config
 ------------

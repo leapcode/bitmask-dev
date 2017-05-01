@@ -645,8 +645,6 @@ class IMAPMailbox(object):
 
         d = defer.Deferred()
         reactor.callLater(0, self._do_fetch_flags, messages_asked, uid, d)
-        if PROFILE_CMD:
-            do_profile_cmd(d, "FETCH-ALL-FLAGS")
         return d
 
     def _do_fetch_flags(self, messages_asked, uid, d):
@@ -889,9 +887,6 @@ class IMAPMailbox(object):
                  uid when the copy succeed.
         :rtype: Deferred
         """
-        # if PROFILE_CMD:
-        #     do_profile_cmd(d, "COPY")
-
         # A better place for this would be  the COPY/APPEND dispatcher
         # in server.py, but qtreactor hangs when I do that, so this seems
         # to work fine for now.
