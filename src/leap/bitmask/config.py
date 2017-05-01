@@ -56,7 +56,7 @@ class Configuration(object):
         except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             if default is None:
                 raise MissingConfigEntry("%s is missing the [%s]%s entry"
-                                         % self.config_path, section, option)
+                                         % (self.config_path, section, option))
             return default
 
     def set(self, section, option, value):
