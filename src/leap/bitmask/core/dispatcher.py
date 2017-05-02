@@ -119,7 +119,7 @@ class UserCmd(SubCommand):
                     len(parts[2:])))
         autoconf = False
         if len(parts) > 4:
-            if parts[4] == 'true':
+            if parts[4] == 'True':
                 autoconf = True
 
         # FIXME We still SHOULD pass a local token
@@ -148,7 +148,7 @@ class UserCmd(SubCommand):
             invite = None
         autoconf = False
         if len(parts) > 5:
-            if parts[5] == 'true':
+            if parts[5] == 'True':
                 autoconf = True
         return bonafide.do_signup(user, password, invite, autoconf)
 

@@ -163,10 +163,6 @@ class Provider(object):
         'openvpn': ['eip'],
         'mx': ['soledad', 'smtp']}
 
-    first_bootstrap = defaultdict(None)
-    ongoing_bootstrap = defaultdict(None)
-    stuck_bootstrap = defaultdict(None)
-
     log = Logger()
 
     def __init__(self, domain, autoconf=False, basedir=None,
@@ -178,6 +174,10 @@ class Provider(object):
         self._domain = domain
         self._disco = Discovery('https://%s' % domain)
         self._provider_config = None
+
+        self.first_bootstrap = defaultdict(None)
+        self.ongoing_bootstrap = defaultdict(None)
+        self.stuck_bootstrap = defaultdict(None)
 
         is_configured = self.is_configured()
         if not is_configured:
