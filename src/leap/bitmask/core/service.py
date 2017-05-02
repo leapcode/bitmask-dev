@@ -20,13 +20,11 @@ Bitmask-core Service.
 import json
 import os
 import uuid
-import tempfile
 try:
     import resource
 except ImportError:
     pass
 
-from twisted.conch import manhole_tap
 from twisted.internet import reactor
 from twisted.internet.endpoints import TCP4ServerEndpoint
 from twisted.logger import Logger
