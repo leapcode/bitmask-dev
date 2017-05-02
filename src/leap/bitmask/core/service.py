@@ -85,9 +85,9 @@ class BitmaskBackend(configurable.ConfigurableService):
             return self.get_config('services', service, False, boolean=True)
 
         def with_manhole():
-            user = self.get_config('manhole', 'user', None)
-            passwd = self.get_config('manhole', 'passwd', None)
-            port = self.get_config('manhole', 'port', None)
+            user = self.get_config('manhole', 'user', '')
+            passwd = self.get_config('manhole', 'passwd', '')
+            port = self.get_config('manhole', 'port', manhole.PORT)
             if user and passwd:
                 conf = {'user': user, 'passwd': passwd, 'port': port}
                 return conf
@@ -116,7 +116,7 @@ class BitmaskBackend(configurable.ConfigurableService):
             on_start(self._init_websockets)
 
         manholecfg = with_manhole()
-        if manhole:
+        if manholecfg:
             on_start(self._init_manhole, manholecfg)
 
     def _touch_token_file(self):
@@ -227,10 +227,7 @@ class BitmaskBackend(configurable.ConfigurableService):
         return service
 
     def _init_manhole(self, cfg):
-        try:
-            port = int(cfg.get('port'))
-        except ValueError:
-            port = manhole.PORT
+        port = cfg['port']
         user, passwd = cfg['user'], cfg['passwd']
         sshFactory = manhole.getManholeFactory(
             {'core': self}, user, passwd)
