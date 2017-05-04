@@ -58,7 +58,7 @@ e2e_tests:
     - linux
 
 build_docker_image:
-  image: leapcode/bitmask-dev:latest
+  image: 0xacab.org:4567/micah/bitmask-dev:latest
   stage: test
   services:
     - docker:dind
