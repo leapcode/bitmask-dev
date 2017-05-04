@@ -4,8 +4,13 @@ stages:
   - build
   - e2e
 
+variables:
+  BITMASK_IMAGE: bitmask-dev:latest
+  SOLEDAD_IMAGE: soledad:latest
+  DOCKER_DRIVER: overlay
+
 linux_test:
-  image: leapcode/soledad:latest
+  image: "${CI_REGISTRY_IMAGE}/${SOLEDAD_IMAGE}"
   stage: test
   script:
     - tox --recreate -e py27-dev
@@ -21,7 +26,7 @@ osx_test:
     - osx
 
 bitmask_latest_bundle:
-  image: leapcode/bitmask-dev:latest
+  image: "${CI_REGISTRY_IMAGE}/${BITMASK_IMAGE}"
   stage: bundle
   script: pkg/build_bundle_with_venv.sh
   artifacts:
@@ -33,7 +38,7 @@ bitmask_latest_bundle:
     - linux
 
 build_ui:
-  image: leapcode/bitmask-dev:latest
+  image: "${CI_REGISTRY_IMAGE}/${BITMASK_IMAGE}"
   stage: build
   script:
     - cd ui && make dev-build
@@ -41,7 +46,7 @@ build_ui:
     - linux
 
 e2e_tests:
-  image: leapcode/bitmask-dev:latest
+  image: "${CI_REGISTRY_IMAGE}/${BITMASK_IMAGE}"
   stage: e2e
   allow_failure: true
   script:
@@ -53,3 +58,24 @@ e2e_tests:
     - make test_e2e
   tags:
     - linux
+
+build_docker_image:
+  image: "${CI_REGISTRY_IMAGE}/${BITMASK_IMAGE}"
+  stage: test
+  services:
+    - docker:dind
+  tags:
+    - docker-in-docker
+  before_script:
+     - >
+       export LAST_COMMIT=$(curl --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" ${CI_PROJECT_URL}/pipelines |
+       python -c "import sys, json; print json.load(sys.stdin)[1]['sha']")
+  script:
+    - >
+      if git diff $LAST_COMMIT HEAD --name-only|grep tests/docker; then
+        docker --version
+        docker info
+        docker login -u gitlab-ci-token -e sysdev@leap.se -p $CI_JOB_TOKEN $CI_REGISTRY
+        docker build -t ${CI_REGISTRY_IMAGE}:${BITMASK_IMAGE} tests/docker
+        docker push ${CI_REGISTRY_IMAGE}:${BITMASK_IMAGE}
+      fi
