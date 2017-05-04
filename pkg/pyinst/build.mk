@@ -25,6 +25,9 @@ bundle_gpg:
 	# TODO build it in a docker container!
 	mkdir -p $(DIST_VERSION)/apps/mail
 	cp /usr/bin/gpg $(DIST_VERSION)/apps/mail/
+	# workaround for missing libreadline.so.6 in fresh ubuntu
+	patchelf --set-rpath '.' $(DIST_VERSION)/apps/mail/gpg
+	cp /lib/x86_64-linux-gnu/libusb-0.1.so.4 $(DIST_VERSION)/lib
 
 bundle_linux_helpers:
 	mkdir -p $(DIST_VERSION)/apps/helpers
