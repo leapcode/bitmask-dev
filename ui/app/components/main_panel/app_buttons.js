@@ -89,7 +89,7 @@ export default class AppButtons extends React.Component {
               The Bitmask application is lovingly hand-crafted by developers
               all over the world. Development is principally sponsored by the
               LEAP Encryption Access Project, an organization dedicated to
-              defending democracy by protecting the right to whisper.
+              defending the fundamental right to whisper.
             </p>
             <ButtonToolbar>
               <Button onClick={this.hideAbout}>
