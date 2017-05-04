@@ -77,7 +77,7 @@ SUBCOMMANDS:
         if not passwd:
             passwd = self._getpass_twice()
         self.data += ['create', username, passwd,
-                      subargs.invite, 'true']
+                      subargs.invite, 'True']
         return self._send(printer=command.default_dict_printer)
 
     def auth(self, raw_args):
@@ -90,7 +90,7 @@ SUBCOMMANDS:
         username = self._username(raw_args, needed=True)
         if not passwd:
             passwd = getpass.getpass()
-        self.data += ['authenticate', username, passwd, 'true']
+        self.data += ['authenticate', username, passwd, 'True']
         self.cfg.set('bonafide', 'active', username)
         return self._send(printer=command.default_dict_printer)
 
