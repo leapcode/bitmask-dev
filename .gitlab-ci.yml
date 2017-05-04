@@ -5,12 +5,10 @@ stages:
   - e2e
 
 variables:
-  BITMASK_IMAGE: bitmask-dev:latest
-  SOLEDAD_IMAGE: soledad:latest
   DOCKER_DRIVER: overlay
 
 linux_test:
-  image: "${CI_REGISTRY_IMAGE}/${SOLEDAD_IMAGE}"
+  image: leapcode/soledad:latest
   stage: test
   script:
     - tox --recreate -e py27-dev
@@ -26,7 +24,7 @@ osx_test:
     - osx
 
 bitmask_latest_bundle:
-  image: "${CI_REGISTRY_IMAGE}/${BITMASK_IMAGE}"
+  image: leapcode/bitmask-dev:latest
   stage: bundle
   script: pkg/build_bundle_with_venv.sh
   artifacts:
@@ -38,7 +36,7 @@ bitmask_latest_bundle:
     - linux
 
 build_ui:
-  image: "${CI_REGISTRY_IMAGE}/${BITMASK_IMAGE}"
+  image: leapcode/bitmask-dev:latest
   stage: build
   script:
     - cd ui && make dev-build
@@ -46,7 +44,7 @@ build_ui:
     - linux
 
 e2e_tests:
-  image: "${CI_REGISTRY_IMAGE}/${BITMASK_IMAGE}"
+  image: leapcode/bitmask-dev:latest
   stage: e2e
   allow_failure: true
   script:
@@ -60,7 +58,7 @@ e2e_tests:
     - linux
 
 build_docker_image:
-  image: "${CI_REGISTRY_IMAGE}/${BITMASK_IMAGE}"
+  image: leapcode/bitmask-dev:latest
   stage: test
   services:
     - docker:dind
@@ -76,6 +74,6 @@ build_docker_image:
         docker --version
         docker info
         docker login -u gitlab-ci-token -e sysdev@leap.se -p $CI_JOB_TOKEN $CI_REGISTRY
-        docker build -t ${CI_REGISTRY_IMAGE}:${BITMASK_IMAGE} tests/docker
-        docker push ${CI_REGISTRY_IMAGE}:${BITMASK_IMAGE}
+        docker build -t ${CI_REGISTRY_IMAGE}:latest tests/docker
+        docker push ${CI_REGISTRY_IMAGE}:latest
       fi
