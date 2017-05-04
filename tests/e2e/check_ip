@@ -1,0 +1,45 @@
+#!/usr/bin/python3
+
+import urllib.request
+import json
+import sys
+
+DEMO_ISP = 'Riseup Networks'
+
+url = 'https://wtfismyip.com/json'
+
+with urllib.request.urlopen(url) as _url:
+    data = json.loads(_url.read().decode())
+
+isp = data['YourFuckingISP']
+ip = data['YourFuckingIPAddress']
+
+print('ISP >> %s' % isp)
+print('IP  >> %s' % ip)
+
+
+class BadCmd(Exception):
+    pass
+
+
+try:
+    cmd = sys.argv[1]
+
+    if cmd == 'vpn_on':
+        assert isp == DEMO_ISP
+    elif cmd == 'vpn_off':
+        assert isp != DEMO_ISP
+    else:
+        raise BadCmd()
+
+except BadCmd:
+    print("Cannot parse that command. Valid commands: vpn_on, vpn_off")
+    sys.exit(1)
+
+except Exception:
+    print("IP *NOT* as expected")
+    sys.exit(1)
+
+else:
+    print("OK :)")
+    sys.exit(0)

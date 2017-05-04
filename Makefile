@@ -38,8 +38,12 @@ dev-latest-all: dev-all
 uninstall:
 	pip uninstall leap.bitmask
 
+test:
+	tox
+
 test_e2e:
-	tests/e2e/e2e-test.sh
+	tests/e2e/e2e-test-mail.sh
+	tests/e2e/e2e-test-vpn.sh
 
 qt-resources:
 	pyrcc5 pkg/branding/icons.qrc -o src/leap/bitmask/gui/app_rc.py
