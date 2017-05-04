@@ -30,6 +30,7 @@ All the Code is Copyright 2012-2016 LEAP Encryption Access Project
 * irregulator irregulator at riseup dot net
 * Paixu Aabuizia PaixuAabuizia at users dot noreply at github dot com
 * Christoph Kluenter ckluente at thoughtworks dot com
+* Simon Fondrie-Teitler simonft at riseup dot net
 * Neissi Lima neissi.lima at gmail dot com
 * k clair kclair at riseup dot net
 * antialias antialias at leap dot se
