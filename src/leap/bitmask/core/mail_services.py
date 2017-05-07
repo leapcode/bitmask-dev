@@ -35,7 +35,7 @@ from twisted.logger import Logger
 
 from leap.common.events import catalog, emit_async
 from leap.common.files import check_and_fix_urw_only
-from leap.bitmask import pix
+from leap.bitmask.mua import pixelizer
 from leap.bitmask.hooks import HookableService
 from leap.bitmask.bonafide import config
 from leap.bitmask.keymanager import KeyManager
@@ -642,9 +642,9 @@ class StandardMailService(service.MultiService, HookableService):
             json.dump(token_dict, ftokens)
 
     def _maybe_start_pixelated(self, passthrough, userid, soledad, keymanager):
-        if pix.HAS_PIXELATED:
+        if pixelizer.HAS_PIXELATED:
             reactor.callFromThread(
-                pix.start_pixelated_user_agent,
+                pixelizer.start_pixelated_user_agent,
                 userid, soledad, keymanager)
         return passthrough
 
