@@ -12,6 +12,7 @@ dev-mail:
 
 dev-gui:
 	pip install -e '.[gui]'
+	pip install pixelated-www pixelated-user-agent --find-links https://downloads.leap.se/libs/pixelated/  
 
 dev-backend:
 	pip install -e '.[backend]'
@@ -23,6 +24,8 @@ dev-latest-backend: dev-backend
 
 dev-all:
 	pip install -e '.[all]'
+	# install pixelated from our repo until assets get packaged.
+	pip install pixelated-www pixelated-user-agent --find-links https://downloads.leap.se/libs/pixelated/  
 
 dev-latest-all: dev-all
 	pip install -e 'git+https://0xacab.org/leap/leap_pycommon@master#egg=leap.common'
