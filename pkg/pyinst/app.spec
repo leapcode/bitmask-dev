@@ -58,7 +58,7 @@ exe = EXE(pyz,
           a.scripts,
           exclude_binaries=True,
           name='bitmask',
-          debug=True,
+          debug=False,
           strip=False,
           upx=True,
 	  # TODO remove console for win
