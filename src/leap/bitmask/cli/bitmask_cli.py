@@ -18,7 +18,6 @@
 """
 Bitmask Command Line interface: zmq client.
 """
-import json
 import sys
 import signal
 import traceback
@@ -30,6 +29,7 @@ from leap.bitmask.cli import command
 from leap.bitmask.cli.keys import Keys
 from leap.bitmask.cli.logs import Logs
 from leap.bitmask.cli.mail import Mail
+from leap.bitmask.cli.provider import Provider
 from leap.bitmask.cli.user import User
 from leap.bitmask.cli.vpn import VPN
 from leap.bitmask.cli.webui import WebUI
@@ -66,6 +66,10 @@ OPTIONAL ARGUMENTS:
 '''
     epilog = ("Use 'bitmaskctl <command> help' to learn more "
               "about each command.")
+
+    def provider(self, raw_args):
+        provider = Provider(self.cfg, self.print_json)
+        return provider.execute(raw_args)
 
     def user(self, raw_args):
         user = User(self.cfg, self.print_json)
