@@ -165,6 +165,10 @@ class Provider(object):
 
     log = Logger()
 
+    first_bootstrap = defaultdict(None)
+    ongoing_bootstrap = defaultdict(None)
+    stuck_bootstrap = defaultdict(None)
+
     def __init__(self, domain, autoconf=False, basedir=None,
                  check_certificate=True):
         # TODO: I need a way to know if it was already configured
@@ -174,10 +178,6 @@ class Provider(object):
         self._domain = domain
         self._disco = Discovery('https://%s' % domain)
         self._provider_config = None
-
-        self.first_bootstrap = defaultdict(None)
-        self.ongoing_bootstrap = defaultdict(None)
-        self.stuck_bootstrap = defaultdict(None)
 
         is_configured = self.is_configured()
         if not is_configured:
