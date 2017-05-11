@@ -117,8 +117,7 @@ OPTIONAL ARGUMENTS:
         return self._send(printer=self._print_status)
 
     def _print_status(self, status):
-        statusdict = json.loads(status)
-        for key, value in statusdict.items():
+        for key, value in status.items():
             color = Fore.GREEN
             if value == 'stopped':
                 color = Fore.RED

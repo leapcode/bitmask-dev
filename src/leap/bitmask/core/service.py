@@ -301,7 +301,7 @@ class BackendCommands(object):
             status[name] = _status
         status['backend'] = flags.BACKEND
 
-        return json.dumps(status)
+        return status
 
     def do_version(self):
         return {'version_core': __version__}
