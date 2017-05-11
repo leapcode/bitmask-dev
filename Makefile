@@ -42,7 +42,7 @@ test:
 	tox
 
 test_e2e:
-	tests/e2e/e2e-test-mail.sh
+	#tests/e2e/e2e-test-mail.sh
 	tests/e2e/e2e-test-vpn.sh
 
 qt-resources:

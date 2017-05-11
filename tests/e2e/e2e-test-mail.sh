@@ -44,6 +44,7 @@ PROVIDER='ci.leap.se'
 INVITE_CODE=${BITMASK_INVITE_CODE:?"Need to set BITMASK_INVITE_CODE non-empty"}
 
 BCTL='bitmaskctl'
+POLKIT='lxpolkit'
 LEAP_HOME="$HOME/.config/leap"
 MAIL_UUID=$(uuidgen)
 
@@ -51,6 +52,9 @@ username="tmp_user_$(date +%Y%m%d%H%M%S)"
 user="${username}@${PROVIDER}"
 pw="$(head -c 10 < /dev/urandom | base64)"
 SWAKS="swaks --h-Subject $MAIL_UUID --silent 2 --helo ci.leap.se -f ci@leap.se -t $user"
+
+# Start the polkit authentication agent
+"$POLKIT" &
 
 # Stop any previously started bitmaskd
 # and start a new instance

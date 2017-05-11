@@ -1,10 +1,26 @@
 #!/bin/bash
 
 # Usage
+# ...
 
+# exit if any commands returns non-zero status
 set -e
 
+# XXX DEBUG
+set -x
+
+# Check if scipt is run in debug mode so we can hide secrets
+if [[ "$-" =~ 'x' ]]
+then
+  echo 'Running with xtrace enabled!'
+  xtrace=true
+else
+  echo 'Running with xtrace disabled!'
+  xtrace=false
+fi
+
 PROVIDER='demo.bitmask.net'
+INVITE_CODE=${BITMASK_INVITE_CODE:?"Need to set BITMASK_INVITE_CODE non-empty"}
 BCTL='bitmaskctl'
 LEAP_HOME="$HOME/.config/leap"
 
@@ -22,7 +38,11 @@ pw="$(head -c 10 < /dev/urandom | base64)"
 
 
 # Register a new user
-"$BCTL" user create "$user" --pass "$pw"
+# Disable xtrace
+set +x
+"$BCTL" user create "$user" --pass "$pw" --invite "$INVITE_CODE"
+# Enable xtrace again only if it was set at beginning of script
+[[ $xtrace == true ]] && set -x
 
 # Authenticate
 "$BCTL" user auth "$user" --pass "$pw" > /dev/null
@@ -33,11 +53,18 @@ pw="$(head -c 10 < /dev/urandom | base64)"
 # Get VPN cert
 "$BCTL" vpn get_cert "$user" 
 
-"$BCTL" vpn start
+"$BCTL" vpn start --json
 
-sleep 10
+# XXX DEBUG ---
+tail -n 200  ~/.config/leap/bitmaskd.log
+which pkexec
+ls -la /usr/sbin/openvpn
+ls -la /usr/local/sbin/bitmask-root
+# XXX DEBUG ---
 
-"$BCTL" vpn status
+sleep 5
+
+"$BCTL" vpn status --json
 
 tests/e2e/check_ip vpn_on
 
