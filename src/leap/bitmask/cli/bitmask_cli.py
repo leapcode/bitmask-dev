@@ -76,7 +76,7 @@ OPTIONAL ARGUMENTS:
         return mail.execute(raw_args)
 
     def vpn(self, raw_args):
-        vpn = VPN(self.cfg)
+        vpn = VPN(self.cfg, self.print_json)
         return vpn.execute(raw_args)
 
     def keys(self, raw_args):
