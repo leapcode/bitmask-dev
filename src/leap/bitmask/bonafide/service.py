@@ -125,7 +125,8 @@ class BonafideService(HookableService):
         return self._bonafide.do_get_provider(domain)
 
     def do_provider_delete(self, domain):
-        return self._bonafide.do_provider_delete(domain)
+        self._bonafide.do_provider_delete(domain)
+        return {'delete': 'ok'}
 
     def do_provider_list(self, seeded=False):
         return self._bonafide.do_provider_list(seeded)

@@ -94,7 +94,7 @@ class ProviderCmd(SubCommand):
     @register_method("")
     def do_DELETE(self, bonafide, *parts):
         domain = parts[2]
-        bonafide.do_provider_delete(domain)
+        return bonafide.do_provider_delete(domain)
 
     @register_method("[{'domain': str}]")
     def do_LIST(self, bonafide, *parts):
