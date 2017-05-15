@@ -11,4 +11,5 @@ RUN apt-get update
 RUN apt-get -y install build-essential python-virtualenv libpython-dev \
   libsqlcipher-dev libssl-dev libffi-dev python-pyqt5 python-pyqt5.qtwebkit \
   nodejs npm nodejs-legacy git swaks uuid-runtime \
-  patchelf libusb-0.1-4 docker.io
+  policykit-1 docker.io \
+  patchelf libusb-0.1-4 
