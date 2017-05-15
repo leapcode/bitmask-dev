@@ -386,20 +386,6 @@ subject: independence of cyberspace
         d.addCallback(add_verified_signature_header_called)
         return d
 
-    def testListener(self):
-        self.called = False
-
-        def listener(uid):
-            self.called = True
-
-        def listener_called(_):
-            self.assertTrue(self.called)
-
-        self.fetcher.add_listener(listener)
-        d = self._do_fetch(self.EMAIL)
-        d.addCallback(listener_called)
-        return d
-
     def _do_fetch(self, message):
         d = self._create_incoming_email(message)
         d.addCallback(
