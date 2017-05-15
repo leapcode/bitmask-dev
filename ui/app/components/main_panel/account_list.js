@@ -5,6 +5,7 @@ import App from 'app'
 import Account from 'models/account'
 import Confirmation from 'components/confirmation'
 import AppButtons from './app_buttons'
+import bitmask from 'lib/bitmask'
 
 export default class AccountList extends React.Component {
 
@@ -21,7 +22,9 @@ export default class AccountList extends React.Component {
 
     this.state = {
       mode: 'expanded',
-      showRemoveConfirmation: false
+      showRemoveConfirmation: false,
+      activeVpnDomain: null,
+      activeVpnStatus: null
     }
 
     // prebind:
@@ -32,6 +35,40 @@ export default class AccountList extends React.Component {
     this.cancelRemove = this.cancelRemove.bind(this)
     this.expand = this.expand.bind(this)
     this.collapse = this.collapse.bind(this)
+    this.statusEvent = this.statusEvent.bind(this)
+  }
+
+  componentWillMount() {
+    // Listen to state changes so we can update the vpn status icon
+    bitmask.events.register("VPN_STATUS_CHANGED", 'account list update', this.statusEvent)
+    this.updateStatus()
+  }
+
+  componentWillUnmount() {
+    bitmask.events.unregister("VPN_STATUS_CHANGED", 'acconut list update')
+  }
+
+  statusEvent() {
+    this.updateStatus()
+  }
+
+  /*
+   * Simple check to update the VPN status icon. We assume that if it's not up or
+   * connecting, it's down.
+   */
+  updateStatus() {
+    bitmask.vpn.status().then(
+      vpn => {
+        this.setState({'activeVpnDomain': vpn.domain})
+        if (vpn.status == "on") {
+          this.setState({'activeVpnState': "up"})
+        } else if (vpn.status == "starting") {
+          this.setState({'activeVpnState': "connecting"})
+        } else {
+          this.setState({'activeVpnState': "down"})
+        }
+      }
+    )
   }
 
   select(e) {
@@ -111,10 +148,19 @@ export default class AccountList extends React.Component {
 
     let items = this.props.accounts.map((account, i) => {
       let className = account == this.props.account ? 'active' : 'inactive'
+      let icon = null;
+      if (account.domain === this.state.activeVpnDomain){
+        icon = <Glyphicon glyph="lock" />
+      }
       return (
         <li key={i} className={className} onClick={this.select} data-id={account.id}>
-          <span className="username">{account.userpart}</span>
-          <span className="domain">{account.domain}</span>
+          <div className="account-details">
+            <span className="username">{account.userpart}</span>
+            <span className="domain">{account.domain}</span>
+          </div>
+          <div className={`vpn-status ${this.state.activeVpnState}`}>
+            {icon}
+          </div>
           <span className="arc top"></span>
           <span className="arc bottom"></span>
         </li>

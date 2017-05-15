@@ -70,6 +70,7 @@
   border-top-left-radius: @accounts-corner - 1;
   border-bottom-left-radius: @accounts-corner - 1;
   z-index: 100;
+  display: flex;
   &:hover {
     background-color: #555;
   }
@@ -78,14 +79,14 @@
 .main-panel .accounts li span.domain {
   display: block;
   font-weight: bold;
-  //margin-left: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .main-panel .accounts li span.username {
   display: block;
-  //margin-left: 40px;
-  //line-height: 7px;
-  //margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /*.main-panel .accounts li span.icon {
@@ -139,11 +140,32 @@
 }
 
 .main-panel .accounts .btn.expander {
-   margin-right: @accounts-padding;
 }
 
 .main-panel .accounts .app-buttons {
   margin-bottom: @accounts-padding;
+}
+
+.main-panel .accounts li .account-details {
+  width: 140px;
+  margin-right: 5px;
+}
+
+.main-panel .accounts li .vpn-status {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.main-panel .accounts li .vpn-status.down {
+  color: #ef5350;
+}
+
+.main-panel .accounts li .vpn-status.connecting {
+  color: #fbc02d;
+}
+
+.main-panel .accounts li .vpn-status.up {
+    color: #66bb6a;
 }
 
 //
