@@ -68,3 +68,18 @@ bundle from inside a virtual machine running a **live image for xenial** (note
 that this is **not** an installation method!)::
 
   curl https://0xacab.org/leap/bitmask-dev/raw/master/docs/testing/latest-bundle-xenial | bash
+
+
+Thunderbird integration
+=======================
+
+These are the steps for testing the thunderbird integration::
+
+  1. From within Thunderbird, install the `Bitmask Thunderbird Extension`_.
+  2. Enable the menu bar: Right Click in the top bar > Menu Bar
+  3. Run Bitmask
+  4. Create a Bitmask Account: From the menubar, click on File > New > Bitmask Account
+  5. Fill in your name. This can be anything.
+  6. Fill in your username, in the form "username@provider"
+
+.. _`Bitmask Thunderbird Extension`: https://addons.mozilla.org/en-us/thunderbird/addon/bitmask/
