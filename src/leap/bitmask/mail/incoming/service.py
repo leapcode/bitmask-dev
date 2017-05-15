@@ -845,9 +845,10 @@ class IncomingMail(Service):
             d.addCallback(signal_deleted)
             return d
 
+        # Cannot do fast notifies, otherwise fucks with pixelated.
         d = self._inbox_collection.add_msg(
             raw_data, (self.RECENT_FLAG,), date=insertion_date,
-            notify_just_mdoc=True)
+            notify_just_mdoc=False)
         d.addCallbacks(msgSavedCallback, self._errback)
         return d
 
