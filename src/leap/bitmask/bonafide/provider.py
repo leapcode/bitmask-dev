@@ -88,7 +88,7 @@ class BaseProvider(object):
         parsed = urlparse(netloc)
         if parsed.scheme != 'https':
             raise ValueError(
-                'ProviderApi needs to be passed a url with https scheme')
+                'BaseProvider needs to be passed a url with https scheme')
         self.netloc = parsed.netloc
 
         self.version = version
