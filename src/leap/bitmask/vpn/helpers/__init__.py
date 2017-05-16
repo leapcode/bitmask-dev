@@ -10,13 +10,20 @@ if IS_LINUX:
 
     helper_to = '/usr/local/sbin/bitmask-root'
     polkit_to = '/usr/share/polkit-1/actions/se.bitmask.bundle.policy'
+    openvpn_to = '/usr/local/sbin/leap-openvpn'
 
     def install():
         helper_from = _config.get_bitmask_helper_path()
         polkit_from = _config.get_bitmask_polkit_policy_path()
+        openvpn_from = _config.get_bitmask_openvpn_path()
+
         copyfile(helper_from, helper_to)
         chmod(helper_to, 0744)
+
         copyfile(polkit_from, polkit_to)
+
+        copyfile(openvpn_from, openvpn_to)
+        chmod(openvpn_to, 0700)
 
     def uninstall():
         remove(helper_to)

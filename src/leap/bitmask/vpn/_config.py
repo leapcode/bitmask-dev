@@ -22,6 +22,12 @@ if IS_LINUX:
         return pkg_resources.resource_filename(
             'leap.bitmask.vpn.helpers.linux', 'se.leap.bitmask.bundle.policy')
 
+    def get_bitmask_openvpn_path():
+        if STANDALONE:
+            return os.path.join(here(), "..", "apps", "vpn",
+                                "openvpn.leap")
+        # else nothing, we're only shipping the openvpn binary with bundles
+
 
 class _TempVPNConfig(object):
     """Current VPN code on bitmask depends on VPNConfig object, this temporary
