@@ -12,6 +12,7 @@ dev-mail:
 
 dev-gui:
 	pip install -e '.[gui]'
+	pip install requests whoosh
 	pip install pixelated-www pixelated-user-agent --find-links https://downloads.leap.se/libs/pixelated/  
 
 dev-backend:
@@ -25,6 +26,7 @@ dev-latest-backend: dev-backend
 dev-all:
 	pip install -e '.[all]'
 	# install pixelated from our repo until assets get packaged.
+	pip install requests whoosh
 	pip install pixelated-www pixelated-user-agent --find-links https://downloads.leap.se/libs/pixelated/  
 
 dev-latest-all: dev-all
