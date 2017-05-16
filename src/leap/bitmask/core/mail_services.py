@@ -346,9 +346,7 @@ class KeymanagerContainer(Container):
         return keymanager
 
     def _get_api_uri(self, provider):
-        # TODO get this from service.json (use bonafide service)
-        api_uri = "https://api.{provider}:4430".format(
-            provider=provider)
+        api_uri = config.Provider(provider).api_uri
         return api_uri
 
     def _get_nicknym_uri(self, provider):

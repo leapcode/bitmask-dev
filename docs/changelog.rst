@@ -25,6 +25,7 @@ Bugfixes
 ~~~~~~~~
 - Repeat decryption if signed with attached key
 - `#8783 <https://0xacab.org/leap/bitmask-dev/issues/8783>`_: use username instead of provider in the vpn calls
+- `#8868 <https://0xacab.org/leap/bitmask-dev/issues/8868>`_: can't upload generated key with bitmask
 
 Misc
 ~~~~
