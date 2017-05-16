@@ -169,6 +169,8 @@ class Session(object):
         return self._request(self._agent, uri, method=met)
 
     def _request(self, *args, **kw):
+        # TODO: we are not pinning the TLS cert of the API
+        # maybe we can use leap.common.http
         kw['token'] = self._token
         return httpRequest(*args, **kw)
 

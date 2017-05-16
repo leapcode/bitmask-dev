@@ -110,7 +110,7 @@ class BonafideProtocol(object):
 
         provider = config.Provider(provider_id, autoconf=autoconf)
 
-        def maybe_finish_provider_bootstrap(result, provider):
+        def maybe_finish_provider_bootstrap(result):
             session = self._get_session(provider, full_id, password)
             d = provider.download_services_config_with_auth(session)
             d.addCallback(lambda _: result)
@@ -118,7 +118,7 @@ class BonafideProtocol(object):
 
         d = provider.callWhenReady(
             self._do_authenticate, provider, full_id, password)
-        d.addCallback(maybe_finish_provider_bootstrap, provider)
+        d.addCallback(maybe_finish_provider_bootstrap)
         return d
 
     def _do_authenticate(self, provider, full_id, password):

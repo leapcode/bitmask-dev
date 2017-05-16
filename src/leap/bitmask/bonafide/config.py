@@ -32,17 +32,16 @@ from cryptography.x509 import load_pem_x509_certificate
 from urlparse import urlparse
 
 from twisted.internet import defer, reactor
-from twisted.internet.ssl import ClientContextFactory
 from twisted.logger import Logger
-from twisted.web.client import Agent, downloadPage
+from twisted.web.client import downloadPage
 
-from leap.bitmask.bonafide._http import httpRequest
 from leap.bitmask.bonafide.provider import Discovery
 from leap.bitmask.bonafide.errors import NotConfiguredError, NetworkError
 
 from leap.common.check import leap_assert
 from leap.common.config import get_path_prefix as common_get_path_prefix
 from leap.common.files import mkdir_p
+from leap.common.http import HTTPClient
 
 
 APPNAME = "bonafide"
@@ -161,8 +160,6 @@ def delete_provider(domain):
 
 class Provider(object):
 
-    # TODO add validation
-
     SERVICES_MAP = {
         'openvpn': ['eip'],
         'mx': ['soledad', 'smtp']}
@@ -174,8 +171,7 @@ class Provider(object):
     stuck_bootstrap = defaultdict(None)
 
     def __init__(self, domain, autoconf=False, basedir=None,
-                 check_certificate=True):
-        # TODO: I need a way to know if it was already configured
+                 cert_path=None):
         if not basedir:
             basedir = os.path.join(_preffix, 'leap')
         self._basedir = os.path.expanduser(basedir)
@@ -184,18 +180,13 @@ class Provider(object):
         self._provider_config = None
 
         is_configured = self.is_configured()
-        if not is_configured:
-            check_certificate = False
-
-        if check_certificate:
-            self.contextFactory = None
+        if is_configured:
+            self._http = HTTPClient(self._get_ca_cert_path())
         else:
-            # XXX we should do this only for the FIRST provider download.
-            # For the rest, we should pass the ca cert to the agent.
-            # That means that RIGHT AFTER DOWNLOADING provider_info,
-            # we should instantiate a new Agent...
-            self.contextFactory = WebClientContextFactory()
-        self._agent = Agent(reactor, self.contextFactory)
+            # TODO: we distribute our own cert bundle but it's too outdated,
+            #       let's use for now the one from the system
+            #       see: leap.common.ca_bundle.where()
+            self._http = HTTPClient(cert_path)
 
         self._load_provider_json()
 
@@ -260,6 +251,8 @@ class Provider(object):
         ongoing = self.ongoing_bootstrap.get(domain)
         if ongoing:
             self.log.debug('Already bootstrapping this provider...')
+            self.ongoing_bootstrap[domain].addCallback(
+                self._reload_http_client)
             return
 
         self.first_bootstrap[self._domain] = defer.Deferred()
@@ -270,10 +263,14 @@ class Provider(object):
             except defer.AlreadyCalledError:
                 pass
 
+        def first_bootstrap_error(failure):
+            self.first_bootstrap[domain].errback(failure)
+            return failure
+
         d = self.maybe_download_provider_info()
         d.addCallback(self.maybe_download_ca_cert)
         d.addCallback(self.validate_ca_cert)
-        d.addCallback(first_bootstrap_done)
+        d.addCallbacks(first_bootstrap_done, first_bootstrap_error)
         d.addCallback(self.maybe_download_services_config)
         self.ongoing_bootstrap[domain] = d
 
@@ -311,7 +308,8 @@ class Provider(object):
             shutil.rmtree(folders)
             raise NetworkError(failure.getErrorMessage())
 
-        d = downloadPage(uri, provider_json, method=met)
+        d = self._http.request(uri, method=met)
+        d.addCallback(_write_to_file, provider_json)
         d.addCallback(lambda _: self._load_provider_json())
         d.addErrback(errback)
         return d
@@ -326,19 +324,26 @@ class Provider(object):
         """
         :rtype: deferred
         """
-
-        def errback(self, failure):
-            raise NetworkError(failure.getErrorMessage())
-
         path = self._get_ca_cert_path()
         if is_file(path):
             return defer.succeed('ca_cert_path_already_exists')
 
+        def errback(failure):
+            raise NetworkError(failure.getErrorMessage())
+
         uri = self._get_ca_cert_uri()
         mkdir_p(os.path.split(path)[0])
+
+        # We don't validate the TLS cert for this connection,
+        # just check the fingerprint of the ca.cert
         d = downloadPage(uri, path)
+        d.addCallback(self._reload_http_client)
         d.addErrback(errback)
         return d
+
+    def _reload_http_client(self, ret):
+        self._http = HTTPClient(self._get_ca_cert_path())
+        return ret
 
     def validate_ca_cert(self, ignored):
         expected = self._get_expected_ca_cert_fingerprint()
@@ -377,6 +382,12 @@ class Provider(object):
         # UNAUTHENTICATED if we try to get the services
         # See: # https://leap.se/code/issues/7906
 
+        def check_error(content):
+            c = json.loads(content)
+            if 'error' in c:
+                raise Exception(c['error'])
+            return content
+
         def further_bootstrap_needs_auth(ignored):
             self.log.warn('Cannot download services config yet, need auth')
             pending_deferred = defer.Deferred()
@@ -385,7 +396,9 @@ class Provider(object):
 
         uri, met, path = self._get_configs_download_params()
 
-        d = downloadPage(uri, path, method=met)
+        d = self._http.request(uri, method=met)
+        d.addCallback(check_error)
+        d.addCallback(_write_to_file, path)
         d.addCallback(lambda _: self._load_provider_json())
         d.addCallback(
             lambda _: self._get_config_for_all_services(session=None))
@@ -553,12 +566,9 @@ class Provider(object):
 
     def _fetch_provider_configs_unauthenticated(self, uri, path):
         self.log.info('Downloading config for %s...' % uri)
-        d = downloadPage(uri, path, method='GET')
+        d = self._http.request(uri)
+        d.addCallback(_write_to_file, path)
         return d
-
-    def _http_request(self, *args, **kw):
-        # XXX pass if-modified-since header
-        return httpRequest(self._agent, *args, **kw)
 
 
 class Record(object):
@@ -569,9 +579,9 @@ class Record(object):
         return self.__dict__
 
 
-class WebClientContextFactory(ClientContextFactory):
-    def getContext(self, hostname, port):
-        return ClientContextFactory.getContext(self)
+def _write_to_file(content, path):
+    with open(path, 'w') as f:
+        f.write(content)
 
 
 if __name__ == '__main__':
