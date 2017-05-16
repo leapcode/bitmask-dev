@@ -61,22 +61,19 @@ export default class vpnSection extends React.Component {
     bitmask.vpn.status().then(
       vpn => {
         this.stopWatchingStatus()
-        if (vpn.status == "off") {
+        // If the current active VPN does not match this domain, ignore the status info.
+        if (vpn.domain !== domain || vpn.status === "off") {
           this.setState({vpn: "down"})
-        } else if (vpn.status == "on") {
-          if (vpn.domain == domain) {
-            this.setState({
-              vpn: "up",
-              up: vpn.up,
-              down: vpn.down
-            })
-            this.startWatchingStatus()
-          } else {
-            this.setState({vpn: "down"})
-          }
-        } else if (vpn.status == "disabled") {
+        } else if (vpn.status === "on") {
+          this.setState({
+            vpn: "up",
+            up: vpn.up,
+            down: vpn.down
+          })
+          this.startWatchingStatus()
+        } else if (vpn.status === "disabled") {
           this.setState({vpn: "disabled"})
-        } else if (vpn.status == "starting") {
+        } else if (vpn.status === "starting") {
           this.setState({vpn: "connecting"})
         } else {
           console.log("UNKNOWN STATUS", vpn.status)
