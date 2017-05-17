@@ -13,7 +13,7 @@ dev-mail:
 
 dev-gui:
 	pip install -e '.[gui]'
-	pip install requests whoosh
+	pip install requests==2.11.1 whoosh chardet
 	pip install pixelated-www pixelated-user-agent --find-links https://downloads.leap.se/libs/pixelated/  
 
 dev-backend:
@@ -27,7 +27,7 @@ dev-latest-backend: dev-backend
 dev-all:
 	pip install -e '.[all]'
 	# install pixelated from our repo until assets get packaged.
-	pip install requests whoosh
+	pip install requests==2.11.1 whoosh chardet
 	pip install pixelated-www pixelated-user-agent --find-links https://downloads.leap.se/libs/pixelated/  
 
 dev-latest-all: dev-all
@@ -47,9 +47,12 @@ qt-resources:
 doc:
 	cd docs && make html
 
-docker_container:
-	cd pkg/docker_bundle && docker build -t mybundle .
+bundle_in_virtualenv:
+	pkg/build_bundle_with_venv.sh
 
 bundle_in_docker:
 	# needs a docker container called 'mybundle', created with 'make docker_container'
 	cat pkg/docker_build | docker run -i -v ~/leap/bitmask-dev:/dist -w /dist -u `id -u` mybundle bash
+
+docker_container:
+	cd pkg/docker_bundle && docker build -t mybundle .

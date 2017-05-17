@@ -43,5 +43,9 @@ $VIRTUAL_ENV/bin/pip install dist/*.whl
 # install pixelated from kali dev repo until assets get packaged.
 pip install pixelated-www pixelated-user-agent --find-links https://downloads.leap.se/libs/pixelated/
 
+# Get the bundled libzmq
+$VIRTUAL_ENV/bin/pip uninstall --yes pyzmq
+$VIRTUAL_ENV/bin/pip install pyzmq --install-option="--zmq=bundled"
+
 make bundle
 make bundle_apps
