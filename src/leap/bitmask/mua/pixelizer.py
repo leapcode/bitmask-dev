@@ -51,6 +51,21 @@ try:
     from pixelated.resources.root_resource import RootResource
     import pixelated_www
     HAS_PIXELATED = True
+
+    class _LeapMailStore(LeapMailStore):
+
+        def __init__(self, soledad, account):
+            self.account = account
+            super(_LeapMailStore, self).__init__(soledad)
+
+        # We should rewrite the LeapMailStore in the coming pixelated fork so
+        # that we reuse the account instance.
+        @defer.inlineCallbacks
+        def add_mail(self, mailbox_name, raw_msg):
+            inbox = yield self.account.get_collection_by_mailbox(mailbox_name)
+            yield inbox.add_msg(raw_msg, ('\\Recent',), notify_just_mdoc=False)
+
+
 except ImportError as exc:
     HAS_PIXELATED = False
 
@@ -146,20 +161,6 @@ class NickNym(object):
 
     def _send_key_to_leap(self):
         return self.keymanager.send_key()
-
-
-class _LeapMailStore(LeapMailStore):
-
-    def __init__(self, soledad, account):
-        self.account = account
-        super(_LeapMailStore, self).__init__(soledad)
-
-    # We should rewrite the LeapMailStore in the coming pixelated fork so that
-    # we reuse the account instance.
-    @defer.inlineCallbacks
-    def add_mail(self, mailbox_name, raw_msg):
-        inbox = yield self.account.get_collection_by_mailbox(mailbox_name)
-        yield inbox.add_msg(raw_msg, ('\\Recent',), notify_just_mdoc=False)
 
 
 class LeapSessionAdapter(object):
