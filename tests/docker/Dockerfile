@@ -1,5 +1,5 @@
-# start with a fresh official ruby image
-# https://hub.docker.com/_/ruby/
+# start with a fresh image (that comes from Ubuntu 16.04 at the moment).
+
 FROM 0xacab.org:4567/leap/bitmask-dev:latest
 
 MAINTAINER LEAP Encryption Access Project <info@leap.se>
