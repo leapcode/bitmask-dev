@@ -10,6 +10,6 @@ RUN apt-get update
 # Install bitmask-dev build and test deps
 RUN apt-get -y install build-essential python-virtualenv libpython-dev \
   libsqlcipher-dev libssl-dev libffi-dev python-pyqt5 python-pyqt5.qtwebkit \
-  nodejs npm nodejs-legacy git swaks uuid-runtime \
+  nodejs npm nodejs-legacy git swaks uuid-runtime wget \
   policykit-1 docker.io \
   patchelf libusb-0.1-4 
