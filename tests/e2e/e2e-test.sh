@@ -3,6 +3,7 @@
 # Dependencies
 # - swaks and uuid-runtime debian packages
 #
+#
 # Usage
 #
 # In order to send authenticated mail to the tmp_user you need to
@@ -26,9 +27,22 @@
 #   - move away from cdev.bm
 #   - remove test user on success
 
+# exit if any commands returns non-zero status
 set -e
 
+# Check if scipt is run in debug mode so we can hide secrets
+if [[ "$-" =~ 'x' ]]
+then
+  echo 'Running with xtrace enabled!'
+  xtrace=true
+else
+  echo 'Running with xtrace disabled!'
+  xtrace=false
+fi
+
 PROVIDER='ci.leap.se'
+INVITE_CODE=${BITMASK_INVITE_CODE:?"Need to set BITMASK_INVITE_CODE non-empty"}
+
 BCTL='bitmaskctl'
 LEAP_HOME="$HOME/.config/leap"
 MAIL_UUID=$(uuidgen)
@@ -47,7 +61,12 @@ SWAKS="swaks --h-Subject $MAIL_UUID --silent 2 --helo ci.leap.se -f ci@leap.se -
 "$BCTL" start
 
 # Register a new user
-"$BCTL" user create "$user" --pass "$pw"
+
+# Disable xtrace
+set +x
+"$BCTL" user create "$user" --pass "$pw" --invite "$INVITE_CODE"
+# Enable xtrace again only if it was set at beginning of script
+[[ $xtrace == true ]] && set -x
 
 # Authenticate
 "$BCTL" user auth "$user" --pass "$pw" > /dev/null
