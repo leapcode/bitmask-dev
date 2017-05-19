@@ -1,5 +1,5 @@
 #
-# builds for development mode
+# npm builds for development mode
 #
 
 dev-build: build-clean make-init
@@ -11,24 +11,39 @@ dev-install: dev-build
 
 # installs a prebuilt python package from
 # the magical pypi place in the sky.
-# for usage when you don't want to install nodejs
+# (see below for how this is generated).
+
 dev-install-prebuilt:
 	pip install -U leap.bitmask_js
 
 #
 # distribution builds
 #
+# This builds a python package that distributes the compiled assets, 
+# for usage when you don't want to install nodejs.
+#
+# A developer/maintainer should use only these two targets:
+#
+# - "make python-package-local": 
+#   	builds & installs the python package (from wheel).
+#
+# - "make python-package":
+#       builds & uploads the python package to pypi, 
 
-dist-build: build-clean make-init
+
+python-package: clean pydist-build pydist-upload
+
+python-package-local: clean pydist-build
+	pip install pydist/dist/*.whl
+
+
+pydist-build: make-init
 	npm install
 	npm run build:production
 	cd pydist && python setup.py bdist_wheel
 
-dist-upload:
+pydist-upload:
 	cd pydist && python setup.py sdist upload -r pypi
-
-dist-install: dist-build
-	pip install pydist/dist/*.whl
 
 #
 # clean up and set up
@@ -46,5 +61,5 @@ build-clean:
 clean: build-clean
 	rm -rf node_modules
 
-uninstall:
+uninstall-python-package:
 	pip uninstall leap.bitmask_js
