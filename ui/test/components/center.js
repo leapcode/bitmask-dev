@@ -12,7 +12,9 @@ describe('Center Component', () => {
   it('has reasonable defaults', () => {
     const center = shallow(
       <Center>
-        test
+        <span>
+          test
+        </span>
       </Center>
     )
 
@@ -24,7 +26,9 @@ describe('Center Component', () => {
   it('has a width parameter on the inner div', () => {
     const center = shallow(
       <Center width="10">
-        test
+        <span>
+          test
+        </span>
       </Center>
     )
 
@@ -34,7 +38,9 @@ describe('Center Component', () => {
   it('sets direction parameter in the class name', () => {
     const center = shallow(
       <Center direction="vertically">
-        test
+        <span>
+          test
+        </span>
       </Center>
     )
 
