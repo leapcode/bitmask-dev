@@ -279,17 +279,6 @@ class VPNLauncher(object):
         return command_and_args
 
     @classmethod
-    def get_vpn_env(kls):
-        """
-        Return a dictionary with the custom env for the platform.
-        This is mainly used for setting LD_LIBRARY_PATH to the correct
-        path when distributing a standalone client
-
-        :rtype: dict
-        """
-        return {}
-
-    @classmethod
     def missing_updown_scripts(kls):
         """
         Return what updown scripts are missing.

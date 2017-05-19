@@ -182,18 +182,3 @@ class DarwinVPNLauncher(VPNLauncher):
         command.extend(['--setenv', "LEAPUSER", getpass.getuser()])
 
         return command
-
-    @classmethod
-    def get_vpn_env(kls):
-        """
-        Returns a dictionary with the custom env for the platform.
-        This is mainly used for setting LD_LIBRARY_PATH to the correct
-        path when distributing a standalone client
-
-        :rtype: dict
-        """
-        ld_library_path = os.path.join(get_path_prefix(), "..", "lib")
-        ld_library_path.encode(sys.getfilesystemencoding())
-        return {
-            "DYLD_LIBRARY_PATH": ld_library_path
-        }

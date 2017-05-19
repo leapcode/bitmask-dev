@@ -68,8 +68,6 @@ class VPNControl(object):
             raise
 
         env = os.environ
-        for key, val in vpnproc.vpn_env.items():
-            env[key] = val
 
         reactor.spawnProcess(vpnproc, cmd[0], cmd, env)
         self._vpnproc = vpnproc

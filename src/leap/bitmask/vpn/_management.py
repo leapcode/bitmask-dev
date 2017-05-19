@@ -298,13 +298,6 @@ class VPNManagement(object):
         if self.is_connected():
             return self._parse_status_and_notify(self._send_command("status"))
 
-    @property
-    def vpn_env(self):
-        """
-        Return a dict containing the vpn environment to be used.
-        """
-        return self._launcher.get_vpn_env()
-
     def terminate_openvpn(self, shutdown=False):
         """
         Attempts to terminate openvpn by sending a SIGTERM.
