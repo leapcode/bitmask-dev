@@ -36,9 +36,6 @@ from leap.bitmask.util import STANDALONE, here
 log = Logger()
 
 
-flags_STANDALONE = False
-
-
 def install_helpers():
     cmd = 'bitmask_helpers install'
     if STANDALONE:
@@ -124,7 +121,7 @@ class LinuxPolicyChecker(PolicyChecker):
 
         :rtype: str
         """
-        return (self.LINUX_POLKIT_FILE_BUNDLE if flags_STANDALONE
+        return (self.LINUX_POLKIT_FILE_BUNDLE if STANDALONE
                 else self.LINUX_POLKIT_FILE)
 
     def is_missing_policy_permissions(self):
@@ -175,7 +172,7 @@ class LinuxPolicyChecker(PolicyChecker):
         Tries to launch policykit
         """
         env = None
-        if flags_STANDALONE:
+        if STANDALONE:
             # This allows us to send to subprocess the environment configs that
             # works for the standalone bundle (like the PYTHONPATH)
             env = dict(os.environ)

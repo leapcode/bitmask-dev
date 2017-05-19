@@ -25,6 +25,7 @@ import sys
 
 from twisted.logger import Logger
 
+from leap.bitmask.util import STANDALONE
 from leap.bitmask.vpn.utils import first, force_eval
 from leap.bitmask.vpn.privilege import LinuxPolicyChecker
 from leap.bitmask.vpn.privilege import NoPkexecAvailable
@@ -35,15 +36,6 @@ from leap.common.config import get_path_prefix
 
 logger = Logger()
 COM = commands
-flags_STANDALONE = False
-
-
-class NoPolkitAuthAgentAvailable(VPNLauncherException):
-    pass
-
-
-class NoPkexecAvailable(VPNLauncherException):
-    pass
 
 
 class LinuxVPNLauncher(VPNLauncher):
@@ -66,7 +58,7 @@ class LinuxVPNLauncher(VPNLauncher):
 
     class OPENVPN_BIN_PATH(object):
         def __call__(self):
-            return ("/usr/local/sbin/leap-openvpn" if flags_STANDALONE else
+            return ("/usr/local/sbin/leap-openvpn" if STANDALONE else
                     "/usr/sbin/openvpn")
 
     class POLKIT_PATH(object):
