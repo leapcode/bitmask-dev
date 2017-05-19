@@ -63,3 +63,14 @@ clean: build-clean
 
 uninstall-python-package:
 	pip uninstall leap.bitmask_js
+
+#
+# Testing
+#
+
+test:
+	npm run test
+
+# This makes make run test even thoug there's already a directory
+# named "test"
+.PHONY: test
