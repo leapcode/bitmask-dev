@@ -169,26 +169,20 @@ class LinuxPolicyChecker(PolicyChecker):
     @classmethod
     def launch(self):
         """
-        Tries to launch policykit
+        Tries to launch policykit.
         """
-        env = None
-        if STANDALONE:
-            # This allows us to send to subprocess the environment configs that
-            # works for the standalone bundle (like the PYTHONPATH)
-            env = dict(os.environ)
-            # The LD_LIBRARY_PATH is set on the launcher but not forwarded to
-            # subprocess unless we do so explicitly.
-            env["LD_LIBRARY_PATH"] = os.path.abspath("./lib/")
-        try:
-            # We need to quote the command because subprocess call
-            # will do "sh -c 'foo'", so if we do not quoute it we'll end
-            # up with a invocation to the python interpreter. And that
-            # is bad.
-            log.debug('Trying to launch polkit agent')
-            subprocess.call(["python -m leap.bitmask.util.polkit_agent"],
-                            shell=True, env=env)
-        except Exception:
-            log.failure('Error while launching vpn')
+        if not self.is_up():
+            try:
+                # We need to quote the command because subprocess call
+                # will do "sh -c 'foo'", so if we do not quoute it we'll end
+                # up with a invocation to the python interpreter. And that
+                # is bad.
+                log.debug('Trying to launch polkit agent')
+                subprocess.call(
+                    ["python -m leap.bitmask.vpn.helpers.linux.polkit_agent"],
+                    shell=True)
+            except Exception:
+                log.failure('Error while launching vpn')
 
     @classmethod
     def is_up(self):

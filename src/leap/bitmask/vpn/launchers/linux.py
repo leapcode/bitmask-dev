@@ -21,18 +21,13 @@ Linux VPN launcher implementation.
 
 import commands
 import os
-import sys
 
 from twisted.logger import Logger
 
 from leap.bitmask.util import STANDALONE
 from leap.bitmask.vpn.utils import first, force_eval
 from leap.bitmask.vpn.privilege import LinuxPolicyChecker
-from leap.bitmask.vpn.privilege import NoPkexecAvailable
-from leap.bitmask.vpn.privilege import NoPolkitAuthAgentAvailable
 from leap.bitmask.vpn.launcher import VPNLauncher
-from leap.bitmask.vpn.launcher import VPNLauncherException
-from leap.common.config import get_path_prefix
 
 logger = Logger()
 COM = commands

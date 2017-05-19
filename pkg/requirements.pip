@@ -2,6 +2,7 @@ twisted
 colorama
 zope.interface
 service-identity
+python-daemon
 gnupg
 leap.common>=0.5.5
 leap.soledad.client>=0.9.5

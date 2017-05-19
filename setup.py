@@ -18,6 +18,7 @@ required = [
     'service-identity',
     'colorama',
     'srp',
+    'python-daemon',
     'leap.common',
 ]
 
