@@ -17,13 +17,16 @@
     "babel-preset-react": "^6.16.0",
     "babel-preset-stage-0": "^6.16.0",
     "bootstrap": "^3.3.7",
+    "chai": "^3.5.0",
+    "chai-enzyme": "^0.6.1",
     "copy-webpack-plugin": "^3.0.1",
     "css-loader": "^0.23.1",
     "less": "^2.7.1",
     "less-loader": "^2.2.3",
+    "mocha": "^3.4.1",
     "react": "^15.3.2",
-    "react-dom": "^15.3.2",
     "react-bootstrap": "^0.30.5",
+    "react-dom": "^15.3.2",
     "style-loader": "^0.13.1",
     "webpack": "^1.13.1",
     "zxcvbn": "^4.4.0"
@@ -32,6 +35,7 @@
     "ui": "chromium-browser \"http://localhost:7070/#$(cat ~/.config/leap/authtoken)\"",
     "watch": "NODE_ENV=development webpack --watch",
     "build": "NODE_ENV=development webpack",
-    "build:production": "NODE_ENV=production webpack"
+    "build:production": "NODE_ENV=production webpack",
+    "test": "mocha --compilers js:babel-core/register ./test/**/*.js"
   }
 }

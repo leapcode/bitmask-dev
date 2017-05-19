@@ -3,38 +3,27 @@
 //
 
 import React from 'react'
+import PropTypes from 'prop-types'
 
-class Center extends React.Component {
+const Center = props => (
+  <div className={"center-container center-" + props.direction}>
+    <div className="center-item" style={props.width ? {width: props.width + 'px'} : null}>
+      {props.children}
+    </div>
+  </div>
+)
 
-  static get defaultProps() {return{
-    width: null,
-    direction: 'both',
-  }}
-
-  constructor(props) {
-    super(props)
-  }
-
-  render() {
-    let style = null
-    if (this.props.width) {
-      style = {width: this.props.width + 'px'}
-    }
-    let className = "center-container center-" + this.props.direction
-    return (
-      <div className={className}>
-        <div className="center-item" style={style}>
-          {this.props.children}
-        </div>
-      </div>
-    )
-  }
+Center.defaultProps = {
+  width: null,
+  direction: 'both'
 }
 
 Center.propTypes = {
-  children: React.PropTypes.oneOfType([
-    React.PropTypes.element,
-    React.PropTypes.arrayOf(React.PropTypes.element)
+  children: PropTypes.oneOfType([
+    PropTypes.element,
+    PropTypes.arrayOf(
+      PropTypes.element
+    )
   ])
 }
 

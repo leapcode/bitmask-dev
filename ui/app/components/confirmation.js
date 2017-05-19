@@ -3,41 +3,43 @@
 //
 
 import React from 'react'
-import {Button, ButtonGroup, ButtonToolbar, Glyphicon, Modal}
-  from 'react-bootstrap'
+import {Button, ButtonToolbar, Modal} from 'react-bootstrap'
+import PropTypes from 'prop-types'
 
-export default class Confirmation extends React.Component {
+const Confirmation = props => (
+  <Modal>
+    <Modal.Header closeButton>
+      <Modal.Title>
+        {props.title}
+      </Modal.Title>
+    </Modal.Header>
+    <Modal.Body>
+      <ButtonToolbar>
+        <Button onClick={props.onAccept} bsStyle="success">
+          {props.acceptStr}
+        </Button>
+        <Button onClick={props.onCancel}>
+          {props.cancelStr}
+        </Button>
+      </ButtonToolbar>
+    </Modal.Body>
+  </Modal>
+)
 
-  static get defaultProps() {return{
-    title: "Are you sure?",
-    onCancel: null,
-    onAccept: null,
-    acceptStr: 'Accept',
-    cancelStr: 'Cancel'
-  }}
-
-  constructor(props) {
-    super(props)
-  }
-
-  render() {
-    return (
-      <Modal show={true} onHide={this.props.onCancel}>
-        <Modal.Header closeButton>
-          <Modal.Title>{this.props.title}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <ButtonToolbar>
-            <Button onClick={this.props.onAccept} bsStyle="success">
-              {this.props.acceptStr}
-            </Button>
-            <Button onClick={this.props.onCancel}>
-              {this.props.cancelStr}
-            </Button>
-          </ButtonToolbar>
-        </Modal.Body>
-      </Modal>
-    )
-  }
+Confirmation.defaultProps = {
+  title: "Are you sure?",
+  onCancel: null,
+  onAccept: null,
+  acceptStr: 'Accept',
+  cancelStr: 'Cancel'
 }
 
+Confirmation.propTypes = {
+  className: PropTypes.string,
+  onCancel: PropTypes.func.isRequired,
+  onAccept: PropTypes.func.isRequired,
+  acceptStr: PropTypes.string,
+  cancelStr:  PropTypes.string
+}
+
+export default Confirmation
