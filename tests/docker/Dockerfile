@@ -12,6 +12,6 @@ RUN apt-get -y install build-essential python-virtualenv libpython-dev \
   libsqlcipher-dev libssl-dev libffi-dev python-pyqt5 python-pyqt5.qtwebkit \
   nodejs npm nodejs-legacy mocha \
   git swaks uuid-runtime \
-  openvpn policykit-1 \
+  openvpn policykit-1 lxpolkit \
   wget patchelf libusb-0.1-4 \
   docker.io \
