@@ -189,7 +189,7 @@ Now you should be able to run the user interface with debugging tools::
   cd ui
   npm run ui
 
-This command is the same as running:
+This command is the same as running::
 
   chromium-browser "http://localhost:7070/#$(cat ~/.config/leap/authtoken)"
 
