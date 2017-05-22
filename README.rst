@@ -40,16 +40,17 @@ isolated, under the leap namespace:
 
 bonafide, mail, keymanager, bitmask.
 
-The previous Qt client has been deprecated (bitmask version 0.9.2, still
-available at the http://github.com/leapcode/bitmask_client repo).
+The previous client using PySide has been deprecated (bitmask version 0.9.2,
+still available at the http://github.com/leapcode/bitmask_client repo).
 
 
 Read the Docs!
 -----------------------------------------------------------
 
-The latest documentation about Bitmask is available at `LEAP`_.
+There is documentation about Bitmask `for users`_ and `for developers`_.
 
-.. _`LEAP`: https://leap.se/en/docs/client
+.. _`for users`: https://leap.se/en/docs/client
+.. _`for developers`: https://bitmask.rtfd.io
 
 Bugs
 ===========================================================
@@ -83,9 +84,18 @@ You need tox to run the tests. If you don't have it in your system yet::
 
   pip install tox
 
-And then run all the tests::
+And then run all the python tests::
 
   tox
+
+There are some minimal end-to-end tests::
+
+  make test_e2e
+
+For testing the UI (aka ``bitmask-js``) you need to have ``mocha``
+installed. You can run ui tests like this::
+
+  cd ui && make test
 
 
 Hacking
