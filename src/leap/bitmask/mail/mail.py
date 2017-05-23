@@ -578,6 +578,7 @@ class MessageCollection(object):
 
     # Manipulate messages
 
+    @defer.inlineCallbacks
     def add_msg(self, raw_msg, flags=tuple(), tags=tuple(), date="",
                 notify_just_mdoc=False):
         """
@@ -603,8 +604,8 @@ class MessageCollection(object):
             message is met, which currently is a specific mozilla header.
         :type notify_just_mdoc: bool
 
-        :returns: a deferred that will fire with the UID of the inserted
-                  message.
+        :returns: a deferred that will fire with a Message when this is
+                  inserted.
         :rtype: deferred
         """
         # TODO watch out if the use of this method in IMAP COPY/APPEND is
@@ -630,43 +631,43 @@ class MessageCollection(object):
         if not self.is_mailbox_collection():
             raise NotImplementedError()
 
-        else:
-            mbox_id = self.mbox_uuid
-            wrapper.set_mbox_uuid(mbox_id)
-            wrapper.set_flags(flags)
-            wrapper.set_tags(tags)
-            wrapper.set_date(date)
+        mbox_id = self.mbox_uuid
+        assert mbox_id is not None
+        wrapper.set_mbox_uuid(mbox_id)
+        wrapper.set_flags(flags)
+        wrapper.set_tags(tags)
+        wrapper.set_date(date)
 
-        def insert_mdoc_id(_, wrapper):
-            doc_id = wrapper.mdoc.doc_id
+        try:
+            updated_wrapper = yield wrapper.create(
+                self.store,
+                notify_just_mdoc=notify_just_mdoc,
+                pending_inserts_dict=self._pending_inserts)
+
+            doc_id = updated_wrapper.mdoc.doc_id
             if not doc_id:
-                # --- BUG -----------------------------------------
-                # XXX watch out, sometimes mdoc doesn't have doc_id
-                # but it has future_id. Should be solved already.
-                self.log.error('BUG: (please report) Null doc_id for '
-                               'document %s' %
-                               (wrapper.mdoc.serialize(),))
-                return defer.succeed("mdoc_id not inserted")
-                # XXX BUG -----------------------------------------
+                doc_id = updated_wrapper.mdoc.future_doc_id
+            assert doc_id
 
-            # XXX BUG sometimes the table is not yet created,
-            # so workaround is to make sure we always check for it before
-            # inserting the doc. I should debug into the real cause.
-            d = self.mbox_indexer.create_table(self.mbox_uuid)
-            d.addBoth(lambda _: self.mbox_indexer.insert_doc(
-                self.mbox_uuid, doc_id))
-            return d
+        except Exception:
+            self.log.failure('Error creating message')
+            raise
 
-        d = wrapper.create(
-            self.store,
-            notify_just_mdoc=notify_just_mdoc,
-            pending_inserts_dict=self._pending_inserts)
-        d.addCallback(insert_mdoc_id, wrapper)
-        d.addCallback(self.cb_signal_unread_to_ui)
-        d.addCallback(self.notify_new_to_listeners)
-        d.addErrback(lambda f: self.log.error('Error adding msg!'))
-
-        return d
+        # XXX BUG sometimes the table is not yet created,
+        # so workaround is to make sure we always check for it before
+        # inserting the doc. I should debug into the real cause.
+        # It might be related to _get_or_create_mbox creating the mbox
+        # wrapper but not going through the add_mailbox path that calls the
+        # indexer.
+        try:
+            yield self.mbox_indexer.create_table(self.mbox_uuid)
+            uid = yield self.mbox_indexer.insert_doc(self.mbox_uuid, doc_id)
+        except Exception:
+            self.log.failure('Error indexing message')
+        else:
+            self.cb_signal_unread_to_ui()
+            self.notify_new_to_listeners()
+            defer.returnValue(Message(wrapper, uid))
 
     # Listeners
 
@@ -676,28 +677,20 @@ class MessageCollection(object):
     def removeListener(self, listener):
         self._listeners.remove(listener)
 
-    def notify_new_to_listeners(self, result):
+    def notify_new_to_listeners(self):
         for listener in self._listeners:
             listener.notify_new()
-        return result
 
-    def cb_signal_unread_to_ui(self, result):
+    def cb_signal_unread_to_ui(self, *args):
         """
         Sends an unread event to ui, passing *only* the number of unread
         messages if *this* is the inbox. This event is catched, for instance,
         in the Bitmask client that displays a message with the number of unread
         mails in the INBOX.
-
-        Used as a callback in several commands.
-
-        :param result: ignored
         """
-        # TODO it might make sense to modify the event so that
-        # it receives both the mailbox name AND the number of unread messages.
         if self.mbox_name.lower() == "inbox":
             d = defer.maybeDeferred(self.count_unseen)
             d.addCallback(self.__cb_signal_unread_to_ui)
-        return result
 
     def __cb_signal_unread_to_ui(self, unseen):
         """
@@ -705,6 +698,8 @@ class MessageCollection(object):
         :param unseen: number of unseen messages.
         :type unseen: int
         """
+        # TODO it might make sense to modify the event so that
+        # it receives both the mailbox name AND the number of unread messages.
         emit_async(catalog.MAIL_UNREAD_MESSAGES, self.store.uuid, str(unseen))
 
     def copy_msg(self, msg, new_mbox_uuid):
@@ -762,7 +757,7 @@ class MessageCollection(object):
 
         d = wrapper.copy(self.store, new_mbox_uuid)
         d.addCallback(insert_copied_mdoc_id)
-        d.addCallback(self.notify_new_to_listeners)
+        d.addCallback(lambda _: self.notify_new_to_listeners())
         return d
 
     def delete_msg(self, msg):
@@ -917,30 +912,28 @@ class Account(object):
         self._init_d = self._initialize_storage()
         self._initialize_sync_hooks()
 
+    @defer.inlineCallbacks
     def _initialize_storage(self):
+        yield self.adaptor.initialize_store(self.store)
+        mboxes = yield self.list_all_mailbox_names()
+        if INBOX_NAME not in mboxes:
+            yield self.add_mailbox(INBOX_NAME)
 
-        def add_mailbox_if_none(mboxes):
-            if not mboxes:
-                return self.add_mailbox(INBOX_NAME)
+        # This is so that we create the mboxes before Pixelated tries
+        # to do it.
 
-        def finish_initialization(result):
-            self.deferred_initialization.callback(None)
-            if self._ready_cb is not None:
-                self._ready_cb()
+        if 'Sent' not in mboxes:
+            yield self.add_mailbox('Sent')
 
-        d = self.adaptor.initialize_store(self.store)
-        d.addCallback(lambda _: self.list_all_mailbox_names())
-        d.addCallback(add_mailbox_if_none)
-        d.addCallback(finish_initialization)
-        return d
+        self.deferred_initialization.callback(None)
+        if self._ready_cb is not None:
+            self._ready_cb()
 
     def callWhenReady(self, cb, *args, **kw):
         """
         Execute the callback when the initialization of the Account is ready.
         Note that the callback will receive a first meaningless parameter.
         """
-        # TODO this should ignore the first parameter explicitely
-        # lambda _: cb(*args, **kw)
         self.deferred_initialization.addCallback(cb, *args, **kw)
         return self.deferred_initialization
 

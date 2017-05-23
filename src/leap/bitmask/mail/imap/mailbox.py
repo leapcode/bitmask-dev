@@ -382,6 +382,7 @@ class IMAPMailbox(object):
 
         d = self.collection.add_msg(message, flags, date=date,
                                     notify_just_mdoc=notify_just_mdoc)
+        d.addCallback(lambda message: message.get_uid())
         d.addErrback(
             lambda failure: self.log.failure('Error while adding msg'))
         return d

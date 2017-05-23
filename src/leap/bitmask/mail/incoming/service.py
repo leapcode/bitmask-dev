@@ -832,8 +832,8 @@ class IncomingMail(Service):
 
         def msgSavedCallback(result):
 
-            if empty(result):
-                return
+            #if empty(result):
+                #return
 
             def signal_deleted(doc_id):
                 emit_async(catalog.MAIL_MSG_DELETED_INCOMING,

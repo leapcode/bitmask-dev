@@ -109,6 +109,7 @@ class SoledadDocumentWrapper(models.DocumentWrapper):
     def set_future_doc_id(self, doc_id):
         self._future_doc_id = doc_id
 
+    @defer.inlineCallbacks
     def create(self, store, is_copy=False):
         """
         Create the documents for this wrapper.
@@ -123,37 +124,36 @@ class SoledadDocumentWrapper(models.DocumentWrapper):
                  Soledad document has been created.
         :rtype: Deferred
         """
-        leap_assert(self._doc_id is None,
-                    "This document already has a doc_id!")
+        assert self.doc_id is None, "This document already has a doc_id!"
 
-        def update_doc_id(doc):
-            self._doc_id = doc.doc_id
+        print "FUTURE", self.future_doc_id
+        try:
+            if self.future_doc_id is None:
+                newdoc = yield store.create_doc(
+                    self.serialize())
+            else:
+                newdoc = yield store.create_doc(
+                    self.serialize(), doc_id=self.future_doc_id)
+            self._doc_id = newdoc.doc_id
             self.set_future_doc_id(None)
-            return doc
+        except l2db.errors.RevisionConflict:
+            if is_copy:
+                # In the case of some copies (for instance, from one folder to
+                # another and back to the original folder), the document that
+                # we want to insert already exists. In this  case, putting it
+                # and overwriting the document with that doc_id is the right
+                # thing to do.
+                self._doc_id = self.future_doc_id
+                self._future_doc_id = None
+                yield self.update(store)
+            else:
+                self.log.warn(
+                    'Revision conflict, ignoring: %s' % self.future_doc_id)
+        except Exception as exc:
+            self.log.warn('Error while creating %s: %r' % (
+                self.future_doc_id, exc))
 
-        def update_wrapper(failure):
-            # In the case of some copies (for instance, from one folder to
-            # another and back to the original folder), the document that we
-            # want to insert already exists. In this  case, putting it
-            # and overwriting the document with that doc_id is the right thing
-            # to do.
-            failure.trap(l2db.errors.RevisionConflict)
-            self._doc_id = self.future_doc_id
-            self._future_doc_id = None
-            return self.update(store)
-
-        if self.future_doc_id is None:
-            d = store.create_doc(self.serialize())
-        else:
-            d = store.create_doc(self.serialize(),
-                                 doc_id=self.future_doc_id)
-        d.addCallback(update_doc_id)
-
-        if is_copy:
-            d.addErrback(update_wrapper)
-        else:
-            d.addErrback(self._catch_revision_conflict, self.future_doc_id)
-        return d
+        defer.returnValue(self)
 
     def update(self, store):
         """
@@ -167,28 +167,20 @@ class SoledadDocumentWrapper(models.DocumentWrapper):
         return self._lock.run(self._update, store)
 
     def _update(self, store):
-        leap_assert(self._doc_id is not None,
-                    "Need to create doc before updating")
+        assert self._doc_id is not None, "Need to create doc before updating"
+
+        def log_error(failure, doc_id):
+            self.log.warn('Error while updating %s' % doc_id)
 
         def update_and_put_doc(doc):
             doc.content.update(self.serialize())
             d = store.put_doc(doc)
-            d.addErrback(self._catch_revision_conflict, doc.doc_id)
+            d.addErrback(log_error, doc.doc_id)
             return d
 
         d = store.get_doc(self._doc_id)
         d.addCallback(update_and_put_doc)
         return d
-
-    def _catch_revision_conflict(self, failure, doc_id):
-        # XXX We can have some RevisionConflicts if we try
-        # to put the docs that are already there.
-        # This can happen right now when creating/saving the cdocs
-        # during a copy. Instead of catching and ignoring this
-        # error, we should mark them in the copy so there is no attempt to
-        # create/update them.
-        failure.trap(l2db.errors.RevisionConflict)
-        self.log.debug('Got conflict while putting %s' % doc_id)
 
     def delete(self, store):
         """
@@ -511,6 +503,7 @@ class MessageWrapper(object):
                 self.log.warn('Empty raw field in cdoc %s' % doc_id)
             cdoc.set_future_doc_id(doc_id)
 
+    @defer.inlineCallbacks
     def create(self, store, notify_just_mdoc=False, pending_inserts_dict=None):
         """
         Create all the parts for this message in the store.
@@ -545,15 +538,11 @@ class MessageWrapper(object):
         if pending_inserts_dict is None:
             pending_inserts_dict = {}
 
-        leap_assert(self.cdocs,
-                    "Need non empty cdocs to create the "
-                    "MessageWrapper documents")
-        leap_assert(self.mdoc.doc_id is None,
-                    "Cannot create: mdoc has a doc_id")
-        leap_assert(self.fdoc.doc_id is None,
-                    "Cannot create: fdoc has a doc_id")
+        assert self.cdocs, "Need cdocs to create the MessageWrapper docs"
+        assert self.mdoc.doc_id is None, "Cannot create: mdoc has a doc_id"
+        assert self.fdoc.doc_id is None, "Cannot create: fdoc has a doc_id"
 
-        def unblock_pending_insert(result):
+        def maybe_unblock_pending():
             if pending_inserts_dict:
                 ci_headers = lowerdict(self.hdoc.headers)
                 msgid = ci_headers.get('message-id', None)
@@ -562,45 +551,44 @@ class MessageWrapper(object):
                     d.callback(msgid)
                 except KeyError:
                     pass
-            return result
 
-        # TODO check that the doc_ids in the mdoc are coherent
-        self.d = []
+        copy = self._is_copy
 
         try:
-            mdoc_created = self.mdoc.create(store, is_copy=self._is_copy)
+            mdoc = yield self.mdoc.create(store, is_copy=copy)
+            print "GOT MDOC >>>>>>>>>>>>>>>>>>", mdoc, "copy?", copy
+            assert mdoc
+            self.mdoc = mdoc
         except Exception:
-            self.log.failure("Error creating mdoc")
-        try:
-            fdoc_created = self.fdoc.create(store, is_copy=self._is_copy)
-        except Exception:
-            self.log.failure("Error creating fdoc")
-
-        self.d.append(mdoc_created)
-        self.d.append(fdoc_created)
-
-        if not self._is_copy:
-            if self.hdoc.doc_id is None:
-                self.d.append(self.hdoc.create(store))
-            for cdoc in self.cdocs.values():
-                if cdoc.doc_id is not None:
-                    # we could be just linking to an existing
-                    # content-doc.
-                    continue
-                self.d.append(cdoc.create(store))
-
-        def log_all_inserted(result):
-            self.log.debug('All parts inserted for msg!')
-            return result
-
-        self.all_inserted_d = defer.gatherResults(self.d, consumeErrors=True)
-        self.all_inserted_d.addCallback(log_all_inserted)
-        self.all_inserted_d.addCallback(unblock_pending_insert)
+            self.log.failure('Error creating mdoc')
 
         if notify_just_mdoc:
-            return mdoc_created
+            # fire and forget, fast notifies
+            self.fdoc.create(store, is_copy=copy)
+            if not copy:
+                if self.hdoc.doc_id is None:
+                    self.hdoc.create(store)
+                for cdoc in self.cdocs.values():
+                    if cdoc.doc_id is not None:
+                        continue
+                    cdoc.create(store)
+
         else:
-            return self.all_inserted_d
+            yield self.fdoc.create(store, is_copy=copy)
+            if not copy:
+                if self.hdoc.doc_id is None:
+                    yield self.hdoc.create(store)
+                for cdoc in self.cdocs.values():
+                    if cdoc.doc_id is not None:
+                        # we could be just linking to an existing
+                        # content-doc.
+                        continue
+                    yield cdoc.create(store)
+
+        maybe_unblock_pending()
+        defer.returnValue(self)
+
+
 
     def update(self, store):
         """

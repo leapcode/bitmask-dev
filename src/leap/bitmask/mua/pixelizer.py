@@ -32,6 +32,7 @@ However, some care has to be taken to avoid certain types of concurrency bugs.
 
 import json
 import os
+import string
 import sys
 
 from twisted.internet import defer, reactor
@@ -54,16 +55,71 @@ try:
 
     class _LeapMailStore(LeapMailStore):
 
+        # TODO We NEED TO rewrite the whole LeapMailStore in the coming
+        # pixelated fork so that we reuse the account instance.
+        # Otherwise, the current system for notifications will break.
+        # The other option is to have generic event listeners, using zmq, and
+        # allow the pixelated instance to have its own hierarchy of
+        # account-mailbox instances, only sharing soledad.
+        # However, this seems good enough since it's now better to wait until
+        # we depend on leap.pixelated fork to make changes on that codebase.
+        # When that refactor starts, we should try to internalize as much
+        # work/bugfixes was done in pixelated, and incorporate it into the
+        # public bitmask api. Let's learn from our mistakes.
+
         def __init__(self, soledad, account):
             self.account = account
             super(_LeapMailStore, self).__init__(soledad)
 
-        # We should rewrite the LeapMailStore in the coming pixelated fork so
-        # that we reuse the account instance.
         @defer.inlineCallbacks
         def add_mail(self, mailbox_name, raw_msg):
-            inbox = yield self.account.get_collection_by_mailbox(mailbox_name)
-            yield inbox.add_msg(raw_msg, ('\\Recent',), notify_just_mdoc=False)
+            name = yield self._get_case_insensitive_mbox(mailbox_name)
+            mailbox = yield self.account.get_collection_by_mailbox(name)
+            flags = ['\\Recent']
+            if mailbox_name.lower() == 'sent':
+                flags += '\\Seen'
+            message = yield mailbox.add_msg(
+                raw_msg, tuple(flags), notify_just_mdoc=False)
+
+            # this still needs the pixelated interface because it does stuff
+            # like indexing the mail in whoosh, etc.
+            mail = yield self._leap_message_to_leap_mail(
+                message.get_wrapper().mdoc.doc_id, message, include_body=True)
+            defer.returnValue(mail)
+
+        def get_mailbox_names(self):
+            """returns: deferred"""
+            return self.account.list_all_mailbox_names()
+
+        @defer.inlineCallbacks
+        def _get_or_create_mailbox(self, mailbox_name):
+            """
+            Avoid creating variations of the case.
+            If there's already a 'Sent' folder, do not create 'SENT', just
+            return that.
+            """
+            name = yield self._get_case_insensitive_mbox(mailbox_name)
+            if name is None:
+                name = mailbox_name
+                yield self.account.add_mailbox(name)
+            mailbox = yield self.account.get_collection_by_mailbox(
+                name)
+
+            # Pixelated expects the mailbox wrapper;
+            # it should limit itself to the Mail API instead.
+            # This is also a smell that the collection-mailbox-wrapper
+            # distinction is not clearly cut.
+            defer.returnValue(mailbox.mbox_wrapper)
+
+        @defer.inlineCallbacks
+        def _get_case_insensitive_mbox(self, mailbox_name):
+            name = None
+            mailboxes = yield self.get_mailbox_names()
+            lower = mailbox_name.lower()
+            lower_mboxes = map(string.lower, mailboxes)
+            if lower in lower_mboxes:
+                name = mailboxes[lower_mboxes.index(lower)]
+            defer.returnValue(name)
 
 
 except ImportError as exc:
