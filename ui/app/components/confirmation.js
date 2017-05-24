@@ -7,7 +7,7 @@ import {Button, ButtonToolbar, Modal} from 'react-bootstrap'
 import PropTypes from 'prop-types'
 
 const Confirmation = props => (
-  <Modal>
+  <Modal show={props.show}>
     <Modal.Header closeButton>
       <Modal.Title>
         {props.title}
@@ -27,6 +27,7 @@ const Confirmation = props => (
 )
 
 Confirmation.defaultProps = {
+  show: true,
   title: "Are you sure?",
   onCancel: null,
   onAccept: null,
@@ -35,6 +36,7 @@ Confirmation.defaultProps = {
 }
 
 Confirmation.propTypes = {
+  show: PropTypes.bool,
   className: PropTypes.string,
   onCancel: PropTypes.func.isRequired,
   onAccept: PropTypes.func.isRequired,
