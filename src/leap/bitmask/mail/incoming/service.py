@@ -44,7 +44,7 @@ from leap.common.mail import get_email_charset
 from leap.bitmask.keymanager import errors as keymanager_errors
 from leap.bitmask.mail.adaptors import soledad_indexes as fields
 from leap.bitmask.mail.generator import Generator
-from leap.bitmask.mail.utils import json_loads, empty
+from leap.bitmask.mail.utils import json_loads
 from leap.soledad.client import Soledad
 from leap.soledad.common.crypto import ENC_SCHEME_KEY, ENC_JSON_KEY
 from leap.soledad.common.errors import InvalidAuthTokenError
@@ -831,9 +831,6 @@ class IncomingMail(Service):
         self.log.info('Adding message %s to local db' % (doc.doc_id,))
 
         def msgSavedCallback(result):
-
-            #if empty(result):
-                #return
 
             def signal_deleted(doc_id):
                 emit_async(catalog.MAIL_MSG_DELETED_INCOMING,

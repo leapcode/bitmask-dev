@@ -81,6 +81,9 @@ class TestRealm:
 # DelayedCall.debug = True
 
 
+DEFAULT_MBOXES = ['INBOX', 'Sent']
+
+
 class LEAPIMAP4ServerTestCase(IMAP4HelperMixin):
 
     """
@@ -138,8 +141,8 @@ class LEAPIMAP4ServerTestCase(IMAP4HelperMixin):
     def _cbTestCreate(self, mailboxes, succeed, fail):
         self.assertEqual(self.result, [1] * len(succeed) + [0] * len(fail))
 
-        answers = ([u'INBOX', u'testbox', u'test/box', u'test',
-                    u'test/box/box', 'foobox'])
+        answers = (DEFAULT_MBOXES + [u'testbox', u'test/box', u'test',
+                   u'test/box/box', 'foobox'])
         self.assertEqual(sorted(mailboxes), sorted([a for a in answers]))
 
     def testDelete(self):
@@ -165,7 +168,7 @@ class LEAPIMAP4ServerTestCase(IMAP4HelperMixin):
         d = defer.gatherResults([d1, d2])
         d.addCallback(lambda _: acc.list_all_mailbox_names())
         d.addCallback(lambda mboxes: self.assertEqual(
-            mboxes, ['INBOX']))
+            set(mboxes), set(DEFAULT_MBOXES)))
         return d
 
     def testIllegalInboxDelete(self):
@@ -288,7 +291,8 @@ class LEAPIMAP4ServerTestCase(IMAP4HelperMixin):
         d.addCallback(lambda _:
                       self.server.theAccount.account.list_all_mailbox_names())
         d.addCallback(lambda mboxes:
-                      self.assertItemsEqual(mboxes, ['INBOX', 'newname']))
+                      self.assertItemsEqual(
+                          mboxes, DEFAULT_MBOXES + ['newname']))
         return d
 
     def testIllegalInboxRename(self):
@@ -345,7 +349,7 @@ class LEAPIMAP4ServerTestCase(IMAP4HelperMixin):
         return d.addCallback(self._cbTestHierarchicalRename)
 
     def _cbTestHierarchicalRename(self, mailboxes):
-        expected = ['INBOX', 'newname/m1', 'newname/m2']
+        expected = DEFAULT_MBOXES + ['newname/m1', 'newname/m2']
         self.assertEqual(sorted(mailboxes), sorted([s for s in expected]))
 
     def testSubscribe(self):
@@ -1002,14 +1006,11 @@ class LEAPIMAP4ServerTestCase(IMAP4HelperMixin):
 
         def add_messages():
             d = self.mailbox.addMessage(
-                'test 1', flags=('\\Deleted', 'AnotherFlag'),
-                notify_just_mdoc=False)
+                'test 1', flags=('\\Deleted', 'AnotherFlag'))
             d.addCallback(lambda _: self.mailbox.addMessage(
-                'test 2', flags=('AnotherFlag',),
-                notify_just_mdoc=False))
+                'test 2', flags=('AnotherFlag',)))
             d.addCallback(lambda _: self.mailbox.addMessage(
-                'test 3', flags=('\\Deleted',),
-                notify_just_mdoc=False))
+                'test 3', flags=('\\Deleted',)))
             return d
 
         def expunge():

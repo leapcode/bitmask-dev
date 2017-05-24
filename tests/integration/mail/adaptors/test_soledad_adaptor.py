@@ -396,9 +396,9 @@ class SoledadMailAdaptorTestCase(SoledadTestMixin):
         msg = adaptor.get_msg_from_string(MessageClass, raw)
 
         def check_create_result(created):
-            # that's one mdoc, one hdoc, one fdoc, one cdoc
-            self.assertEqual(len(created), 4)
-            for doc in created:
+            # that's the wrapper
+            self.assertEqual(created.__class__.__name__, 'MessageWrapper')
+            for doc in [created.mdoc, created.fdoc, created.hdoc]:
                 self.assertTrue(
                     doc.__class__.__name__,
                     "SoledadDocument")
