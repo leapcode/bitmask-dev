@@ -317,7 +317,7 @@ class IMAPMailbox(object):
         d.addCallback(as_a_dict)
         return d
 
-    def addMessage(self, message, flags, date=None, notify_just_mdoc=True):
+    def addMessage(self, message, flags, date=None):
         """
         Adds a message to this mailbox.
 
@@ -330,24 +330,6 @@ class IMAPMailbox(object):
         :param date: timestamp
         :type date: str, or None
 
-        :param notify_just_mdoc:
-            boolean passed to the wrapper.create method, to indicate whether
-            we're insterested in being notified right after the mdoc has been
-            written (as it's the first doc to be written, and quite small, this
-            is faster, though potentially unsafe).
-            Setting it to True improves a *lot* the responsiveness of the
-            APPENDS: we just need to be notified when the mdoc is saved, and
-            let's just expect that the other parts are doing just fine.  This
-            will not catch any errors when the inserts of the other parts
-            fail, but on the other hand allows us to return very quickly,
-            which seems a good compromise given that we have to serialize the
-            appends.
-            However, some operations like the saving of drafts need to wait for
-            all the parts to be saved, so if some heuristics are met down in
-            the call chain a Draft message will unconditionally set this flag
-            to False, and therefore ignoring the setting of this flag here.
-        :type notify_just_mdoc: bool
-
         :return: a deferred that will be triggered with the UID of the added
                  message.
         """
@@ -355,14 +337,7 @@ class IMAPMailbox(object):
         # TODO have a look at the cases for internal date in the rfc
         # XXX we could treat the message as an IMessage from here
 
-        # TODO change notify_just_mdoc to something more meaningful, like
-        # fast_insert_notify?
-
-        # TODO  notify_just_mdoc *sometimes* make the append tests fail.
-        # have to find a better solution for this. A workaround could probably
-        # be to have a list of the ongoing deferreds related to append, so that
-        # we queue for later all the requests having to do with these.
-
+        # TODO -- fast appends should be definitely solved by Blobs.
         # A better solution will probably involve implementing MULTIAPPEND
         # extension or patching imap server to support pipelining.
 
@@ -380,8 +355,7 @@ class IMAPMailbox(object):
         if date is None:
             date = formatdate(time.time())
 
-        d = self.collection.add_msg(message, flags, date=date,
-                                    notify_just_mdoc=notify_just_mdoc)
+        d = self.collection.add_msg(message, flags, date=date)
         d.addCallback(lambda message: message.get_uid())
         d.addErrback(
             lambda failure: self.log.failure('Error while adding msg'))

@@ -847,8 +847,7 @@ class IncomingMail(Service):
 
         # Cannot do fast notifies, otherwise fucks with pixelated.
         d = self._inbox_collection.add_msg(
-            raw_data, (self.RECENT_FLAG,), date=insertion_date,
-            notify_just_mdoc=False)
+            raw_data, (self.RECENT_FLAG,), date=insertion_date)
         d.addCallbacks(msgSavedCallback, self._errback)
         return d
 

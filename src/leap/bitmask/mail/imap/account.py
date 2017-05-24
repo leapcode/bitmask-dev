@@ -156,9 +156,7 @@ class IMAPAccount(object):
         """
         name = normalize_mailbox(name)
 
-        # FIXME --- return failure instead of AssertionError
-        # See AccountTestCase...
-        leap_assert(name, "Need a mailbox name to create a mailbox")
+        assert name, "Need a mailbox name to create a mailbox"
 
         def check_it_does_not_exist(mailboxes):
             if name in mailboxes:

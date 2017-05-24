@@ -41,7 +41,6 @@ from leap.bitmask.mail.constants import MessageFlags
 from leap.bitmask.mail.mailbox_indexer import MailboxIndexer
 from leap.bitmask.mail.plugins import soledad_sync_hooks
 from leap.bitmask.mail.utils import find_charset, CaseInsensitiveDict
-from leap.bitmask.mail.utils import lowerdict
 
 log = Logger()
 
@@ -89,6 +88,7 @@ def _encode_payload(payload, ctype=""):
     # soledad when it's creating the documents.
     # if not charset:
     # charset = get_email_charset(payload)
+    # TODO there's also some charset detection in the pixelated adapters.
     # -----------------------------------------------------
 
     if not charset:
@@ -368,8 +368,6 @@ class MessageCollection(object):
     store = None
     messageklass = Message
 
-    _pending_inserts = dict()
-
     def __init__(self, adaptor, store, mbox_indexer=None, mbox_wrapper=None):
         """
         Constructor for a MessageCollection.
@@ -472,16 +470,7 @@ class MessageCollection(object):
                 self.messageklass, self.store,
                 doc_id, uid=uid, get_cdocs=get_cdocs)
 
-        def cleanup_and_get_doc_after_pending_insert(result):
-            for key in result:
-                self._pending_inserts.pop(key, None)
-            return get_doc_fun(self.mbox_uuid, uid)
-
-        if not self._pending_inserts:
-            d = get_doc_fun(self.mbox_uuid, uid)
-        else:
-            d = defer.gatherResults(self._pending_inserts.values())
-            d.addCallback(cleanup_and_get_doc_after_pending_insert)
+        d = get_doc_fun(self.mbox_uuid, uid)
         d.addCallback(get_msg_from_mdoc_id)
         return d
 
@@ -579,8 +568,7 @@ class MessageCollection(object):
     # Manipulate messages
 
     @defer.inlineCallbacks
-    def add_msg(self, raw_msg, flags=tuple(), tags=tuple(), date="",
-                notify_just_mdoc=False):
+    def add_msg(self, raw_msg, flags=tuple(), tags=tuple(), date=""):
         """
         Add a message to this collection.
 
@@ -593,16 +581,6 @@ class MessageCollection(object):
             and time in the RFC-822 header, but rather a date and time that
             reflects when the message was received.
         :type date: str
-        :param notify_just_mdoc:
-            boolean passed to the wrapper.create method, to indicate whether
-            we're insterested in being notified right after the mdoc has been
-            written (as it's the first doc to be written, and quite small, this
-            is faster, though potentially unsafe), or on the contrary we want
-            to wait untill all the parts have been written.
-            Used by the imap mailbox implementation to get faster responses.
-            This will be ignored (and set to False) if a heuristic for a Draft
-            message is met, which currently is a specific mozilla header.
-        :type notify_just_mdoc: bool
 
         :returns: a deferred that will fire with a Message when this is
                   inserted.
@@ -610,23 +588,13 @@ class MessageCollection(object):
         """
         # TODO watch out if the use of this method in IMAP COPY/APPEND is
         # passing the right date.
-        # XXX mdoc ref is a leaky abstraction here. generalize.
+        # XXX mdoc ref is a leaky abstraction here. generalize, that SHOULD be
+        # moved inside soledad adaptor.
         leap_assert_type(flags, tuple)
         leap_assert_type(date, str)
 
         msg = self.adaptor.get_msg_from_string(Message, raw_msg)
         wrapper = msg.get_wrapper()
-
-        headers = lowerdict(msg.get_headers())
-        moz_draft_hdr = "X-Mozilla-Draft-Info"
-        if moz_draft_hdr.lower() in headers:
-            self.log.debug('Setting fast notify to False, Draft detected')
-            notify_just_mdoc = False
-
-        if notify_just_mdoc:
-            msgid = headers.get('message-id')
-            if msgid:
-                self._pending_inserts[msgid] = defer.Deferred()
 
         if not self.is_mailbox_collection():
             raise NotImplementedError()
@@ -639,11 +607,7 @@ class MessageCollection(object):
         wrapper.set_date(date)
 
         try:
-            updated_wrapper = yield wrapper.create(
-                self.store,
-                notify_just_mdoc=notify_just_mdoc,
-                pending_inserts_dict=self._pending_inserts)
-
+            updated_wrapper = yield wrapper.create(self.store)
             doc_id = updated_wrapper.mdoc.doc_id
             if not doc_id:
                 doc_id = updated_wrapper.mdoc.future_doc_id

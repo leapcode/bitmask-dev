@@ -36,7 +36,7 @@ class IMessageWrapper(Interface):
                      '(immutable)')
     cdocs = Attribute('A dictionary with the content-docs, one-indexed')
 
-    def create(self, store, notify_just_mdoc=False, pending_inserts_dict={}):
+    def create(self, store):
         """
         Create the underlying wrapper.
         """

@@ -126,7 +126,6 @@ class SoledadDocumentWrapper(models.DocumentWrapper):
         """
         assert self.doc_id is None, "This document already has a doc_id!"
 
-        print "FUTURE", self.future_doc_id
         try:
             if self.future_doc_id is None:
                 newdoc = yield store.create_doc(
@@ -504,91 +503,38 @@ class MessageWrapper(object):
             cdoc.set_future_doc_id(doc_id)
 
     @defer.inlineCallbacks
-    def create(self, store, notify_just_mdoc=False, pending_inserts_dict=None):
+    def create(self, store):
         """
         Create all the parts for this message in the store.
 
         :param store: an instance of Soledad
 
-        :param notify_just_mdoc:
-            if set to True, this method will return *only* the deferred
-            corresponding to the creation of the meta-message document.
-            Be warned that in that case there will be no record of failures
-            when creating the other part-documents.
-
-            Otherwise, this method will return a deferred that will wait for
-            the creation of all the part documents.
-
-            Setting this flag to True is mostly a convenient workaround for the
-            fact that massive serial appends will take too much time, and in
-            most of the cases the MUA will only switch to the mailbox where the
-            appends have happened after a certain time, which in most of the
-            times will be enough to have all the queued insert operations
-            finished.
-        :type notify_just_mdoc: bool
-        :param pending_inserts_dict:
-            a dictionary with the pending inserts ids.
-        :type pending_inserts_dict: dict
-
-        :return: a deferred whose callback will be called when either all the
-                 part documents have been written, or just the metamsg-doc,
-                 depending on the value of the notify_just_mdoc flag
+        :return: a deferred whose callback will be called when all the
+                 part documents have been written.
         :rtype: defer.Deferred
         """
-        if pending_inserts_dict is None:
-            pending_inserts_dict = {}
-
         assert self.cdocs, "Need cdocs to create the MessageWrapper docs"
         assert self.mdoc.doc_id is None, "Cannot create: mdoc has a doc_id"
         assert self.fdoc.doc_id is None, "Cannot create: fdoc has a doc_id"
 
-        def maybe_unblock_pending():
-            if pending_inserts_dict:
-                ci_headers = lowerdict(self.hdoc.headers)
-                msgid = ci_headers.get('message-id', None)
-                try:
-                    d = pending_inserts_dict[msgid]
-                    d.callback(msgid)
-                except KeyError:
-                    pass
-
         copy = self._is_copy
 
-        try:
-            mdoc = yield self.mdoc.create(store, is_copy=copy)
-            print "GOT MDOC >>>>>>>>>>>>>>>>>>", mdoc, "copy?", copy
-            assert mdoc
-            self.mdoc = mdoc
-        except Exception:
-            self.log.failure('Error creating mdoc')
-
-        if notify_just_mdoc:
-            # fire and forget, fast notifies
-            self.fdoc.create(store, is_copy=copy)
-            if not copy:
-                if self.hdoc.doc_id is None:
-                    self.hdoc.create(store)
-                for cdoc in self.cdocs.values():
-                    if cdoc.doc_id is not None:
-                        continue
-                    cdoc.create(store)
-
-        else:
-            yield self.fdoc.create(store, is_copy=copy)
-            if not copy:
-                if self.hdoc.doc_id is None:
-                    yield self.hdoc.create(store)
-                for cdoc in self.cdocs.values():
-                    if cdoc.doc_id is not None:
-                        # we could be just linking to an existing
-                        # content-doc.
-                        continue
-                    yield cdoc.create(store)
-
-        maybe_unblock_pending()
+        mdoc = yield self.mdoc.create(store, is_copy=copy)
+        assert mdoc
+        self.mdoc = mdoc
+        fdoc = yield self.fdoc.create(store, is_copy=copy)
+        self.fdoc = fdoc
+        if not copy:
+            if self.hdoc.doc_id is None:
+                hdoc = yield self.hdoc.create(store)
+                self.hdoc = hdoc
+            for cdoc in self.cdocs.values():
+                if cdoc.doc_id is not None:
+                    # we could be just linking to an existing
+                    # content-doc.
+                    continue
+                yield cdoc.create(store)
         defer.returnValue(self)
-
-
 
     def update(self, store):
         """

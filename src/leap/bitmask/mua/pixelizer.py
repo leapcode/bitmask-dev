@@ -78,8 +78,7 @@ try:
             flags = ['\\Recent']
             if mailbox_name.lower() == 'sent':
                 flags += '\\Seen'
-            message = yield mailbox.add_msg(
-                raw_msg, tuple(flags), notify_just_mdoc=False)
+            message = yield mailbox.add_msg(raw_msg, tuple(flags))
 
             # this still needs the pixelated interface because it does stuff
             # like indexing the mail in whoosh, etc.
