@@ -20,10 +20,27 @@ Firewall Manager
 """
 
 import commands
+import os
 import subprocess
 
 from leap.bitmask.vpn.constants import IS_MAC
 from leap.common.events import catalog, emit_async
+
+
+# TODO -- subclass it for osx/windows, not only for linux.
+
+
+# A regular user should not run bitmask as root, but we contemplate
+# this case for tests inside docker.
+
+NOT_ROOT = os.getuid() != 0
+
+
+def check_root(cmd):
+    if NOT_ROOT:
+        cmd = ['pkexec'] + cmd
+    print "COMMAND IS >>>", cmd
+    return cmd
 
 
 class FirewallManager(object):
@@ -34,7 +51,6 @@ class FirewallManager(object):
     This allows us to achieve fail close on a vpn connection.
     """
 
-    # FIXME -- get the path
     BITMASK_ROOT = "/usr/local/sbin/bitmask-root"
 
     def __init__(self, remotes):
@@ -60,7 +76,9 @@ class FirewallManager(object):
         # XXX check for wrapper existence, check it's root owned etc.
         # XXX check that the iptables rules are in place.
 
-        cmd = ["pkexec", self.BITMASK_ROOT, "firewall", "start"]
+        cmd = [self.BITMASK_ROOT, "firewall", "start"]
+        cmd = check_root(cmd)
+
         if restart:
             cmd.append("restart")
 
@@ -73,17 +91,17 @@ class FirewallManager(object):
         else:
             return False
 
-    # def tear_down_firewall(self):
     def stop(self):
         """
         Tear the firewall down using the privileged wrapper.
         """
+        # We don't support Mac so far
         if IS_MAC:
-            # We don't support Mac so far
             return True
 
-        exitCode = subprocess.call(["pkexec", self.BITMASK_ROOT,
-                                    "firewall", "stop"])
+        cmd = [self.BITMASK_ROOT, "firewall", "stop"]
+        cmd = check_root(cmd)
+        exitCode = subprocess.call(cmd)
         emit_async(catalog.VPN_STATUS_CHANGED)
         if exitCode == 0:
             return True
@@ -96,9 +114,9 @@ class FirewallManager(object):
 
         :rtype: bool
         """
-        # TODO test this, refactored from is_fw_down
-
-        cmd = "pkexec {0} firewall isup".format(self.BITMASK_ROOT)
+        cmd = [self.BITMASK_ROOT, "firewall", "isup"]
+        cmd = check_root(cmd)
+        cmd = ' '.join(cmd)
         output = commands.getstatusoutput(cmd)[0]
 
         return output != 256
