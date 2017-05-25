@@ -1,32 +1,35 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 import chaiEnzyme from 'chai-enzyme'
-import Confirmation from '../../app/components/confirmation';
+import sinon from 'sinon'
 import chai, { expect } from 'chai'
+import Confirmation from '../../app/components/confirmation';
 
 
 describe('Confirmation Component', () => {
 
-  const simpleFunction0 = () => {return 0}
-  const simpleFunction1 = () => {return 1}
-
   it('Passed functionss run on click', () => {
+    const onAcceptFuncTest = sinon.spy();
+    const onCancelFuncTest = sinon.spy();
+
     const confirmation = shallow(
       <Confirmation
-          onAccept={simpleFunction0}
-          onCancel={simpleFunction1}
+          onAccept={onAcceptFuncTest}
+          onCancel={onCancelFuncTest}
       />
     )
 
-    expect(confirmation.find('Button').get(0).props.onClick()).to.equal(simpleFunction0())
-    expect(confirmation.find('Button').get(1).props.onClick()).to.equal(simpleFunction1())
+    confirmation.find('Button').at(0).simulate('click')
+    expect(onAcceptFuncTest.calledOnce).to.equal(true)
+    confirmation.find('Button').at(1).simulate('click')
+    expect(onCancelFuncTest.calledOnce).to.equal(true)
   })
 
   it('sets defaults correctly', () => {
     const confirmation = shallow(
       <Confirmation
-          onAccept={simpleFunction0}
-          onCancel={simpleFunction1}
+          onAccept={() => {}}
+          onCancel={() => {}}
       />
     )
 
@@ -36,14 +39,16 @@ describe('Confirmation Component', () => {
   })
 
   it('overwrites defaults correctly', () => {
+    const onAcceptFuncTest = () => {}
+    const onCancelFuncTest = () => {}
     const testTitle = "Test Title"
     const testAcceptStr = "Test accept string"
     const testCancelStr = "Test cancel string"
 
     const confirmation = shallow(
       <Confirmation
-          onAccept={simpleFunction0}
-          onCancel={simpleFunction1}
+          onAccept={() => {}}
+          onCancel={() => {}}
           title={testTitle}
           acceptStr={testAcceptStr}
           cancelStr={testCancelStr}
