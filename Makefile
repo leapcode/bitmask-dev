@@ -45,6 +45,10 @@ test_e2e:
 	#tests/e2e/e2e-test-mail.sh
 	tests/e2e/e2e-test-vpn.sh
 
+install_helpers:
+	cp src/leap/bitmask/vpn/helpers/linux/bitmask-root /usr/local/sbin/
+	cp src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.policy /usr/share/polkit-1/actions/
+
 qt-resources:
 	pyrcc5 pkg/branding/icons.qrc -o src/leap/bitmask/gui/app_rc.py
 

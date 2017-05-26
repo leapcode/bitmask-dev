@@ -54,9 +54,7 @@ e2e_tests:
     - source venv/bin/activate
     - make dev-latest-backend
     - mkdir -p /root/.config/leap/
-    - apt install swaks
-    - cp src/leap/bitmask/vpn/helpers/linux/bitmask-root /usr/local/sbin/
-    - cp src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.policy /usr/share/polkit-1/actions/
+    - make install_helpers
     - make test_e2e
   tags:
     - linux
