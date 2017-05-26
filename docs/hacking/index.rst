@@ -36,7 +36,7 @@ Install the system-wide dependencies. For debian-based systems::
 
   sudo apt install build-essential python-dev python-virtualenv \
   libsqlcipher-dev libssl-dev libffi-dev \
-  python-pyqt5 python-pyqt5.webkit
+  python-pyqt5 python-pyqt5.qtwebkit
 
 If you are going to be running tests that involve creating a lot of OpenPGP
 keys, and specially in vms, the following is also recommended to speed up
