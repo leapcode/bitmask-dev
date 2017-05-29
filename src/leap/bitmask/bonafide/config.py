@@ -17,6 +17,7 @@
 """
 Configuration for a LEAP provider.
 """
+import binascii
 import datetime
 import json
 import os
@@ -25,6 +26,9 @@ import shutil
 import sys
 
 from collections import defaultdict
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.x509 import load_pem_x509_certificate
 from urlparse import urlparse
 
 from twisted.internet import defer, reactor
@@ -337,9 +341,23 @@ class Provider(object):
         return d
 
     def validate_ca_cert(self, ignored):
-        # TODO Need to verify fingerprint against the one in provider.json
         expected = self._get_expected_ca_cert_fingerprint()
-        print "EXPECTED FINGERPRINT:", expected
+        algo, expectedfp = expected.split(':')
+        expectedfp = expectedfp.replace(' ', '')
+        backend = default_backend()
+
+        with open(self._get_ca_cert_path(), 'r') as f:
+            certstr = f.read()
+        cert = load_pem_x509_certificate(certstr, backend)
+        hasher = getattr(hashes, algo)()
+        fpbytes = cert.fingerprint(hasher)
+        fp = binascii.hexlify(fpbytes)
+
+        if fp != expectedfp:
+            os.unlink(self._get_ca_cert_path())
+            self.log.error("Fingerprint of CA cert doesn't match: %s <-> %s"
+                           % (fp, expectedfp))
+            raise NetworkError("The provider's CA fingerprint doesn't match")
 
     def _get_expected_ca_cert_fingerprint(self):
         try:
