@@ -8,6 +8,12 @@ Hacking
 So you want to hack on Bitmask?
 Thanks, and welcome!
 
+This document assumes a ``Linux`` environment.
+
+There are also ongoing documents with notes for setting up an :ref:`osx <osx-dev>` and a
+:ref:`windows <win-dev>` working environments too, contribution is very much
+welcome on those docs!
+
 Running tests
 ---------------------------------
 

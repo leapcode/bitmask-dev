@@ -35,7 +35,6 @@ from leap.bitmask.core.launcher import run_bitmaskd, pid
 from leap.bitmask.gui import app_rc
 from leap.common.config import get_path_prefix
 
-
 if platform.system() == 'Windows':
     from multiprocessing import freeze_support
     from PySide import QtCore, QtGui
@@ -54,11 +53,11 @@ else:
     from PyQt5.QtWebKit import QWebSettings
 
 
-BITMASK_URI = 'http://localhost:7070/'
-PIXELATED_URI = 'http://localhost:9090/'
-
 IS_WIN = platform.system() == "Windows"
 DEBUG = os.environ.get("DEBUG", False)
+
+BITMASK_URI = 'http://localhost:7070/'
+PIXELATED_URI = 'http://localhost:9090/'
 
 qApp = None
 bitmaskd = None

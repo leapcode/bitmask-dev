@@ -5,20 +5,31 @@ Setting up a development environment in OSX™
 
 (work in progress)
 
-Make sure you're using a new enough version of pip (1.8 or newest).
+* Make sure you're using a new enough version of pip (1.8 or newest).
+This will make all the problems with ``cryptography`` going away, since it will
+install the statically built wheel.
 
 * Use ``brew`` to install ``OpenSSL``.
 
-* Use ``brew`` to install pyqt5::
+* **Problem**: pyqt5 in homebrew stopped shipping qtwebkit. I found the following
+workaround in an issue in qutebrowser's repo, works fine for me for now::
 
-  brew install pyqt5 --with-python --without-python3
+  cd $(brew --prefix)/Library/Formula
+  curl -OO
+  https://raw.githubusercontent.com/Homebrew/homebrew/f802822b0fa35ad362aebd0101ccf83a638bed37/Library/Formula/{py,}qt5.rb
+  brew install qt5 pyqt5
 
-  TODO:: --with-qt-webkit <<<< WORKS?
+Other notes
+-----------
 
-  TODO:: Use PySide instead??
+PySide vs QtWebKit:
+
+http://qtwebkit.blogspot.nl/2016/08/qtwebkit-im-back.html
 
 Running OSX on KVM
 ==================
+
+The following notes are not yet tested, but might be useful for development.
 
 * https://github.com/kholia/OSX-KVM
 
