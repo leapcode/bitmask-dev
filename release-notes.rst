@@ -1,12 +1,12 @@
-0.9.5 March 17th - "la rosa de foc"
+0.10 "la rosa de foc"
 +++++++++++++++++++++++++++++++++++++
 
-We are pleased to announce the Bitmask 0.9.5 release, codename "la rosa de foc".
+We are pleased to announce the Bitmask 0.10 release, codename "la rosa de foc".
 You can refer to `the changelog`_ for the whole changeset.
 
 This is still a beta-only release of the Encrypted Email service, that ships
 again with the Pixelated email user agent. We have also ported the VPN service
-from the legacy 0.9.0 bitmask client. This is the first release of the new
+from the legacy 0.9.2 bitmask client. This is the first release of the new
 codebase that ships VPN, so expect some rough behavior.
 
 The demo provider for the Mail service you should use with this bundle is 
@@ -20,4 +20,4 @@ Until the next release, see you on the intertubes, and stay safe.
 
 The Bitmask team.
 
-.. _`the changelog`: https://github.com/leapcode/bitmask-dev/blob/0.9.5/docs/CHANGELOG.rst
+.. _`the changelog`: https://github.com/leapcode/bitmask-dev/blob/0.10a1/docs/CHANGELOG.rst
