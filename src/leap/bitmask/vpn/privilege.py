@@ -33,29 +33,43 @@ from twisted.python.procutils import which
 
 from leap.bitmask.util import STANDALONE, here
 
+from .constants import IS_LINUX
+
 log = Logger()
 
 
-def install_helpers():
-    cmd = 'bitmask_helpers install'
-    if STANDALONE:
-        binary_path = os.path.join(here(), "bitmask")
-        cmd = "%s %s" % (binary_path, cmd)
+# TODO wrap the install/uninstall helper functions around the policychecker
+# classes below.
 
-    # TODO  check if the command has succeeded, and display error
-    # if failed
-    commands.getoutput('pkexec ' + cmd)
+def install_helpers():
+    if IS_LINUX:
+        cmd = 'bitmask_helpers install'
+        if STANDALONE:
+            binary_path = os.path.join(here(), "bitmask")
+            cmd = "%s %s" % (binary_path, cmd)
+        if os.getuid() != 0:
+            cmd = 'pkexec ' + cmd
+        retcode, _ = commands.getstatusoutput(cmd)
+        if retcode != 0:
+            raise Exception('Could not install helpers')
+    else:
+        raise Exception('No install mechanism for this platform')
 
 
 def uninstall_helpers():
-    cmd = 'bitmask_helpers uninstall'
-    if STANDALONE:
-        binary_path = os.path.join(here(), "bitmask")
-        cmd = "%s %s" % (binary_path, cmd)
-
-    # TODO  check if the command has succeeded, and display error
-    # if failed
-    commands.getoutput('pkexec ' + cmd)
+    if IS_LINUX:
+        cmd = 'bitmask_helpers uninstall'
+        if STANDALONE:
+            binary_path = os.path.join(here(), "bitmask")
+            cmd = "%s %s" % (binary_path, cmd)
+        if os.getuid() != 0:
+            cmd = 'pkexec ' + cmd
+        retcode, _ = commands.getstatusoutput(cmd)
+        commands.getoutput('pkexec ' + cmd)
+        if retcode != 0:
+            raise Exception('Could not uninstall helpers')
+    else:
+        raise Exception('No install mechanism for this platform')
 
 
 class NoPolkitAuthAgentAvailable(Exception):
@@ -66,6 +80,7 @@ class NoPkexecAvailable(Exception):
     message = 'Could not find pkexec in the system'
 
 
+# TODO rename to privileged_runner or something like that
 def is_missing_policy_permissions():
     """
     Returns True if we do not have implemented a policy checker for this
@@ -169,7 +184,7 @@ class LinuxPolicyChecker(PolicyChecker):
     @classmethod
     def launch(self):
         """
-        Tries to launch policykit.
+        Tries to launch polkit agent.
         """
         if not self.is_up():
             try:
@@ -196,7 +211,7 @@ class LinuxPolicyChecker(PolicyChecker):
         # polkit-agent, it uses a polkit-agent within its own process so we
         # can't ps-grep a polkit process, we can ps-grep gnome-shell itself.
 
-        # the [x] thing is to avoid grep match itself
+        # the square brackets are to avoid grep match itself
         polkit_options = [
             'ps aux | grep "polkit-[g]nome-authentication-agent-1"',
             'ps aux | grep "polkit-[k]de-authentication-agent-1"',
