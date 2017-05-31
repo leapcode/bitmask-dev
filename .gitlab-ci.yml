@@ -8,7 +8,7 @@ variables:
   DOCKER_DRIVER: overlay
 
 linux_test:
-  image: leapcode/soledad:latest
+  image: 0xacab.org:4567/leap/soledad:latest
   stage: test
   script:
     - tox --recreate -e py27-dev
