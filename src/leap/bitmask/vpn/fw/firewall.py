@@ -23,8 +23,12 @@ import commands
 import os
 import subprocess
 
+from twisted.logger import getLogger
+
 from leap.bitmask.vpn.constants import IS_MAC
 from leap.common.events import catalog, emit_async
+
+log = getLogger()
 
 
 # TODO -- subclass it for osx/windows, not only for linux.
@@ -82,14 +86,16 @@ class FirewallManager(object):
         if restart:
             cmd.append("restart")
 
-        # FIXME -- use a processprotocol
-        exitCode = subprocess.call(cmd + gateways)
-        emit_async(catalog.VPN_STATUS_CHANGED)
-
-        if exitCode == 0:
-            return True
+        try:
+            result = subprocess.check_output(
+                cmd + gateways,
+                stderr=subprocess.STDOUT)
+        except Exception:
+            log.failure('Error launching the firewall')
         else:
-            return False
+            log.debug(result)
+        emit_async(catalog.VPN_STATUS_CHANGED)
+        return True
 
     def stop(self):
         """
