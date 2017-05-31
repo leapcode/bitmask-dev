@@ -41,31 +41,27 @@ log = Logger()
 # TODO wrap the install/uninstall helper functions around the policychecker
 # classes below.
 
+
 def install_helpers():
-    if IS_LINUX:
-        cmd = 'bitmask_helpers install'
-        if STANDALONE:
-            binary_path = os.path.join(here(), "bitmask")
-            cmd = "%s %s" % (binary_path, cmd)
-        if os.getuid() != 0:
-            cmd = 'pkexec ' + cmd
-        retcode, _ = commands.getstatusoutput(cmd)
-        if retcode != 0:
-            raise Exception('Could not install helpers')
-    else:
-        raise Exception('No install mechanism for this platform')
+    _helper_installer('install')
 
 
 def uninstall_helpers():
+    _helper_installer('uninstall')
+
+
+def _helper_installer(action):
+    if action not in ('install', 'uninstall'):
+        raise Exception('Wrong action: %s' % action)
+
     if IS_LINUX:
-        cmd = 'bitmask_helpers uninstall'
+        cmd = 'bitmask_helpers ' + action
         if STANDALONE:
             binary_path = os.path.join(here(), "bitmask")
             cmd = "%s %s" % (binary_path, cmd)
         if os.getuid() != 0:
             cmd = 'pkexec ' + cmd
         retcode, _ = commands.getstatusoutput(cmd)
-        commands.getoutput('pkexec ' + cmd)
         if retcode != 0:
             raise Exception('Could not uninstall helpers')
     else:

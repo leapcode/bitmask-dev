@@ -6,6 +6,8 @@ import sys
 from leap.bitmask.vpn.constants import IS_LINUX
 from leap.bitmask.vpn import _config
 
+from leap.bitmask.util import STANDALONE
+
 if IS_LINUX:
 
     helper_to = '/usr/local/sbin/bitmask-root'
@@ -22,8 +24,9 @@ if IS_LINUX:
 
         copyfile(polkit_from, polkit_to)
 
-        copyfile(openvpn_from, openvpn_to)
-        chmod(openvpn_to, 0700)
+        if STANDALONE:
+            copyfile(openvpn_from, openvpn_to)
+            chmod(openvpn_to, 0700)
 
     def uninstall():
         remove(helper_to)
