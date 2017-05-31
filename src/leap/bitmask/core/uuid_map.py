@@ -30,13 +30,11 @@ from leap.common.config import get_path_prefix
 IS_WIN = platform.system() == "Windows"
 
 if IS_WIN:
+
     import socket
     from cryptography.fernet import Fernet
-    from cryptography.hazmat.backends.multibackend import MultiBackend
-    from cryptography.hazmat.backends.openssl.backend \
-        import Backend as OpenSSLBackend
-    crypto_backend = MultiBackend([OpenSSLBackend()])
-
+    from cryptography.hazmat.backends import default_backend
+    crypto_backend = default_backend()
 
 MAP_PATH = os.path.join(get_path_prefix(), 'leap', 'uuids')
 

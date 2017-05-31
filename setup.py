@@ -14,6 +14,7 @@ import versioneer
 
 required = [
     'twisted>=14.0.0',
+    'cryptography',
     'zope.interface',
     'service-identity',
     'colorama',

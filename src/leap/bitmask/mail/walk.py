@@ -20,14 +20,12 @@ store.
 """
 from email.parser import Parser
 
-from cryptography.hazmat.backends.multibackend import MultiBackend
-from cryptography.hazmat.backends.openssl.backend import (
-    Backend as OpenSSLBackend)
 from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.backends import default_backend
 
 from leap.bitmask.mail.utils import first
 
-crypto_backend = MultiBackend([OpenSSLBackend()])
+crypto_backend = default_backend()
 
 _parser = Parser()
 
