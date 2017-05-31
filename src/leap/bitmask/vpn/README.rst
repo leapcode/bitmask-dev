@@ -1,7 +1,6 @@
 VPN port
 --------
-What's here is a quick port of the legacy bitmask_client vpn code.
-It only works through the cli right now::
+What's here is a simple port of the legacy bitmask_client vpn code::
 
   bitmaskctl user create tmp_user_baz002@demo.bitmask.net --pass 1234
   signup    ok
@@ -47,6 +46,8 @@ Much of what's exposed in the above API should be made transparently (download
 certificate). However, I prefer to test it manually before hiding it from the
 CLI.
 
-The UI integration should follow soon.
+0.10 version uses this basic API, further releases will automate getting the
+certificates, validation, renewal etc.
 
-Meanwhile, please report any bugs you find with its expected behavior.
+Please report any bugs you find with its expected behavior, either using the cli
+or the gui.
