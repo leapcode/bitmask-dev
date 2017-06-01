@@ -32,6 +32,8 @@ from leap.bitmask.vpn.utils import get_vpn_launcher
 from leap.bitmask.vpn import _status
 from leap.bitmask.vpn import _management
 
+from leap.bitmask.vpn.launchers import darwin
+
 
 # OpenVPN verbosity level - from flags.py
 OPENVPN_VERBOSITY = 1
@@ -229,3 +231,43 @@ class VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
             self.transport.signalProcess('KILL')
         except internet_error.ProcessExitedAlready:
             self.log.debug('Process Exited Already')
+
+
+class VPNCanary(VPNProcess):
+
+    """
+    Special form of the VPNProcess, for Darwin Launcher (windows might use same
+    strategy).
+
+    This is a Canary Process that does not run openvpn itself, but it's
+    notified by the privileged process when the process dies.
+
+    This is a workaround to allow the state machine to be notified when openvpn
+    process is spawned by the privileged helper.
+    """
+    def setupHelper(self):
+        self.helper = darwin.HelperCommand()
+
+    def connectionMade(self):
+        VPNProcess.connectionMade(self)
+        reactor.callLater(2, self.registerPID)
+
+    def registerPID(self):
+        cmd = 'openvpn_set_watcher %s' % self.pid
+        self.helper.send(cmd)
+
+    def killProcess(self):
+        cmd = 'openvpn_force_stop'
+        self.helper.send(cmd)
+
+    def getVPNCommand(self):
+        return VPNProcess.getCommand(self)
+
+    def getCommand(self):
+        canary = '''import sys, signal, time
+def receive_signal(signum, stack):
+    sys.exit()
+signal.signal(signal.SIGTERM, receive_signal)
+while True:
+    time.sleep(60)'''
+        return ['python', '-c', '%s' % canary]

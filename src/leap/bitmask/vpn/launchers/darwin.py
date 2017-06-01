@@ -14,12 +14,15 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 """
 Darwin VPN launcher implementation.
 """
+
 import commands
 import getpass
 import os
+import socket
 import sys
 
 from twisted.logger import Logger
@@ -32,6 +35,38 @@ from leap.common.config import get_path_prefix
 logger = Logger()
 
 
+class HelperCommand(object):
+
+    SOCKET_ADDR = '/tmp/bitmask-helper.socket'
+
+    def __init__(self):
+        pass
+
+    def _connect(self):
+        self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        try:
+            self._sock.connect(self.SOCKET_ADDR)
+        except socket.error, msg:
+            raise RuntimeError(msg)
+
+    def send(self, cmd, args=''):
+        # TODO check cmd is in allowed list
+        self._connect()
+        sock = self._sock
+        data = ""
+
+        command = cmd + ' ' + args + '/CMD'
+
+        try:
+            sock.sendall(command)
+            while '\n' not in data:
+                data += sock.recv(32)
+        finally:
+            sock.close()
+
+        return data
+
+
 class NoTunKextLoaded(VPNLauncherException):
     pass
 
@@ -40,13 +75,10 @@ class DarwinVPNLauncher(VPNLauncher):
     """
     VPN launcher for the Darwin Platform
     """
-    COCOASUDO = "cocoasudo"
-    # XXX need the good old magic translate for these strings
-    # (look for magic in 0.2.0 release)
-    SUDO_MSG = ("Bitmask needs administrative privileges to run "
-                "Encrypted Internet.")
-    INSTALL_MSG = ("\"Bitmask needs administrative privileges to install "
-                   "missing scripts and fix permissions.\"")
+    UP_SCRIPT = None
+    DOWN_SCRIPT = None
+
+    # TODO -- move this to bitmask-helper
 
     # Hardcode the installation path for OSX for security, openvpn is
     # run as root
@@ -58,28 +90,7 @@ class DarwinVPNLauncher(VPNLauncher):
         INSTALL_PATH_ESCAPED,)
     OPENVPN_BIN_PATH = "%s/Contents/Resources/%s" % (INSTALL_PATH,
                                                      OPENVPN_BIN)
-
-    UP_SCRIPT = "%s/client.up.sh" % (OPENVPN_PATH,)
-    DOWN_SCRIPT = "%s/client.down.sh" % (OPENVPN_PATH,)
-    OPENVPN_DOWN_PLUGIN = '%s/openvpn-down-root.so' % (OPENVPN_PATH,)
-
-    UPDOWN_FILES = (UP_SCRIPT, DOWN_SCRIPT, OPENVPN_DOWN_PLUGIN)
     OTHER_FILES = []
-
-    @classmethod
-    def cmd_for_missing_scripts(kls, frompath):
-        """
-        Returns a command that can copy the missing scripts.
-        :rtype: str
-        """
-        to = kls.OPENVPN_PATH_ESCAPED
-
-        cmd = "#!/bin/sh\n"
-        cmd += "mkdir -p {0}\n".format(to)
-        cmd += "cp '{0}'/* {1}\n".format(frompath, to)
-        cmd += "chmod 744 {0}/*".format(to)
-
-        return cmd
 
     @classmethod
     def is_kext_loaded(kls):
@@ -89,7 +100,11 @@ class DarwinVPNLauncher(VPNLauncher):
         :returns: True if kext is loaded, False otherwise.
         :rtype: bool
         """
-        return bool(commands.getoutput('kextstat | grep "leap.tun"'))
+        loaded = bool(commands.getoutput(
+            'kextstat | grep "net.sf.tuntaposx.tun"'))
+        if not loaded:
+            logger.error("tuntaposx extension not loaded!")
+        return loaded
 
     @classmethod
     def _get_icon_path(kls):
@@ -104,45 +119,7 @@ class DarwinVPNLauncher(VPNLauncher):
         return os.path.join(resources_path, "bitmask.tiff")
 
     @classmethod
-    def get_cocoasudo_ovpn_cmd(kls):
-        """
-        Returns a string with the cocoasudo command needed to run openvpn
-        as admin with a nice password prompt. The actual command needs to be
-        appended.
-
-        :rtype: (str, list)
-        """
-        # TODO add translation support for this
-        sudo_msg = ("Bitmask needs administrative privileges to run "
-                    "Encrypted Internet.")
-        iconpath = kls._get_icon_path()
-        has_icon = os.path.isfile(iconpath)
-        args = ["--icon=%s" % iconpath] if has_icon else []
-        args.append("--prompt=%s" % (sudo_msg,))
-
-        return kls.COCOASUDO, args
-
-    @classmethod
-    def get_cocoasudo_installmissing_cmd(kls):
-        """
-        Returns a string with the cocoasudo command needed to install missing
-        files as admin with a nice password prompt. The actual command needs to
-        be appended.
-
-        :rtype: (str, list)
-        """
-        # TODO add translation support for this
-        install_msg = ('"Bitmask needs administrative privileges to install '
-                       'missing scripts and fix permissions."')
-        iconpath = kls._get_icon_path()
-        has_icon = os.path.isfile(iconpath)
-        args = ["--icon=%s" % iconpath] if has_icon else []
-        args.append("--prompt=%s" % (install_msg,))
-
-        return kls.COCOASUDO, args
-
-    @classmethod
-    def get_vpn_command(kls, vpnconfig, providerconfig, socket_host,
+    def get_vpn_command(kls, eipconfig, providerconfig, socket_host,
                         socket_port="unix", openvpn_verb=1):
         """
         Returns the OSX implementation for the vpn launching command.
@@ -152,8 +129,8 @@ class DarwinVPNLauncher(VPNLauncher):
             OpenVPNNotFoundException,
             VPNLauncherException.
 
-        :param vpnconfig: vpn configuration object
-        :type vpnconfig: VPNConfig
+        :param eipconfig: eip configuration object
+        :type eipconfig: EIPConfig
         :param providerconfig: provider specific configuration
         :type providerconfig: ProviderConfig
         :param socket_host: either socket path (unix) or socket IP
@@ -168,17 +145,27 @@ class DarwinVPNLauncher(VPNLauncher):
         :rtype: list
         """
         if not kls.is_kext_loaded():
-            raise VPNNoTunKextLoaded
+            raise NoTunKextLoaded('tun kext is needed, but was not found')
 
         # we use `super` in order to send the class to use
         command = super(DarwinVPNLauncher, kls).get_vpn_command(
-            vpnconfig, providerconfig, socket_host, socket_port, openvpn_verb)
-
-        cocoa, cargs = kls.get_cocoasudo_ovpn_cmd()
-        cargs.extend(command)
-        command = cargs
-        command.insert(0, cocoa)
-
+            eipconfig, providerconfig, socket_host, socket_port, openvpn_verb)
         command.extend(['--setenv', "LEAPUSER", getpass.getuser()])
 
         return command
+
+    # TODO ship statically linked binary and deprecate.
+    @classmethod
+    def get_vpn_env(kls):
+        """
+        Returns a dictionary with the custom env for the platform.
+        This is mainly used for setting LD_LIBRARY_PATH to the correct
+        path when distributing a standalone client
+
+        :rtype: dict
+        """
+        ld_library_path = os.path.join(get_path_prefix(), "..", "lib")
+        ld_library_path.encode(sys.getfilesystemencoding())
+        return {
+            "DYLD_LIBRARY_PATH": ld_library_path
+        }
