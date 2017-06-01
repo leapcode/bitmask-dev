@@ -5,8 +5,8 @@ from twisted.internet.task import LoopingCall
 from twisted.internet import reactor
 from twisted.logger import Logger
 
-from .process import VPNProcess, VPNCanary
-from .constants import IS_LINUX, IS_MAC
+from .process import VPNProcess
+from .constants import IS_MAC
 
 log = Logger()
 
@@ -57,16 +57,10 @@ class VPNControl(object):
         kwargs = {'openvpn_verb': 7, 'remotes': self._remotes,
                   'restartfun': self.restart}
 
-        if IS_LINUX:
-            vpnproc = VPNProcess(*args, **kwargs)
-            if vpnproc.get_openvpn_process():
-                log.info('Another vpn process is running. Will try to stop it.')
-                vpnproc.stop_if_already_running()
-        elif IS_MAC:
-            # start the main vpn subprocess
-            vpnproc = VPNCanary(*args, **kwargs)
-        else:
-            raise Exception('This platform does not support VPN yet!')
+        vpnproc = VPNProcess(*args, **kwargs)
+        if vpnproc.get_openvpn_process():
+            log.info('Another vpn process is running. Will try to stop it.')
+            vpnproc.stop_if_already_running()
 
         try:
             cmd = vpnproc.getCommand()
