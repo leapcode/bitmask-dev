@@ -44,7 +44,12 @@ class VPNManager(object):
             return False
         print(Fore.GREEN + "Firewall: started" + Fore.RESET)
 
-        vpn_ok = self._vpn.start()
+        try:
+            vpn_ok = self._vpn.start()
+        except Exception:
+            self.starting = False
+            return False
+
         if not vpn_ok:
             print (Fore.RED + "VPN: Error starting." + Fore.RESET)
             self._firewall.stop()
@@ -52,6 +57,7 @@ class VPNManager(object):
             self.starting = False
             return False
         print(Fore.GREEN + "VPN: started" + Fore.RESET)
+        return True
 
     def stop(self):
         self.starting = False

@@ -78,16 +78,24 @@ class VPNService(HookableService):
             exc.expected = True
             raise exc
         yield self._setup(domain)
+
         try:
-            self._vpn.start()
+            started = self._vpn.start()
+
+        # XXX capture it inside start method
+        # here I'd like to get (status, message)
         except NoPolkitAuthAgentAvailable as e:
             e.expected = True
             raise e
+        # --------------------------------------
 
-        self._started = True
+        self._started = started
         self._domain = domain
         self._write_last(domain)
-        defer.returnValue({'result': 'started'})
+        if started:
+            defer.returnValue({'result': 'started'})
+        else:
+            raise Exception('Could not start VPN, check logs')
 
     def stop_vpn(self):
         # TODO -----------------------------
