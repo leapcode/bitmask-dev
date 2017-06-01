@@ -34,6 +34,8 @@ class ConfigTest(BaseHTTPSServerTestCase, unittest.TestCase, BaseLeapTest):
         BaseHTTPSServerTestCase.setUp(self)
         self.addr.host = 'localhost'
         self.addr.port = self.PORT
+        self.cacert = os.path.join(os.path.dirname(__file__),
+                                   "cacert.pem")
 
     def test_bootstrap_self_sign_cert_fails(self):
         home = os.path.join(self.home, 'self_sign')
@@ -42,13 +44,29 @@ class ConfigTest(BaseHTTPSServerTestCase, unittest.TestCase, BaseLeapTest):
         d = provider.callWhenMainConfigReady(lambda: "Cert was accepted")
         return self.assertFailure(d, NetworkError)
 
+    @defer.inlineCallbacks
+    def test_bootstrap_invalid_ca_cert(self):
+        home = os.path.join(self.home, 'fp')
+        os.mkdir(home)
+        self.addr.fingerprint = "fabadafabada"
+        provider = Provider(self.addr.domain, autoconf=True, basedir=home,
+                            cert_path=self.cacert)
+
+        d = provider.callWhenMainConfigReady(lambda: "CA cert fp matched")
+        yield self.assertFailure(d, NetworkError)
+        self.assertFalse(os.path.isfile(provider._get_ca_cert_path()))
+        provider._http.close()
+        try:
+            yield defer.gatherResults([
+                d, provider.ongoing_bootstrap[provider._domain]])
+        except:
+            pass
+
     def test_bootstrap_pinned_cert(self):
-        cacert = os.path.join(os.path.dirname(__file__),
-                              "cacert.pem")
         home = os.path.join(self.home, 'pinned')
         os.mkdir(home)
         provider = Provider(self.addr.domain, autoconf=True, basedir=home,
-                            cert_path=cacert)
+                            cert_path=self.cacert)
 
         def check_provider():
             config = provider.config()
@@ -56,16 +74,16 @@ class ConfigTest(BaseHTTPSServerTestCase, unittest.TestCase, BaseLeapTest):
             self.assertEqual(config["ca_cert_fingerprint"],
                              "SHA256: %s" % fingerprint)
 
-        provider.callWhenMainConfigReady(check_provider)
+        d = provider.callWhenMainConfigReady(check_provider)
         return defer.gatherResults([
-            provider.first_bootstrap[provider._domain],
-            provider.ongoing_bootstrap[provider._domain]])
+            d, provider.ongoing_bootstrap[provider._domain]])
 
 
 class Addr(object):
     def __init__(self, host='localhost', port='4443'):
         self.host = host
         self.port = port
+        self.fingerprint = fingerprint
 
     @property
     def domain(self):
@@ -79,7 +97,7 @@ def request_handler(addr):
                 body = provider_json % {
                     'host': addr.host,
                     'port': addr.port,
-                    'fingerprint': fingerprint
+                    'fingerprint': addr.fingerprint
                 }
 
             elif self.path == '/ca.crt':
