@@ -5,14 +5,14 @@ from twisted.internet.task import LoopingCall
 from twisted.internet import reactor
 from twisted.logger import Logger
 
-from .process import VPNProcess
-from .constants import IS_MAC
+from .process import VPNProcess, VPNCanary
+from .constants import IS_LINUX, IS_MAC
 
 log = Logger()
 
 # NOTE: We need to set a bigger poll time in OSX because it seems
 # openvpn malfunctions when you ask it a lot of things in a short
-# amount of time.
+# amount of time. Check this!
 POLL_TIME = 2.5 if IS_MAC else 1.0
 
 
@@ -52,14 +52,21 @@ class VPNControl(object):
         self._user_stopped = False
         self._stop_pollers()
 
-        vpnproc = VPNProcess(
-            self._vpnconfig, self._providerconfig, self._host,
-            self._port, openvpn_verb=7, remotes=self._remotes,
-            restartfun=self.restart)
+        args = [self._vpnconfig, self._providerconfig, self._host,
+                self._port]
+        kwargs = {'openvpn_verb': 7, 'remotes': self._remotes,
+                  'restartfun': self.restart}
 
-        if vpnproc.get_openvpn_process():
-            log.info('Another vpn process is running. Will try to stop it.')
-            vpnproc.stop_if_already_running()
+        if IS_LINUX:
+            vpnproc = VPNProcess(*args, **kwargs)
+            if vpnproc.get_openvpn_process():
+                log.info('Another vpn process is running. Will try to stop it.')
+                vpnproc.stop_if_already_running()
+        elif IS_MAC:
+            # start the main vpn subprocess
+            vpnproc = VPNCanary(*args, **kwargs)
+        else:
+            raise Exception('This platform does not support VPN yet!')
 
         try:
             cmd = vpnproc.getCommand()
@@ -119,21 +126,6 @@ class VPNControl(object):
             log.debug('VPN is not running.')
 
         return True
-
-    # FIXME -- is this used from somewhere???
-    def bitmask_root_vpn_down(self):
-        """
-        Bring openvpn down using the privileged wrapper.
-        """
-        if IS_MAC:
-            # We don't support Mac so far
-            return True
-        BM_ROOT = force_eval(linux.LinuxVPNLauncher.BITMASK_ROOT)
-
-        # FIXME -- port to processProtocol
-        exitCode = subprocess.call(["pkexec",
-                                    BM_ROOT, "openvpn", "stop"])
-        return True if exitCode is 0 else False
 
     @property
     def status(self):
