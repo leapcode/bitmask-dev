@@ -72,11 +72,18 @@ class VPNService(HookableService):
         super(VPNService, self).stopService()
 
     @defer.inlineCallbacks
-    def start_vpn(self, domain):
+    def start_vpn(self, domain=None):
         if self._started:
             exc = Exception('VPN already started')
             exc.expected = True
             raise exc
+        if not domain:
+            domain = self._read_last()
+            if not domain:
+                exc = Exception("VPN can't start, a provider is need")
+                exc.expected = True
+                raise exc
+
         yield self._setup(domain)
 
         try:

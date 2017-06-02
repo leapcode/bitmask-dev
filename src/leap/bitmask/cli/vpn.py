@@ -54,7 +54,7 @@ SUBCOMMANDS:
                             help='provider to start the VPN')
         subargs = parser.parse_args(raw_args)
 
-        provider = None
+        provider = ""
         if subargs.provider:
             provider = subargs.provider
         else:
@@ -62,9 +62,7 @@ SUBCOMMANDS:
             try:
                 _, provider = uid.split('@')
             except ValueError:
-                error = ValueError("A provider is needed to start the VPN")
-                error.expected = True
-                raise error
+                pass
 
         self.data += ['start', provider]
 

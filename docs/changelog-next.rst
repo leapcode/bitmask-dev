@@ -10,6 +10,8 @@ I've added a new category `Misc` so we can track doc/style/packaging stuff.
 
 Features
 ~~~~~~~~
+- `#8835 <https://0xacab.org/leap/bitmask-dev/issues/8835>`_: On bitmaskclt vpn start use the last vpn if no provider is provided
+
 - `#1234 <https://leap.se/code/issues/1234>`_: Description of the new feature corresponding with issue #1234.
 - New feature without related issue number.
 
