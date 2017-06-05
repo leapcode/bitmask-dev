@@ -178,6 +178,13 @@ For contributors with commit access, you **should** sign all your commits. If
 you are merging some code from external contributors, you should sign their
 commits.
 
+For handy alias for sign and signoff commits from external contributors add to
+your gitconfig::
+
+  [alias]
+  # Usage: git signoff-rebase [base-commit]
+  signoff-rebase = "!GIT_SEQUENCE_EDITOR='sed -i -re s/^pick/e/' sh -c 'git rebase -i $1 && while test -f .git/rebase-merge/interactive; do git commit --amend --signoff --no-edit && git rebase --continue; done' -"
+
 Merging code
 ---------------------------------
 
