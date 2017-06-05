@@ -80,7 +80,7 @@ class VPNService(HookableService):
         if not domain:
             domain = self._read_last()
             if not domain:
-                exc = Exception("VPN can't start, a provider is need")
+                exc = Exception("VPN can't start, a provider is needed")
                 exc.expected = True
                 raise exc
 
