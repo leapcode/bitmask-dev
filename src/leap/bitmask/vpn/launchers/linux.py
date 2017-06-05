@@ -99,10 +99,11 @@ class LinuxVPNLauncher(VPNLauncher):
         command.insert(1, "openvpn")
         command.insert(2, "start")
 
-        policyChecker = LinuxPolicyChecker()
-        pkexec = policyChecker.maybe_pkexec()
-        if pkexec:
-            command.insert(0, first(pkexec))
+        if os.getuid() != 0:
+            policyChecker = LinuxPolicyChecker()
+            pkexec = policyChecker.maybe_pkexec()
+            if pkexec:
+                command.insert(0, first(pkexec))
 
         return command
 

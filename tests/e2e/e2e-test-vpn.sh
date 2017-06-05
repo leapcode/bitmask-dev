@@ -6,8 +6,8 @@
 # exit if any commands returns non-zero status
 set -e
 
-# XXX DEBUG
-set -x
+# ONLY ENABLE THIS TO DEBUG
+# set -x
 
 # Check if scipt is run in debug mode so we can hide secrets
 if [[ "$-" =~ 'x' ]]
@@ -47,31 +47,32 @@ set +x
 # Authenticate
 "$BCTL" user auth "$user" --pass "$pw" > /dev/null
 
-# Enable VPN
-"$BCTL" vpn enable 
-
 # Get VPN cert
 "$BCTL" vpn get_cert "$user" 
 
+# Start VPN, wait a bit
 "$BCTL" vpn start --json
-
-# XXX DEBUG ---
-tail -n 200  ~/.config/leap/bitmaskd.log
-which pkexec
-ls -la /usr/sbin/openvpn
-ls -la /usr/local/sbin/bitmask-root
-# XXX DEBUG ---
-
-sleep 5
-
+sleep 3
 "$BCTL" vpn status --json
 
+# XXX gateway does not get added to resolv.conf
+echo "nameserver 10.42.0.1" > /etc/resolv.conf
+# cat /etc/resolv.conf
+sleep 5
+
+#ip link show
+
+# TEST that we're going through the provider's VPN
 tests/e2e/check_ip vpn_on
 
 "$BCTL" vpn stop
+sleep 3
 
-sleep 5
+# XXX debug do this only if no other entry in resolv.conf
+echo "nameserver 77.109.148.136" > /etc/resolv.conf
 
+
+# TEST that we're NOT going through the provider's VPN
 tests/e2e/check_ip vpn_off
 
 echo "Succeeded - the vpn routed you through the expected address"
