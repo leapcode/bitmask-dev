@@ -7,8 +7,8 @@ bundle: bundle_clean
 	mkdir $(DIST)/leap
 	# if you find yourself puzzled becase the following files are not found in your
 	# virtualenv, make sure that you're installing the packages from wheels and not eggs.
-	mkdir -p $(DIST)/leap/soledad/common/l2db/backends
-	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/soledad/common/l2db/backends/dbschema.sql $(DIST)/leap/soledad/common/l2db/backends/
+	mkdir -p $(DIST)/leap/soledad/client/_db
+	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/soledad/client/_db/dbschema.sql $(DIST)/leap/soledad/client/_db/
 	cp -r $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/bitmask_js/  $(DIST)/leap
 	cp -r $(VIRTUAL_ENV)/lib/python2.7/site-packages/pixelated_www/  $(DIST)
 	mv $(DIST) _bundlelib && mkdir $(DIST_VERSION) && mv _bundlelib $(DIST_VERSION)/lib
