@@ -26,10 +26,12 @@ osx_test:
 bitmask_latest_bundle:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
   stage: bundle
-  script: pkg/build_bundle_with_venv.sh
+  script:
+    - pkg/build_bundle_with_venv.sh
+    - mv "dist/bitmask-`cat pkg/next-version`" . 
   artifacts:
     paths:
-      - dist/bitmask-*
+      - "bitmask-`cat pkg/next-version`"
     name: "Bitmask_linux64_latest_${CI_BUILD_REF}"
     expire_in: 1 month
   tags:
