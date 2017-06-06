@@ -80,8 +80,6 @@ def get_gpg_bin_path():
     :rtype: str
     """
     global STANDALONE
-    gpgbin = None
-
     if STANDALONE:
         if platform.system() == "Windows":
             gpgbin = os.path.abspath(
@@ -92,40 +90,13 @@ def get_gpg_bin_path():
         else:
             gpgbin = os.path.abspath(
                 os.path.join(here(), "..", "apps", "mail", "gpg"))
-    else:
-        try:
-            path_ext = '/usr/bin/:/usr/local/opt/gnupg/bin/'
-            gpgbin_options = which("gpg", path_extension=path_ext)
-            # gnupg checks that the path to the binary is not a
-            # symlink, so we need to filter those and come up with
-            # just one option.
-            for opt in gpgbin_options:
-                # dereference a symlink, but will fail because
-                # no complete gpg2 support at the moment
-                # path = os.readlink(opt)
-                path = opt
-                if os.path.exists(path) and not os.path.islink(path):
-                    gpgbin = path
-                    break
-        except IndexError as e:
-            log.debug("Couldn't find the gpg binary!: %s" % (e,))
-
-    if gpgbin is not None:
         return gpgbin
 
-    # During the transition towards gpg2, we can look for /usr/bin/gpg1
-    # binary, in case it was renamed using dpkg-divert or manually.
-    # We could just pick gpg2, but we need to solve #7564 first.
-    try:
-        path_ext = '/usr/bin/:/usr/local/opt/gnupg/bin/'
-        gpgbin_options = which("gpg1", path_extension=path_ext)
-        for opt in gpgbin_options:
-            if not os.path.islink(opt):
-                gpgbin = opt
-                break
-    except IndexError as e:
-        log.debug("Couldn't find the gpg1 binary!: %s" % (e,))
+    path_ext = '/bin:/usr/bin/:/usr/local/bin:/usr/local/opt/gnupg/bin/'
+    for gpgbin_name in ["gpg1", "gpg"]:
+        gpgbin_options = which(gpgbin_name, path_extension=path_ext)
+        if len(gpgbin_options) >= 1:
+            return gpgbin_options[0]
 
-    if gpgbin is None:
-        log.debug("Could not find gpg1 binary")
-    return gpgbin
+    log.debug("Could not find gpg binary")
+    return None
