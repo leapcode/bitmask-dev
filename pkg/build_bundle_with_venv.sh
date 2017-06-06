@@ -20,13 +20,13 @@ $VIRTUAL_ENV/bin/pip install chardet whoosh
 # FIXME persuade pixelated to stop using requests in favor of treq
 $VIRTUAL_ENV/bin/pip install requests==2.11.1
 
-# For the Bitmask 0.9.5 bundles.
-#$VIRTUAL_ENV/bin/pip install -U leap.soledad.common==0.9.5
-#$VIRTUAL_ENV/bin/pip install -U leap.soledad.client==0.9.5
+# For the Bitmask 0.10 bundles.
+$VIRTUAL_ENV/bin/pip install -U leap.soledad.common==0.9.6.post2
+$VIRTUAL_ENV/bin/pip install -U leap.soledad.client==0.9.6.post2
 
 # CHANGE THIS IF YOU WANT A DIFFERENT BRANCH CHECKED OUT FOR COMMON/SOLEDAD --------------------
-$VIRTUAL_ENV/bin/pip install -U leap.soledad.common --find-links https://devpi.net/kali/dev 
-$VIRTUAL_ENV/bin/pip install -U leap.soledad.client --find-links https://devpi.net/kali/dev 
+#$VIRTUAL_ENV/bin/pip install -U leap.soledad.common --find-links https://devpi.net/kali/dev 
+#$VIRTUAL_ENV/bin/pip install -U leap.soledad.client --find-links https://devpi.net/kali/dev 
 # ----------------------------------------------------------------------------------------------
 
 # XXX hack for the namespace package not being properly handled by pyinstaller
