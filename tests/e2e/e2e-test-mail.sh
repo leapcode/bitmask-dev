@@ -30,6 +30,9 @@
 # exit if any commands returns non-zero status
 set -e
 
+# DEBUG
+# set -x
+
 # Check if scipt is run in debug mode so we can hide secrets
 if [[ "$-" =~ 'x' ]]
 then
@@ -40,7 +43,8 @@ else
   xtrace=false
 fi
 
-PROVIDER='ci.leap.se'
+#PROVIDER='ci.leap.se'
+PROVIDER='mail.bitmask.net'
 INVITE_CODE=${BITMASK_INVITE_CODE:?"Need to set BITMASK_INVITE_CODE non-empty"}
 
 BCTL='bitmaskctl'
@@ -53,24 +57,25 @@ user="${username}@${PROVIDER}"
 pw="$(head -c 10 < /dev/urandom | base64)"
 SWAKS="swaks --h-Subject $MAIL_UUID --silent 2 --helo ci.leap.se -f ci@leap.se -t $user"
 
-# Start the polkit authentication agent
-"$POLKIT" &
-
 # Stop any previously started bitmaskd
 # and start a new instance
 "$BCTL" stop
 
 [ -d "$LEAP_HOME" ] && rm -rf "$LEAP_HOME"
 
-"$BCTL" start
+
+# XXX skip certificate verification! -- self-signed cert in ci.leap.se
+SKIP_TWISTED_SSL_CHECK=1 "$BCTL" start
 
 # Register a new user
-
 # Disable xtrace
 set +x
 "$BCTL" user create "$user" --pass "$pw" --invite "$INVITE_CODE"
 # Enable xtrace again only if it was set at beginning of script
 [[ $xtrace == true ]] && set -x
+
+#tail ~/.config/leap/bitmaskd.log
+echo "created user. authenticating..."
 
 # Authenticate
 "$BCTL" user auth "$user" --pass "$pw" > /dev/null

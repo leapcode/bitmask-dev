@@ -21,6 +21,7 @@ fi
 
 PROVIDER='demo.bitmask.net'
 INVITE_CODE=${BITMASK_INVITE_CODE:?"Need to set BITMASK_INVITE_CODE non-empty"}
+
 BCTL='bitmaskctl'
 LEAP_HOME="$HOME/.config/leap"
 
