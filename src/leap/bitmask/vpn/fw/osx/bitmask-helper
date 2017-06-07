@@ -39,6 +39,11 @@ To see the loaded rules:
 
   sudo pfctl -s rules -a bitmask
 
+To test the commands, you can write directly to the unix socket. Remember to
+terminate the command properly:
+
+  echo 'firewall_stop/CMD' | socat - UNIX-CONNECT:/tmp/bitmask-helper.socket
+
 """
 import os
 import re
