@@ -26,7 +26,7 @@ Reporting bugs
 * `Here`_ is some very good read about what constitutes a `good bug report`_.
 * Have also a look at the :ref:`Known Issues <issues>` page.
 
-.. _`Issue Tracker`: https://leap.se/code
+.. _`Issue Tracker`: https://0xacab.org/leap/bitmask-dev/issues/
 .. _`Here`: http://www.chiark.greenend.org.uk/~sgtatham/bugs.html
 .. _`good bug report`: http://www.chiark.greenend.org.uk/~sgtatham/bugs.html
 
