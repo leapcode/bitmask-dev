@@ -8,7 +8,7 @@ VPN
 -------------------
 
 * Partial support for VPN in Linux.
-* Known problems with hybernation (more debug info is welcome).
+* Known problems with hibernation (more debug info is welcome).
 
 Wizard
 -------------------
@@ -32,7 +32,7 @@ The integration of the Pixelated webmail is a bit rough at the moment.
 
 Particularly, simultaneous use of Pixelated and Thunderbird is likely to hit some usability issues:
 
-* `#8905 <https://0xacab.org/leap/bitmask-dev/issues/8905>`_: pixelated: if a message is open in thunderbird, the unread count is not updated
+* `#8905 <https://0xacab.org/leap/bitmask-dev/issues/8905>`_: pixelated: if a message is open in Thunderbird, the unread count is not updated
 * `#8906 <https://0xacab.org/leap/bitmask-dev/issues/8906>`_: pixelated: can't see messages that were sent with Thunderbird
 * Pixelated MUA is not authenticated.
 
