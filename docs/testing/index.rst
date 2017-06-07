@@ -78,12 +78,14 @@ You can configure Thunderbird manually with the info that is shown in the
 there is a Thunderbird extension that automates this configuration. Before
 configuring a Bitmask account in Thunderbird, make sure that you have Bitmask
 running and that you are logged in with an account that supports the mail
-service (mail.bitmask.net). Then you can follow these steps:
+service (mail.bitmask.net).
 
-1. From within Thunderbird, install the `Bitmask Thunderbird Extension`_.
-2. Enable the menu bar: Right Click in the top bar > Menu Bar
-3. Run Bitmask
-4. Create a Bitmask Account: From the menubar, click on File > New > Bitmask Account
+These are the steps:
+
+1. Run Bitmask, login with an account that suports encrypted email.
+2. From within Thunderbird, install the `Bitmask Thunderbird Extension`_.
+3. Enable the menu bar: Right Click in the top bar > Menu Bar
+4. Create a Bitmask Account in Thunderbird: From the menubar, click on File > New > Bitmask Account
 5. Fill in your name. This can be anything.
 6. Fill in your username, in the form "username@provider"
 
