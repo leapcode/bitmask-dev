@@ -89,7 +89,6 @@ class FirewallManager(object):
         try:
             retcode, result = commands.getstatusoutput(
                 ' '.join(cmd + gateways))
-            #stderr=subprocess.STDOUT)
         except Exception:
             log.failure('Error launching the firewall')
         finally:
