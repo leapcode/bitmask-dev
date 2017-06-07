@@ -19,6 +19,17 @@ workaround in an issue in qutebrowser's repo, works fine for me for now::
   https://raw.githubusercontent.com/Homebrew/homebrew/f802822b0fa35ad362aebd0101ccf83a638bed37/Library/Formula/{py,}qt5.rb
   brew install qt5 pyqt5
 
+Debugging bitmask-helper
+------------------------
+
+Bitmask communicates with the privileged ``bitmask-helper`` through a unix
+socket. If you need to debug the privileged helper (for instance, if you need to
+tear down the firewall after a crash), you can do it like this with
+``socat``::
+
+  echo 'firewall_stop/CMD' | socat - UNIX-CONNECT:/tmp/bitmask-helper.socket
+
+
 Other notes
 -----------
 
