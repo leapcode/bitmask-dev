@@ -73,7 +73,12 @@ that this is **not** an installation method!)::
 Thunderbird integration
 -----------------------
 
-These are the steps for testing the thunderbird integration:
+You can configure Thunderbird manually with the info that is shown in the
+"Configure a Mail Client" section, within the Mail pane in Bitmask. However,
+there is a Thunderbird extension that automates this configuration. Before
+configuring a Bitmask account in Thunderbird, make sure that you have Bitmask
+running and that you are logged in with an account that supports the mail
+service (mail.bitmask.net). Then you can follow these steps:
 
 1. From within Thunderbird, install the `Bitmask Thunderbird Extension`_.
 2. Enable the menu bar: Right Click in the top bar > Menu Bar
