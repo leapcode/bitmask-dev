@@ -3,7 +3,7 @@ from shutil import copyfile
 import os.path
 import sys
 
-from leap.bitmask.vpn.constants import IS_LINUX
+from leap.bitmask.vpn.constants import IS_LINUX, IS_MAC
 from leap.bitmask.vpn import _config
 
 from leap.bitmask.util import STANDALONE
@@ -36,6 +36,12 @@ if IS_LINUX:
         helper = os.path.exists(helper_to)
         polkit = os.path.exists(polkit_to)
         return helper and polkit
+
+if IS_MAC:
+
+    def check():
+        # XXX check if bitmask-helper is running
+        return True
 
 
 def main():
