@@ -54,7 +54,7 @@ class VPNControl(object):
 
         args = [self._vpnconfig, self._providerconfig, self._host,
                 self._port]
-        kwargs = {'openvpn_verb': 7, 'remotes': self._remotes,
+        kwargs = {'openvpn_verb': 4, 'remotes': self._remotes,
                   'restartfun': self.restart}
 
         vpnproc = VPNProcess(*args, **kwargs)
@@ -63,6 +63,11 @@ class VPNControl(object):
             vpnproc.stop_if_already_running()
 
         try:
+            vpnproc.preUp()
+        except Exception as e:
+            log.error('Error on vpn pre-up {0!r}'.format(e))
+            raise
+        try:
             cmd = vpnproc.getCommand()
         except Exception as e:
             log.error('Error while getting vpn command... {0!r}'.format(e))
@@ -70,7 +75,8 @@ class VPNControl(object):
 
         env = os.environ
 
-        reactor.spawnProcess(vpnproc, cmd[0], cmd, env)
+        runningproc = reactor.spawnProcess(vpnproc, cmd[0], cmd, env)
+        vpnproc.pid = runningproc.pid
         self._vpnproc = vpnproc
 
         # add pollers for status and state

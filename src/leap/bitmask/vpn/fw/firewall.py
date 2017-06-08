@@ -25,14 +25,12 @@ import subprocess
 
 from twisted.logger import Logger
 
-from leap.bitmask.vpn.constants import IS_MAC
+from leap.bitmask.vpn.constants import IS_MAC, IS_LINUX
 from leap.common.events import catalog, emit_async
 
+from leap.bitmask.vpn.launchers import darwin
+
 log = Logger()
-
-
-# TODO -- subclass it for osx/windows, not only for linux.
-
 
 # A regular user should not run bitmask as root, but we contemplate
 # this case for tests inside docker.
@@ -46,7 +44,34 @@ def check_root(cmd):
     return cmd
 
 
-class FirewallManager(object):
+class _OSXFirewallManager(object):
+    def __init__(self, remotes):
+        self._remotes = list(remotes)
+        self._helper = darwin.HelperCommand()
+
+    def start(self, restart=False):
+        gateways = [gateway for gateway, port in self._remotes]
+        cmd = 'firewall_start %s' % (' '.join(gateways),)
+        self._helper.send(cmd)
+        # TODO parse OK from result
+        return True
+
+    def stop(self):
+        cmd = 'firewall_stop'
+        self._helper.send(cmd)
+        return True
+
+    def is_up(self):
+        # TODO implement!!!
+        return True
+
+    @property
+    def status(self):
+        # TODO implement!!! -- factor out, too
+        return {'status': 'on', 'error': None}
+
+
+class _LinuxFirewallManager(object):
 
     """
     Firewall manager that blocks/unblocks all the internet traffic with some
@@ -100,10 +125,6 @@ class FirewallManager(object):
         """
         Tear the firewall down using the privileged wrapper.
         """
-        # We don't support Mac so far
-        if IS_MAC:
-            return True
-
         cmd = [self.BITMASK_ROOT, "firewall", "stop"]
         cmd = check_root(cmd)
         exitCode = subprocess.call(cmd)
@@ -133,3 +154,9 @@ class FirewallManager(object):
             status = 'on'
 
         return {'status': status, 'error': None}
+
+
+if IS_LINUX:
+    FirewallManager = _LinuxFirewallManager
+elif IS_MAC:
+    FirewallManager = _OSXFirewallManager

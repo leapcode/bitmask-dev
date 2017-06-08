@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Author: Kali Kaneko
-# Copyright (C) 2015-2016 LEAP Encryption Access Project
+# Copyright (C) 2015-2017 LEAP Encryption Access Project
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -42,11 +42,10 @@ To see the loaded rules:
 To test the commands, you can write directly to the unix socket. Remember to
 terminate the command properly:
 
-  echo 'firewall_stop/CMD' | socat - UNIX-CONNECT:/tmp/bitmask-helper.socket
+ echo 'firewall_stop/CMD' | socat - UNIX-CONNECT:/tmp/bitmask-helper.socket
 
 """
 import os
-import re
 import socket
 import signal
 import subprocess
@@ -75,7 +74,6 @@ FIXED_FLAGS = [
     "--setenv", "LEAPOPENVPN", "1",
     "--nobind",
     "--client",
-    "--dev", "tun",
     "--tls-client",
     "--remote-cert-tls", "server",
     "--management-signal",
@@ -243,14 +241,19 @@ def openvpn_start(*args):
     opts += ['--dhcp-option', 'DNS', '10.42.0.1',
              '--up', RESOURCES_PATH + 'client.up.sh',
              '--down', RESOURCES_PATH + 'client.down.sh']
+    opts += ["--dev", "tun"]
     binary = [RESOURCES_PATH + 'openvpn.leap']
-
-    syslog.syslog(syslog.LOG_WARNING, ' '.join(binary + opts))
+    cmd = binary + opts
+    #syslog.syslog(syslog.LOG_WARNING, 'LAUNCHING VPN: ' + ' '.join(cmd))
 
     # TODO sanitize options
     global openvpn_proc
-    openvpn_proc = subprocess.Popen(binary + opts, shell=False)
-    syslog.syslog(syslog.LOG_WARNING, "OpenVPN PID: %s" % str(openvpn_proc.pid))
+    openvpn_proc = subprocess.Popen(cmd, shell=False, bufsize=-1)
+    #try:
+    #    result = subprocess.check_output(cmd, shell=False, stderr=subprocess.STDOUT)
+    #except Exception as exc:
+    #    syslog.syslog(syslog.LOG_WARNING, exc.output)
+    #syslog.syslog(syslog.LOG_WARNING, "OpenVPN PID: %s" % str(openvpn_proc.pid))
 
 
 def openvpn_stop(sig='TERM'):

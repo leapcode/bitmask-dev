@@ -29,7 +29,7 @@ from twisted.logger import Logger
 from abc import ABCMeta, abstractmethod
 from functools import partial
 
-from leap.bitmask.vpn.constants import IS_LINUX
+from leap.bitmask.vpn.constants import IS_LINUX, IS_MAC
 from leap.bitmask.vpn.utils import force_eval
 
 
@@ -186,16 +186,6 @@ class VPNLauncher(object):
         :return: A VPN command ready to be launched.
         :rtype: list
         """
-        # leap_assert_type(vpnconfig, VPNConfig)
-        # leap_assert_type(providerconfig, ProviderConfig)
-
-        # XXX this still has to be changed on osx and windows accordingly
-        # kwargs = {}
-        # openvpn_possibilities = which(kls.OPENVPN_BIN, **kwargs)
-        # if not openvpn_possibilities:
-        #     raise OpenVPNNotFoundException()
-        # openvpn = first(openvpn_possibilities)
-        # -----------------------------------------
         openvpn_path = force_eval(kls.OPENVPN_BIN_PATH)
 
         if not os.path.isfile(openvpn_path):
@@ -215,7 +205,6 @@ class VPNLauncher(object):
         if openvpn_verb is not None:
             args += ['--verb', '%d' % (openvpn_verb,)]
 
-        # gateways = kls.get_gateways(vpnconfig, providerconfig)
         gateways = remotes
 
         for ip, port in gateways:
@@ -224,7 +213,6 @@ class VPNLauncher(object):
         args += [
             '--client',
             '--dev', ' tun',
-            '--persist-key',
             '--tls-client',
             '--remote-cert-tls',
             'server'
@@ -269,13 +257,12 @@ class VPNLauncher(object):
             '--ca', providerconfig.get_ca_cert_path()
         ]
 
-        args += [
-            '--ping', '5',
-            '--ping-restart', '10']
-
-        args += [
-            '--persist-key',
-            '--persist-local-ip', '--persist-remote-ip']
+        if not IS_MAC:
+            args += [
+                '--ping', '5',
+                '--ping-restart', '10',
+                '--persist-key',
+                '--persist-local-ip', '--persist-remote-ip']
 
         command_and_args = [openvpn_path] + args
         return command_and_args

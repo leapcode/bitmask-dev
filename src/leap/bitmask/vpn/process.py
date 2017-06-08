@@ -50,6 +50,10 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
 
     log = Logger()
 
+    # HACK - reactor is expected to set this up when the process is spawned.
+    # should try to get it from within this class.
+    pid = None
+
     # TODO do we really need the vpnconfig/providerconfig objects in here???
 
     def __init__(self, vpnconfig, providerconfig, socket_host, socket_port,
@@ -183,6 +187,9 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
 
     # launcher
 
+    def preUp(self):
+        pass
+
     def getCommand(self):
         """
         Gets the vpn command from the aproppriate launcher.
@@ -252,11 +259,19 @@ elif IS_MAC:
         This is a workaround to allow the state machine to be notified when
         openvpn process is spawned by the privileged helper.
         """
+
         def setupHelper(self):
+            # TODO use get_vpn_launcher instead
             self.helper = darwin.HelperCommand()
 
+        def preUp(self):
+            self.setupHelper()
+            cmd = self.getVPNCommand()
+            self.helper.send('openvpn_start %s' % ' '.join(cmd))
+
         def connectionMade(self):
-            VPNProcess.connectionMade(self)
+            super(_VPNProcess, self).connectionMade()
+            self.setupHelper()
             reactor.callLater(2, self.registerPID)
 
         def registerPID(self):
@@ -268,7 +283,8 @@ elif IS_MAC:
             self.helper.send(cmd)
 
         def getVPNCommand(self):
-            return VPNProcess.getCommand(self)
+            vpncmd = _VPNProcess.getCommand(self)
+            return vpncmd
 
         def getCommand(self):
             canary = '''import sys, signal, time

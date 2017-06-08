@@ -119,8 +119,8 @@ class DarwinVPNLauncher(VPNLauncher):
         return os.path.join(resources_path, "bitmask.tiff")
 
     @classmethod
-    def get_vpn_command(kls, eipconfig, providerconfig, socket_host,
-                        socket_port="unix", openvpn_verb=1):
+    def get_vpn_command(kls, vpnconfig, providerconfig, socket_host,
+                        remotes, socket_port="unix", openvpn_verb=1):
         """
         Returns the OSX implementation for the vpn launching command.
 
@@ -149,7 +149,8 @@ class DarwinVPNLauncher(VPNLauncher):
 
         # we use `super` in order to send the class to use
         command = super(DarwinVPNLauncher, kls).get_vpn_command(
-            eipconfig, providerconfig, socket_host, socket_port, openvpn_verb)
+            vpnconfig, providerconfig, socket_host, socket_port, remotes,
+            openvpn_verb)
         command.extend(['--setenv', "LEAPUSER", getpass.getuser()])
 
         return command
