@@ -78,6 +78,10 @@ SUBCOMMANDS:
         if not userid:
             userid = self.cfg.get('bonafide', 'active', default='')
         self.data += ['export', userid, subargs.address[0]]
+        if subargs.private:
+            self.data += ['private']
+        else:
+            self.data += ['public']
 
         return self._send(self._print_key)
 
@@ -124,6 +128,10 @@ SUBCOMMANDS:
             userid = self.cfg.get('bonafide', 'active')
 
         self.data += ['delete', userid, subargs.address[0]]
+        if subargs.private:
+            self.data += ['private']
+        else:
+            self.data += ['public']
         return self._send()
 
     def _print_key_list(self, keys):
