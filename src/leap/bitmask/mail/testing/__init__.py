@@ -67,6 +67,8 @@ class KeyManagerWithSoledadTestCase(unittest.TestCase, BaseLeapTest):
 
         self.km._nicknym._async_client_pinned.request = Mock(
             return_value=defer.succeed(Response()))
+        self.km.send_key = Mock(
+            return_value=defer.succeed(Response()))
 
         d1 = self.km.put_raw_key(PRIVATE_KEY, ADDRESS)
         d2 = self.km.put_raw_key(PRIVATE_KEY_2, ADDRESS_2)

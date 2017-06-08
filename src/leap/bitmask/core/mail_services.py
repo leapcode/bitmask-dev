@@ -29,8 +29,6 @@ from collections import namedtuple
 
 from twisted.application import service
 from twisted.internet import defer
-from twisted.internet import reactor
-from twisted.internet import task
 from twisted.logger import Logger
 
 from leap.common.events import catalog, emit_async
@@ -74,6 +72,8 @@ class ImproperlyConfigured(Exception):
 
 class SoledadContainer(Container):
 
+    log = Logger()
+
     def __init__(self, service=None, basedir=DEFAULT_BASEDIR):
         self._basedir = os.path.expanduser(basedir)
         self._usermap = UserMap()
@@ -104,6 +104,14 @@ class SoledadContainer(Container):
         data = {'user': userid, 'uuid': uuid, 'token': token,
                 'soledad': soledad}
         self.service.trigger_hook('on_new_soledad_instance', **data)
+
+        self.log.debug('Syncing soledad for the first time...')
+        d = soledad.sync()
+        d.addCallbacks(
+            lambda _:
+            self.service.trigger_hook('on_soledad_first_sync', **data),
+            lambda _:
+            self.log.failure('Something failed on soledad first sync'))
 
     def _create_soledad_instance(self, uuid, passphrase, soledad_path,
                                  server_url, cert_file, token):
@@ -230,10 +238,6 @@ class KeymanagerContainer(Container):
         keymanager = self._create_keymanager_instance(
             userid, token, uuid, soledad)
         super(KeymanagerContainer, self).add_instance(userid, keymanager)
-        d = self._get_or_generate_keys(keymanager, userid)
-        d.addCallback(self._on_keymanager_ready_cb, userid, soledad)
-        d.addCallback(lambda _: self._set_status(userid, "on", keys="found"))
-        return d
 
     def set_remote_auth_token(self, userid, token):
         self.get_instance(userid).token = token
@@ -243,86 +247,57 @@ class KeymanagerContainer(Container):
             return {'status': 'off', 'error': None, 'keys': None}
         return self._status[userid]
 
-    def _set_status(self, address, status, error=None, keys=None):
-        self._status[address] = {"status": status,
-                                 "error": error, "keys": keys}
-        emit_async(catalog.MAIL_STATUS_CHANGED, address)
-
-    def _on_keymanager_ready_cb(self, keymanager, userid, soledad):
-        data = {'userid': userid, 'soledad': soledad, 'keymanager': keymanager}
-        self.service.trigger_hook('on_new_keymanager_instance', **data)
-
-    def _get_or_generate_keys(self, keymanager, userid):
-
-        def _get_key(_):
-            self.log.info('Looking up private key for %s' % userid)
-            return keymanager.get_key(userid, private=True, fetch_remote=False)
+    def get_or_generate_keys(self, userid):
+        keymanager = self.get_instance(userid)
 
         def _found_key(key):
             self.log.info('Found key: %r' % key)
+            return key
 
         def _if_not_found_generate(failure):
             failure.trap(KeyNotFound)
             self.log.info('Key not found, generating key for %s' % (userid,))
             self._set_status(userid, "starting", keys="generating")
             d = keymanager.gen_key()
-            d.addCallbacks(_send_key, _log_key_error("generating"))
+            d.addErrback(_log_key_error)
             return d
 
-        def _send_key(ignored):
-            # ----------------------------------------------------------------
-            # It might be the case that we have generated a key-pair
-            # but this hasn't been successfully uploaded. How do we know that?
-            # XXX Should this be a method of bonafide instead?
-            # -----------------------------------------------------------------
-            self.log.info('Key generated for %s' % userid)
+        def _log_key_error(failure):
+            self.log.failure('Error while generating key!')
+            error = "Error generating key: %s" % failure.getErrorMessage()
+            self._set_status(userid, "failure", error=error)
+            return failure
 
-            if not keymanager.token:
-                self.log.debug(
-                    'Token not available, scheduling '
-                    'a new key sending attempt...')
-                return task.deferLater(reactor, 5, _send_key, None)
-
-            self.log.info('Sending public key to server')
-            d = keymanager.send_key()
-            d.addCallbacks(
-                lambda _: self.log.info('Key sent to server'),
-                _log_key_error("sending"))
-            return d
-
-        def _log_key_error(step):
-            def log_error(failure):
-                self.log.error('Error while %s key!' % step)
-                self.log.failure('error!')
-                error = "Error generating key: %s" % failure.getErrorMessage()
-                self._set_status(userid, "failure", error=error)
-                return failure
-            return log_error
-
-        def _sync_if_never_synced(ever_synced):
-            if ever_synced:
-                self.log.debug('Soledad has synced in the past')
-                return defer.succeed(None)
-
-            self.log.debug('Soledad has never synced')
-
-            if not keymanager.token:
-                self.log.debug('No token to sync now, scheduling a new check')
-                d = task.deferLater(reactor, 5, keymanager.ever_synced)
-                d.addCallback(_sync_if_never_synced)
-                return d
-
-            self.log.debug('Syncing soledad for the first time...')
-            self._set_status(userid, "starting", keys="sync")
-            return keymanager._soledad.sync()
-
-        self.log.debug('Checking if soledad has ever synced...')
-        d = keymanager.ever_synced()
-        d.addCallback(_sync_if_never_synced)
-        d.addCallback(_get_key)
+        self.log.info('Looking up private key for %s' % userid)
+        d = keymanager.get_key(userid, private=True, fetch_remote=False)
         d.addCallbacks(_found_key, _if_not_found_generate)
-        d.addCallback(lambda _: keymanager)
+        d.addCallback(self._on_keymanager_ready_cb, keymanager, userid)
+        self._set_status(userid, "on", keys="found")
         return d
+
+    @defer.inlineCallbacks
+    def send_if_outdated_key_in_nicknym(self, userid):
+        keymanager = self.get_instance(userid)
+        key = yield keymanager.get_key(userid, fetch_remote=False)
+        try:
+            remote = yield keymanager._nicknym.fetch_key_with_address(userid)
+        except Exception:
+            remote = {}
+
+        if (keymanager.OPENPGP_KEY not in remote or
+                key.key_data != remote[KeyManager.OPENPGP_KEY]):
+            yield keymanager.send_key()
+
+    def _set_status(self, address, status, error=None, keys=None):
+        self._status[address] = {"status": status,
+                                 "error": error, "keys": keys}
+        emit_async(catalog.MAIL_STATUS_CHANGED, address)
+
+    def _on_keymanager_ready_cb(self, key, keymanager, userid):
+        soledad = keymanager._soledad
+        data = {'userid': userid, 'soledad': soledad, 'keymanager': keymanager}
+        self.service.trigger_hook('on_new_keymanager_instance', **data)
+        return key
 
     def _create_keymanager_instance(self, userid, token, uuid, soledad):
         user, provider = userid.split('@')
@@ -383,6 +358,12 @@ class KeymanagerService(HookableService):
             if not token:
                 token = self.tokens.get(user)
             container.add_instance(user, token, uuid, soledad)
+
+    def hook_on_soledad_first_sync(self, **kw):
+        userid = kw['user']
+        d = self._container.get_or_generate_keys(userid)
+        d.addCallback(
+            lambda _: self._container.send_if_outdated_key_in_nicknym(userid))
 
     def hook_on_bonafide_auth(self, **kw):
         userid = kw['username']

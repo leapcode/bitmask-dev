@@ -178,6 +178,8 @@ class BitmaskBackend(configurable.ConfigurableService):
         if sol:
             sol.register_hook(
                 'on_new_soledad_instance', listener='keymanager')
+            sol.register_hook(
+                'on_soledad_first_sync', listener='keymanager')
 
             # XXX this might not be the right place for hooking the sessions.
             # If we want to be offline, we need to authenticate them after

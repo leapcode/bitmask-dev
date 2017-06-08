@@ -11,6 +11,7 @@ Features
 - `#8769 <https://0xacab.org/leap/bitmask-dev/issues/8769>`_: Eliminate active user from bonafide
 - `#8771 <https://0xacab.org/leap/bitmask-dev/issues/8771>`_: Add json print to the cli
 - `#8765 <https://0xacab.org/leap/bitmask-dev/issues/8765>`_: Require a global authentication token for the api
+- `#8819 <https://0xacab.org/leap/bitmask-dev/issues/8819>`_: Send key to provider if a new priv key is putted in the keyring
 - Initial cli port of the legacy vpn code
 - Add VPN API to bitmask.js
 - Add vpn get_cert command
@@ -26,6 +27,7 @@ Bugfixes
 - Repeat decryption if signed with attached key
 - `#8783 <https://0xacab.org/leap/bitmask-dev/issues/8783>`_: use username instead of provider in the vpn calls
 - `#8868 <https://0xacab.org/leap/bitmask-dev/issues/8868>`_: can't upload generated key with bitmask
+- `#8832 <https://0xacab.org/leap/bitmask-dev/issues/8832>`_: don't allow putting non-private keys for the keyring address
 
 Misc
 ~~~~

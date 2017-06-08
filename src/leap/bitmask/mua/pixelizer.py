@@ -215,7 +215,9 @@ class NickNym(object):
         return self.keymanager.gen_key()
 
     def _send_key_to_leap(self):
-        return self.keymanager.send_key()
+        # XXX: this needs to be removed in pixels side
+        #      km.send_key doesn't exist anymore
+        return defer.succeed(None)
 
 
 class LeapSessionAdapter(object):

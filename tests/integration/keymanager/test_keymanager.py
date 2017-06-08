@@ -22,7 +22,6 @@ import urllib
 import tempfile
 import pkg_resources
 from datetime import datetime
-from os import path
 
 from twisted.internet import defer
 from twisted.trial import unittest
@@ -31,7 +30,6 @@ from twisted.web import client
 import mock
 
 from leap.common import ca_bundle
-from leap.bitmask.keymanager import client
 from leap.bitmask.keymanager import errors
 from leap.bitmask.keymanager.keys import (
     OpenPGPKey,
@@ -193,11 +191,6 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
             key.fingerprint.lower(), KEY_FINGERPRINT.lower())
         self.assertTrue(key.private)
 
-    def test_send_key_raises_key_not_found(self):
-        km = self._key_manager()
-        d = km.send_key()
-        return self.assertFailure(d, errors.KeyNotFound)
-
     @defer.inlineCallbacks
     def test_send_key(self):
         """
@@ -215,8 +208,8 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         km.api_uri = 'apiuri'
         km.api_version = 'apiver'
         yield km.send_key()
+        pubkey = yield km.get_key(ADDRESS, fetch_remote=False)
         # setup expected args
-        pubkey = yield km.get_key(km._address)
         data = urllib.urlencode({
             km.PUBKEY_KEY: pubkey.key_data,
         })
@@ -309,7 +302,7 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         """
         Test that getting a key successfuly fetches from server.
         """
-        km = self._key_manager(url=NICKSERVER_URI)
+        km = self._key_manager(user=ADDRESS_2, url=NICKSERVER_URI)
 
         key = yield self._fetch_key_with_address(km, ADDRESS, PUBLIC_KEY)
         self.assertIsInstance(key, OpenPGPKey)
@@ -368,7 +361,7 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         """
         Test that putting ascii key works
         """
-        km = self._key_manager(url=NICKSERVER_URI)
+        km = self._key_manager(user=ADDRESS_2, url=NICKSERVER_URI)
 
         yield km.put_raw_key(PUBLIC_KEY, ADDRESS)
         key = yield km.get_key(ADDRESS)
@@ -380,7 +373,7 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         """
         Test that putting binary key works
         """
-        km = self._key_manager(url=NICKSERVER_URI)
+        km = self._key_manager(user=ADDRESS_2, url=NICKSERVER_URI)
 
         yield km.put_raw_key(self.get_public_binary_key(), ADDRESS)
         key = yield km.get_key(ADDRESS)
@@ -544,6 +537,18 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
 
         # then
         self.assertEqual(False, key.sign_used)
+
+    def test_put_pubkey_address_fails(self):
+        km = self._key_manager()
+        d = km.put_raw_key(PUBLIC_KEY, ADDRESS)
+        return self.assertFailure(d, errors.KeyNotValidUpgrade)
+
+    @defer.inlineCallbacks
+    def test_put_privkey_address_sends(self):
+        km = self._key_manager()
+        km.send_key = mock.Mock()
+        yield km.put_raw_key(PRIVATE_KEY, ADDRESS)
+        km.send_key.assert_called_once_with()
 
 
 class KeyManagerCryptoTestCase(KeyManagerWithSoledadTestCase):

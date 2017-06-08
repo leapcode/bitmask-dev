@@ -226,7 +226,7 @@ class OpenPGPScheme(object):
 
         d = self.get_key(address)
         d.addCallbacks(key_already_exists, _gen_key)
-        d.addCallback(lambda _: self.get_key(address, private=True))
+        d.addCallback(lambda _: self.get_key(address, private=False))
         return d
 
     def get_key(self, address, private=False):

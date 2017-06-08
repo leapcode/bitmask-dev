@@ -19,6 +19,7 @@ Tests for the Validation Levels
 """
 import unittest
 from datetime import datetime
+from mock import MagicMock
 from twisted.internet.defer import inlineCallbacks
 
 from leap.bitmask.keymanager.errors import KeyNotValidUpgrade
@@ -44,14 +45,14 @@ class ValidationLevelsTestCase(KeyManagerWithSoledadTestCase):
 
     @inlineCallbacks
     def test_none_old_key(self):
-        km = self._key_manager()
+        km = self._key_manager("unrelated@leap.se")
         yield km.put_raw_key(PUBLIC_KEY, ADDRESS)
         key = yield km.get_key(ADDRESS, fetch_remote=False)
         self.assertEqual(key.fingerprint, KEY_FINGERPRINT)
 
     @inlineCallbacks
     def test_cant_upgrade(self):
-        km = self._key_manager()
+        km = self._key_manager("unrelated@leap.se")
         yield km.put_raw_key(PUBLIC_KEY, ADDRESS,
                              validation=ValidationLevels.Provider_Trust)
         d = km.put_raw_key(UNRELATED_KEY, ADDRESS)
@@ -59,7 +60,7 @@ class ValidationLevelsTestCase(KeyManagerWithSoledadTestCase):
 
     @inlineCallbacks
     def test_fingerprint_level(self):
-        km = self._key_manager()
+        km = self._key_manager("unrelated@leap.se")
         yield km.put_raw_key(PUBLIC_KEY, ADDRESS)
         yield km.put_raw_key(UNRELATED_KEY, ADDRESS,
                              validation=ValidationLevels.Fingerprint)
@@ -68,7 +69,7 @@ class ValidationLevelsTestCase(KeyManagerWithSoledadTestCase):
 
     @inlineCallbacks
     def test_expired_key(self):
-        km = self._key_manager()
+        km = self._key_manager("unrelated@leap.se")
         yield km.put_raw_key(EXPIRED_KEY, ADDRESS)
         yield km.put_raw_key(UNRELATED_KEY, ADDRESS)
         key = yield km.get_key(ADDRESS, fetch_remote=False)
@@ -76,7 +77,7 @@ class ValidationLevelsTestCase(KeyManagerWithSoledadTestCase):
 
     @inlineCallbacks
     def test_expired_fail_lower_level(self):
-        km = self._key_manager()
+        km = self._key_manager("unrelated@leap.se")
         yield km.put_raw_key(
             EXPIRED_KEY, ADDRESS,
             validation=ValidationLevels.Third_Party_Endorsement)
@@ -87,7 +88,7 @@ class ValidationLevelsTestCase(KeyManagerWithSoledadTestCase):
 
     @inlineCallbacks
     def test_can_upgrade_key(self):
-        km = self._key_manager()
+        km = self._key_manager("unrelated@leap.se")
 
         yield km.put_raw_key(OLD_PUB_KEY, OLD_AND_NEW_KEY_ADDRESS)
         old_key = yield km.get_key(OLD_AND_NEW_KEY_ADDRESS, fetch_remote=False)
@@ -100,7 +101,7 @@ class ValidationLevelsTestCase(KeyManagerWithSoledadTestCase):
 
     @inlineCallbacks
     def test_roll_back(self):
-        km = self._key_manager()
+        km = self._key_manager("unrelated@leap.se")
         yield km.put_raw_key(EXPIRED_KEY_UPDATED, ADDRESS)
         yield km.put_raw_key(EXPIRED_KEY, ADDRESS)
         key = yield km.get_key(ADDRESS, fetch_remote=False)
@@ -108,7 +109,7 @@ class ValidationLevelsTestCase(KeyManagerWithSoledadTestCase):
 
     @inlineCallbacks
     def test_not_used(self):
-        km = self._key_manager()
+        km = self._key_manager("unrelated@leap.se")
         yield km.put_raw_key(UNEXPIRED_KEY, ADDRESS,
                              validation=ValidationLevels.Provider_Trust)
         yield km.put_raw_key(UNRELATED_KEY, ADDRESS,
@@ -120,7 +121,8 @@ class ValidationLevelsTestCase(KeyManagerWithSoledadTestCase):
     def test_used_with_verify(self):
         TEXT = "some text"
 
-        km = self._key_manager()
+        km = self._key_manager("unrelated@leap.se")
+        km._send_key = MagicMock()  # let's skip sending key
         yield km.put_raw_key(UNEXPIRED_PRIVATE, ADDRESS)
         signature = yield km.sign(TEXT, ADDRESS)
         yield self.delete_all_keys(km)
@@ -138,7 +140,8 @@ class ValidationLevelsTestCase(KeyManagerWithSoledadTestCase):
     def test_used_with_decrypt(self):
         TEXT = "some text"
 
-        km = self._key_manager()
+        km = self._key_manager("unrelated@leap.se")
+        km._send_key = MagicMock()  # let's skip sending key
         yield km.put_raw_key(UNEXPIRED_PRIVATE, ADDRESS)
         yield km.put_raw_key(PUBLIC_KEY_2, ADDRESS_2)
         encrypted = yield km.encrypt(TEXT, ADDRESS_2, sign=ADDRESS)
@@ -156,7 +159,7 @@ class ValidationLevelsTestCase(KeyManagerWithSoledadTestCase):
 
     @inlineCallbacks
     def test_signed_key(self):
-        km = self._key_manager()
+        km = self._key_manager("unrelated@leap.se")
         yield km.put_raw_key(PUBLIC_KEY, ADDRESS)
         yield km.put_raw_key(SIGNED_KEY, ADDRESS)
         key = yield km.get_key(ADDRESS, fetch_remote=False)
@@ -166,7 +169,7 @@ class ValidationLevelsTestCase(KeyManagerWithSoledadTestCase):
     def test_two_uuids(self):
         TEXT = "some text"
 
-        km = self._key_manager()
+        km = self._key_manager("unrelated@leap.se")
         yield km.put_raw_key(UUIDS_PRIVATE, ADDRESS_2)
         signature = yield km.sign(TEXT, ADDRESS_2)
         yield self.delete_all_keys(km)

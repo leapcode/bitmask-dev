@@ -25,7 +25,7 @@ import tempfile
 from urlparse import urlparse
 
 from twisted.logger import Logger
-from twisted.internet import defer
+from twisted.internet import defer, task, reactor
 from twisted.web import client
 from twisted.web._responses import NOT_FOUND
 
@@ -132,70 +132,6 @@ class KeyManager(object):
         return tmp_file.name
 
     @defer.inlineCallbacks
-    def _get_key_from_nicknym(self, address):
-        """
-        Send a GET request to C{uri} containing C{data}.
-
-        :param address: The URI of the request.
-        :type address: str
-
-        :return: A deferred that will be fired with GET content as json (dict)
-        :rtype: Deferred
-        """
-        try:
-            uri = self._nickserver_uri + '?address=' + address
-            content = yield self._fetch_and_handle_404_from_nicknym(
-                uri, address)
-            json_content = json.loads(content)
-
-        except keymanager_errors.KeyNotFound:
-            raise
-        except IOError as e:
-            self.log.warn("HTTP error retrieving key: %r" % (e,))
-            self.log.warn("%s" % (content,))
-            raise keymanager_errors.KeyNotFound(e.message), \
-                None, sys.exc_info()[2]
-        except ValueError as v:
-            self.log.warn("Invalid JSON data from key: %s" % (uri,))
-            raise keymanager_errors.KeyNotFound(v.message + ' - ' + uri), \
-                None, sys.exc_info()[2]
-
-        except Exception as e:
-            self.log.warn("Error retrieving key: %r" % (e,))
-            raise keymanager_errors.KeyNotFound(e.message), \
-                None, sys.exc_info()[2]
-        # Responses are now text/plain, although it's json anyway, but
-        # this will fail when it shouldn't
-        # leap_assert(
-        #     res.headers['content-type'].startswith('application/json'),
-        #     'Content-type is not JSON.')
-        defer.returnValue(json_content)
-
-    def _fetch_and_handle_404_from_nicknym(self, uri, address):
-        """
-        Send a GET request to C{uri} containing C{data}.
-
-        :param uri: The URI of the request.
-        :type uri: str
-        :param address: The email corresponding to the key.
-        :type address: str
-
-        :return: A deferred that will be fired with GET content as json (dict)
-        :rtype: Deferred
-        """
-        def check_404(response):
-            if response.code == NOT_FOUND:
-                message = '%s: %s key not found.' % (response.code, address)
-                self.log.warn(message)
-                raise KeyNotFound(message), None, sys.exc_info()[2]
-            return response
-
-        d = self._nicknym._async_client_pinned.request(
-            str(uri), 'GET', callback=check_404)
-        d.addCallback(client.readBody)
-        return d
-
-    @defer.inlineCallbacks
     def _get_with_combined_ca_bundle(self, uri, data=None):
         """
         Send a GET request to C{uri} containing C{data}.
@@ -224,6 +160,7 @@ class KeyManager(object):
     # key management
     #
 
+    @defer.inlineCallbacks
     def send_key(self):
         """
         Send user's key to provider.
@@ -237,18 +174,20 @@ class KeyManager(object):
 
         :raise UnsupportedKeyTypeError: if invalid key type
         """
-        def send(pubkey):
-            d = self._nicknym.put_key(self.uid, pubkey.key_data,
-                                      self._api_uri, self._api_version)
-            d.addCallback(lambda _:
-                          emit_async(catalog.KEYMANAGER_DONE_UPLOADING_KEYS,
-                                     self._address))
-            return d
+        if not self.token:
+            self.log.debug(
+                'Token not available, scheduling '
+                'a new key sending attempt...')
+            yield task.deferLater(reactor, 5, self.send_key)
 
-        d = self.get_key(
-            self._address, private=False, fetch_remote=False)
-        d.addCallback(send)
-        return d
+        self.log.info('Sending public key to server')
+        key = yield self.get_key(self._address, fetch_remote=False)
+        yield self._nicknym.put_key(self.uid, key.key_data,
+                                    self._api_uri, self._api_version)
+        emit_async(catalog.KEYMANAGER_DONE_UPLOADING_KEYS,
+                   self._address)
+        self.log.info('Key sent to server')
+        defer.returnValue(key)
 
     @defer.inlineCallbacks
     def _fetch_keys_from_server_and_store_local(self, address):
@@ -276,7 +215,7 @@ class KeyManager(object):
                 validation_level = ValidationLevels.Provider_Trust
 
         yield self.put_raw_key(
-            server_keys['openpgp'],
+            server_keys[OPENPGP_KEY],
             address=address,
             validation=validation_level)
 
@@ -355,6 +294,7 @@ class KeyManager(object):
         :raise UnsupportedKeyTypeError: if invalid key type
         """
         def signal_finished(key):
+            self.log.info('Key generated for %s' % self._address)
             emit_async(
                 catalog.KEYMANAGER_FINISHED_KEY_GENERATION, self._address)
             return key
@@ -662,6 +602,7 @@ class KeyManager(object):
         d.addCallback(check_upgrade)
         return d
 
+    @defer.inlineCallbacks
     def put_raw_key(self, key, address,
                     validation=ValidationLevels.Weak_Chain):
         """
@@ -688,13 +629,26 @@ class KeyManager(object):
         pubkey, privkey = self._openpgp.parse_key(key, address)
 
         if pubkey is None:
-            return defer.fail(keymanager_errors.KeyNotFound(key))
+            raise keymanager_errors.KeyNotFound(key)
+
+        if address == self._address and not privkey:
+            try:
+                existing = yield self.get_key(address, fetch_remote=False)
+            except KeyNotFound:
+                existing = None
+            if (existing is not None or
+                    pubkey.fingerprint != existing.fingerprint):
+                raise keymanager_errors.KeyNotValidUpgrade(
+                    "Cannot update your %s key without the private part"
+                    % (address,))
 
         pubkey.validation = validation
-        d = self.put_key(pubkey)
+        yield self.put_key(pubkey)
         if privkey is not None:
-            d.addCallback(lambda _: self.put_key(privkey))
-        return d
+            yield self.put_key(privkey)
+
+        if address == self._address:
+            yield self.send_key()
 
     @defer.inlineCallbacks
     def fetch_key(self, address, uri, validation=ValidationLevels.Weak_Chain):
@@ -730,13 +684,6 @@ class KeyManager(object):
 
         pubkey.validation = validation
         yield self.put_key(pubkey)
-
-    def ever_synced(self):
-        # TODO: provide this method in soledad api, avoid using a private
-        # attribute here
-        d = self._soledad._dbpool.runQuery('SELECT * FROM sync_log')
-        d.addCallback(lambda result: bool(result))
-        return d
 
 
 def _split_email(address):

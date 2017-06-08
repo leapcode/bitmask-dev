@@ -133,10 +133,6 @@ subject: independence of cyberspace
         d.addErrback(log.err)
         return d
 
-    def tearDown(self):
-        d = KeyManagerWithSoledadTestCase.tearDown(self)
-        return d
-
     def testExtractOpenPGPHeader(self):
         """
         Test the OpenPGP header key extraction
