@@ -1,8 +1,8 @@
 stages:
   - test
+  - e2e
   - bundle
   - build_ui
-  - e2e
 
 variables:
   DOCKER_DRIVER: overlay
@@ -28,7 +28,7 @@ bitmask_latest_bundle:
   stage: bundle
   script:
     - pkg/build_bundle_with_venv.sh
-    - mv "dist/bitmask-`cat pkg/next-version`" . 
+    - mv "dist/bitmask-`cat pkg/next-version`" .
   artifacts:
     paths:
       - "bitmask-`cat pkg/next-version`"
@@ -56,6 +56,25 @@ e2e_tests:
     - mkdir -p /root/.config/leap/
     - make install_helpers
     - make test_e2e
+  tags:
+    - linux
+
+functional_tests:
+  image: 0xacab.org:4567/leap/bitmask-dev:latest
+  stage: e2e
+  before_script:
+    - virtualenv venv
+    - source venv/bin/activate
+    - make dev-latest-all
+    - make test_functional_setup
+  script:
+    - make test_functional
+  artifacts:
+    when: on_failure
+    paths:
+      - "/tmp/*.png"
+    name: "Bitmask_linux64_${CI_BUILD_REF}_e2e_screenshots"
+    expire_in: 1 month
   tags:
     - linux
 

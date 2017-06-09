@@ -15,3 +15,5 @@ RUN apt-get -y install build-essential python-virtualenv libpython-dev \
   openvpn policykit-1 lxpolkit \
   wget patchelf libusb-0.1-4 \
   docker.io \
+  xvfb chromium-chromedriver
+RUN ln -s /usr/lib/chromium-browser/chromedriver /usr/local/bin/chromedriver
