@@ -215,7 +215,7 @@ class KeyManager(object):
                 validation_level = ValidationLevels.Provider_Trust
 
         yield self.put_raw_key(
-            server_keys[OPENPGP_KEY],
+            server_keys[self.OPENPGP_KEY],
             address=address,
             validation=validation_level)
 
@@ -636,7 +636,7 @@ class KeyManager(object):
                 existing = yield self.get_key(address, fetch_remote=False)
             except KeyNotFound:
                 existing = None
-            if (existing is not None or
+            if (existing is None or
                     pubkey.fingerprint != existing.fingerprint):
                 raise keymanager_errors.KeyNotValidUpgrade(
                     "Cannot update your %s key without the private part"
