@@ -19,6 +19,14 @@ workaround in an issue in qutebrowser's repo, works fine for me for now::
   https://raw.githubusercontent.com/Homebrew/homebrew/f802822b0fa35ad362aebd0101ccf83a638bed37/Library/Formula/{py,}qt5.rb
   brew install qt5 pyqt5
 
+.. note: copy that into a makefile target
+
+* After those fixes, you should be able to build the bundle::
+
+  make bundle
+
+.. note: make a osx target!!!
+
 Privileged helper
 =================
 
@@ -58,6 +66,15 @@ These are shipped in ``pkg/osx``, and copied to
 ``/Applications/Bitmask.app/Contents/Resources``.
 
 .. note: cleanup unused helpers
+
+Installing the bundle with homebrew
+===================================
+
+For testing purposes, homebrew can be used to distribute and install the
+bundle. This should download and install the latest version of the bundle::
+
+  brew install kalikaneko/bitmask/bitmask
+  bitmask
 
 
 Other notes
