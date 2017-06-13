@@ -87,12 +87,15 @@ class DarwinVPNLauncher(VPNLauncher):
     OPENVPN_PATH = "%s/Contents/Resources/openvpn" % (INSTALL_PATH,)
     OPENVPN_PATH_ESCAPED = "%s/Contents/Resources/openvpn" % (
         INSTALL_PATH_ESCAPED,)
-    OPENVPN_BIN_PATH = "%s/Contents/Resources/%s" % (INSTALL_PATH,
-                                                     OPENVPN_BIN)
-    if not os.path.isfile(OPENVPN_BIN_PATH):
+    OTHER_FILES = []
+
+    _openvpn_bin_path = "%s/Contents/Resources/%s" % (
+        INSTALL_PATH, OPENVPN_BIN)
+    if os.path.isfile(_openvpn_bin_path):
+        OPENVPN_BIN_PATH = _openvpn_bin_path
+    else:
         # let's try with the homebrew path
         OPENVPN_BIN_PATH = '/usr/local/sbin/openvpn'
-    OTHER_FILES = []
 
     @classmethod
     def is_kext_loaded(kls):
