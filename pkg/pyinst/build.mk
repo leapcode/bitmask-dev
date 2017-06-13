@@ -21,7 +21,7 @@ bundle_win:
 	cp ${VIRTUAL_ENV}/Lib/site-packages/zmq/libzmq.pyd $(DIST)
 	cp src/leap/bitmask/core/bitmaskd.tac $(DIST)
 
-bundle_gpg:
+bundle_linux_gpg:
 	# TODO build it in a docker container!
 	mkdir -p $(DIST_VERSION)/apps/mail
 	cp /usr/bin/gpg $(DIST_VERSION)/apps/mail/
@@ -29,7 +29,7 @@ bundle_gpg:
 	patchelf --set-rpath '.' $(DIST_VERSION)/apps/mail/gpg
 	cp /lib/x86_64-linux-gnu/libusb-0.1.so.4 $(DIST_VERSION)/lib
 
-bundle_vpn:
+bundle_linux_vpn:
 	mkdir -p $(DIST_VERSION)/apps/vpn
 	# TODO verify signature
 	wget https://downloads.leap.se/thirdparty/linux/openvpn/openvpn -O $(DIST_VERSION)/apps/vpn/openvpn.leap
@@ -39,7 +39,18 @@ bundle_linux_helpers:
 	cp src/leap/bitmask/vpn/helpers/linux/bitmask-root $(DIST_VERSION)/apps/helpers/
 	cp src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.bundle.policy $(DIST_VERSION)/apps/helpers/
 
-bundle_apps: bundle_gpg bundle_vpn bundle_linux_helpers
+bundle_osx_helpers:
+	mkdir -p $(DIST_VERSION)/apps/helpers
+	cp src/leap/bitmask/vpn/helpers/osx/bitmask-helper $(DIST_VERSION)/apps/helpers/
+	cp src/leap/bitmask/vpn/helpers/osx/bitmask.pf.conf $(DIST_VERSION)/apps/helpers/
+	cp pkg/osx/se.leap.bitmask-helper.plist $(DIST_VERSION)/apps/helpers/
+	cp -r pkg/osx/daemon $(DIST_VERSION)/apps/helpers/
+	cp -r pkg/osx/openvpn $(DIST_VERSION)/apps/helpers/
+
+
+bundle_apps_linux: bundle_linux_gpg bundle_linux_vpn bundle_linux_helpers
+
+bundle_apps_osx: bundle_osx_helpers
 
 bundle_tar:
 	cd dist/ && tar cvzf Bitmask.$(NEXT_VERSION).tar.gz bitmask-$(NEXT_VERSION)

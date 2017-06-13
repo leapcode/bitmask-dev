@@ -1,6 +1,6 @@
 #!/bin/bash
 ###########################################################
-# Build a Bitmask bundle inside a fresh virtualenv.
+# Build a Bitmask bundle inside a fresh virtualenv (LINUX).
 # To be run by Gitlab Runner,
 # will produce an artifact for each build.
 ###########################################################
@@ -48,4 +48,4 @@ $VIRTUAL_ENV/bin/pip uninstall --yes pyzmq
 $VIRTUAL_ENV/bin/pip install pyzmq --install-option="--zmq=bundled"
 
 make bundle
-make bundle_apps
+make bundle_apps_linux
