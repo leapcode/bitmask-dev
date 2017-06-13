@@ -3,6 +3,8 @@ import platform
 
 block_cipher = None
 
+BITMASK_VERSION = open('pkg/next-version').read()
+
 hiddenimports = [
      'appdirs',
      'scrypt', 'zope.interface', 'zope.proxy',
@@ -71,3 +73,13 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                name='bitmask')
+
+if sys.platform.startswith('darwin'):
+    app = BUNDLE(
+    	coll,
+        name=os.path.join(
+          'dist', 'Bitmask.app'),
+          appname='Bitmask',
+          version=BITMASK_VERSION,
+          icon='../osx/bitmask.icns',
+	  bundle_identifier='bitmask-' + BITMASK_VERSION)
