@@ -5,9 +5,7 @@ Setting up a development environment in OSX™
 
 .. note: work in progress
 
-* Make sure you're using a new enough version of pip (1.8 or newest).
-This will make all the problems with ``cryptography`` going away, since it will
-install the statically built wheel.
+* Make sure you're using a new enough version of pip (1.8 or newest). This will make all the problems with ``cryptography`` going away, since it will install the statically built wheel.
 
 * Use ``brew`` to install ``OpenSSL``.
 
@@ -21,11 +19,10 @@ workaround in an issue in qutebrowser's repo, works fine for me for now::
 
 .. note: copy that into a makefile target
 
-* After those fixes, you should be able to build the bundle::
+After those fixes, you should be able to build the bundle::
 
-  make bundle
+  make bundle_osx
 
-.. note: make a osx target!!!
 
 Privileged helper
 =================

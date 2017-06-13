@@ -15,12 +15,6 @@ bundle: bundle_clean
 	cd pkg/launcher && make
 	cp pkg/launcher/bitmask $(DIST_VERSION)
 
-bundle_win:
-	pyinstaller -y pkg/pyinst/app.spec
-	cp ${VIRTUAL_ENV}/Lib/site-packages/_scrypt.pyd $(DIST)
-	cp ${VIRTUAL_ENV}/Lib/site-packages/zmq/libzmq.pyd $(DIST)
-	cp src/leap/bitmask/core/bitmaskd.tac $(DIST)
-
 bundle_linux_gpg:
 	# TODO build it in a docker container!
 	mkdir -p $(DIST_VERSION)/apps/mail
@@ -48,9 +42,15 @@ bundle_osx_helpers:
 	cp -r pkg/osx/openvpn $(DIST_VERSION)/apps/helpers/
 
 
-bundle_apps_linux: bundle_linux_gpg bundle_linux_vpn bundle_linux_helpers
+bundle_linux: bundle bundle_linux_gpg bundle_linux_vpn bundle_linux_helpers
 
-bundle_apps_osx: bundle_osx_helpers
+bundle_osx: bundle bundle_osx_helpers
+
+bundle_win:
+	pyinstaller -y pkg/pyinst/app.spec
+	cp ${VIRTUAL_ENV}/Lib/site-packages/_scrypt.pyd $(DIST)
+	cp ${VIRTUAL_ENV}/Lib/site-packages/zmq/libzmq.pyd $(DIST)
+	cp src/leap/bitmask/core/bitmaskd.tac $(DIST)
 
 bundle_tar:
 	cd dist/ && tar cvzf Bitmask.$(NEXT_VERSION).tar.gz bitmask-$(NEXT_VERSION)

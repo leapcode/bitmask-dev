@@ -47,5 +47,4 @@ pip install pixelated-www pixelated-user-agent --find-links https://downloads.le
 $VIRTUAL_ENV/bin/pip uninstall --yes pyzmq
 $VIRTUAL_ENV/bin/pip install pyzmq --install-option="--zmq=bundled"
 
-make bundle
-make bundle_apps_linux
+make bundle_linux
