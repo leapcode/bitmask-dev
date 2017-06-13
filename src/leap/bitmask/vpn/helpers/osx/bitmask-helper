@@ -68,7 +68,6 @@ OPENVPN_GROUP = 'nogroup'
 LEAPOPENVPN = 'LEAPOPENVPN'
 APP_PATH = '/Applications/Bitmask.app/'
 RESOURCES_PATH = APP_PATH + 'Contents/Resources/'
-OPENVPN_LEAP_BIN = RESOURCES_PATH + 'openvpn.leap'
 
 FIXED_FLAGS = [
     "--setenv", "LEAPOPENVPN", "1",
@@ -216,8 +215,6 @@ def handle_command(sock):
     finally:
         sock.close()
 
-
-
 #
 # OPENVPN
 #
@@ -243,17 +240,20 @@ def openvpn_start(*args):
              '--down', RESOURCES_PATH + 'client.down.sh']
     opts += ["--dev", "tun"]
     binary = [RESOURCES_PATH + 'openvpn.leap']
+    if not os.path.isfile(binary[0]):
+        binary = ['/usr/local/sbin/openvpn']
     cmd = binary + opts
-    #syslog.syslog(syslog.LOG_WARNING, 'LAUNCHING VPN: ' + ' '.join(cmd))
+
+    # syslog.syslog(syslog.LOG_WARNING, 'LAUNCHING VPN: ' + ' '.join(cmd))
 
     # TODO sanitize options
     global openvpn_proc
     openvpn_proc = subprocess.Popen(cmd, shell=False, bufsize=-1)
-    #try:
+    # try:
     #    result = subprocess.check_output(cmd, shell=False, stderr=subprocess.STDOUT)
-    #except Exception as exc:
+    # except Exception as exc:
     #    syslog.syslog(syslog.LOG_WARNING, exc.output)
-    #syslog.syslog(syslog.LOG_WARNING, "OpenVPN PID: %s" % str(openvpn_proc.pid))
+    # syslog.syslog(syslog.LOG_WARNING, "OpenVPN PID: %s" % str(openvpn_proc.pid))
 
 
 def openvpn_stop(sig='TERM'):
@@ -264,7 +264,7 @@ def openvpn_stop(sig='TERM'):
     :type args: list
     """
     global openvpn_proc
-    
+
     if openvpn_proc:
         syslog.syslog(syslog.LOG_WARNING, "OVPN PROC: %s" % str(openvpn_proc.pid))
 
