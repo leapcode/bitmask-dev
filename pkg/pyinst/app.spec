@@ -1,5 +1,6 @@
 # -*- mode: python -*-
 import platform
+import sys
 
 block_cipher = None
 
