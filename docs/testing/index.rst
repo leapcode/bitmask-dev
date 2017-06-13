@@ -69,6 +69,13 @@ that this is **not** an installation method!)::
 
   curl https://0xacab.org/leap/bitmask-dev/raw/master/docs/testing/latest-bundle-xenial | bash
 
+Testing against providers with invalid certificates
+---------------------------------------------------
+
+If you need to test against a provider without a valid certificate, you can use
+the following flag::
+
+  SKIP_TWISTED_SSL_CHECK=1 bitmask
 
 Thunderbird integration
 -----------------------
