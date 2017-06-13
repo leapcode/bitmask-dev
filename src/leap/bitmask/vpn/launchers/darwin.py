@@ -126,8 +126,8 @@ class DarwinVPNLauncher(VPNLauncher):
         :return: A VPN command ready to be launched.
         :rtype: list
         """
-        if not kls.is_kext_loaded():
-            raise NoTunKextLoaded('tun kext is needed, but was not found')
+        # if not kls.is_kext_loaded():
+        #    raise NoTunKextLoaded('tun kext is needed, but was not found')
 
         # we use `super` in order to send the class to use
         command = super(DarwinVPNLauncher, kls).get_vpn_command(
