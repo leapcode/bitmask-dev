@@ -19,7 +19,6 @@
 Darwin VPN launcher implementation.
 """
 
-import commands
 import getpass
 import os
 import socket
@@ -90,33 +89,16 @@ class DarwinVPNLauncher(VPNLauncher):
         INSTALL_PATH_ESCAPED,)
     OPENVPN_BIN_PATH = "%s/Contents/Resources/%s" % (INSTALL_PATH,
                                                      OPENVPN_BIN)
+    if not os.path.isfile(OPENVPN_BIN_PATH):
+        # let's try with the homebrew path
+        OPENVPN_BIN_PATH = '/usr/local/sbin/openvpn'
     OTHER_FILES = []
 
     @classmethod
     def is_kext_loaded(kls):
-        """
-        Checks if the needed kext is loaded before launching openvpn.
-
-        :returns: True if kext is loaded, False otherwise.
-        :rtype: bool
-        """
-        loaded = bool(commands.getoutput(
-            'kextstat | grep "net.sf.tuntaposx.tun"'))
-        if not loaded:
-            logger.error("tuntaposx extension not loaded!")
-        return loaded
-
-    @classmethod
-    def _get_icon_path(kls):
-        """
-        Returns the absolute path to the app icon.
-
-        :rtype: str
-        """
-        resources_path = os.path.abspath(
-            os.path.join(os.getcwd(), "../../Contents/Resources"))
-
-        return os.path.join(resources_path, "bitmask.tiff")
+        # latest versions do not need tuntap, so we're going to deprecate
+        # the kext checking.
+        True
 
     @classmethod
     def get_vpn_command(kls, vpnconfig, providerconfig, socket_host,
