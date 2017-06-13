@@ -1,10 +1,12 @@
 Helper files needed for OSX
 ===========================
 
-Requirements
-============
+* The bitmask-helper that is run as root can be found in the source tree, in
+``src/leap/bitmask/vpn/helpers/osx``.
+* python ``daemon`` is a dependency for the bitmask-helper, here it is vendored.
+* The plist file ``se.leap.bitmask-helper.plist``.
+* OpenVPN up/down scripts: ``openvpn/client.down.sh`` and
+  ``openvpn/client.up.sh``.
 
-pyinstaller
------------
-You need at least version 3.0.
+
 
