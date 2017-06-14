@@ -4,13 +4,16 @@ from ._human import bytes2human
 from leap.common.events import catalog, emit_async
 
 
-# TODO implement a state machine in this class
+# TODO implement a more explicit state machine
+# TODO check good transitions
+# TODO check valid states
 
 
 class VPNStatus(object):
     """
     A class containing different patterns in the openvpn output that
-    we can react upon.
+    we can react upon. The patterns drive an internal state machine that can be
+    queried through the ``status`` property.
     """
 
     _events = {
@@ -21,25 +24,31 @@ class VPNStatus(object):
         'INITIALIZATION_COMPLETED': (
             "Initialization Sequence Completed",),
     }
+    _STARTING = ('AUTH', 'WAIT', 'CONNECTING', 'GET_CONFIG',
+                 'ASSIGN_IP', 'ADD_ROUTES', 'RECONNECTING')
+    _STOPPING = ("EXITING",)
+    _CONNECTED = ("CONNECTED",)
 
     def __init__(self):
         self._status = 'off'
         self.errcode = None
         self._traffic_down = None
         self._traffic_up = None
-
-    def watch(self, line):
-        """
-        Inspects line searching for the different patterns. If a match
-        is found, try to emit the corresponding signal.
-
-        :param line: a line of openvpn output
-        :type line: str
-        """
-        chained_iter = chain(*[
+        self._chained_iter = chain(*[
             zip(repeat(key, len(l)), l)
             for key, l in self._events.iteritems()])
-        for event, pattern in chained_iter:
+
+    def _status_codes(self, event):
+
+        _table = {
+            "network_unreachable": ('off', 'network unreachable'),
+            "process_restart_tls": ('starting', 'restart tls'),
+            "initialization_completed": ('on', None)
+        }
+        return _table.get(event.lower())
+
+    def watch(self, line):
+        for event, pattern in self._chained_iter:
             if pattern in line:
                 break
         else:
@@ -47,33 +56,6 @@ class VPNStatus(object):
 
         status, errcode = self._status_codes(event)
         self.set_status(status, errcode)
-
-    def set_status(self, status, errcode):
-        if status in ("AUTH", "WAIT", "CONNECTING", "GET_CONFIG",
-                      "ASSIGN_IP", "ADD_ROUTES", "RECONNECTING"):
-            status = "starting"
-        elif status == "EXITING":
-            status = "stopping"
-        elif status == "CONNECTED":
-            status = "on"
-
-        self._status = status
-        self.errcode = errcode
-        emit_async(catalog.VPN_STATUS_CHANGED)
-
-    def set_traffic_status(self, status):
-        up, down = status
-        self._traffic_up = up
-        self._traffic_down = down
-
-    def get_traffic_status(self):
-        down = None
-        up = None
-        if self._traffic_down:
-            down = bytes2human(self._traffic_down)
-        if self._traffic_up:
-            up = bytes2human(self._traffic_up)
-        return {'down': down, 'up': up}
 
     @property
     def status(self):
@@ -84,13 +66,28 @@ class VPNStatus(object):
         })
         return status
 
-    def _status_codes(self, event):
-        # TODO check good transitions
-        # TODO check valid states
+    def set_status(self, status, errcode):
+        if status in self._STARTING:
+            status = "starting"
+        elif status in self._STOPPING:
+            status = "stopping"
+        elif status in self._CONNECTED:
+            status = "on"
 
-        _table = {
-            "network_unreachable": ('off', 'network unreachable'),
-            "process_restart_tls": ('starting', 'restart tls'),
-            "initialization_completed": ('on', None)
-        }
-        return _table.get(event.lower())
+        self._status = status
+        self.errcode = errcode
+        emit_async(catalog.VPN_STATUS_CHANGED)
+
+    def get_traffic_status(self):
+        down = None
+        up = None
+        if self._traffic_down:
+            down = bytes2human(self._traffic_down)
+        if self._traffic_up:
+            up = bytes2human(self._traffic_up)
+        return {'down': down, 'up': up}
+
+    def set_traffic_status(self, status):
+        up, down = status
+        self._traffic_up = up
+        self._traffic_down = down
