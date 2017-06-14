@@ -15,7 +15,7 @@ except ImportError:
     from psutil import AccessDenied as psutil_AccessDenied
     PSUTIL_2 = True
 
-from ._telnet import UDSTelnet
+from leap.bitmask.vpn._telnet import UDSTelnet
 
 
 class OpenVPNAlreadyRunning(Exception):
@@ -47,6 +47,17 @@ class VPNManagement(object):
         self._tn = None
         self.aborted = False
 
+    def set_connection(self, host, port):
+        """
+        :param host: either socket path (unix) or socket IP
+        :type host: str
+
+        :param port: either string "unix" if it's a unix socket, or port
+                     otherwise
+        """
+        self._host = host
+        self._port = port
+
     def _seek_to_eof(self):
         """
         Read as much as available. Position seek pointer to end of stream
@@ -71,7 +82,6 @@ class VPNManagement(object):
         :return: response read
         :rtype: list
         """
-        # leap_assert(self._tn, "We need a tn connection!")
 
         try:
             self._tn.write("%s\n" % (command,))
@@ -108,23 +118,17 @@ class VPNManagement(object):
         self._tn.get_socket().close()
         self._tn = None
 
-    def _connect_management(self, socket_host, socket_port):
+    def connect_to_management(self):
         """
-        Connects to the management interface on the specified
-        socket_host socket_port.
+        Connects to the management interface.
 
-        :param socket_host: either socket path (unix) or socket IP
-        :type socket_host: str
-
-        :param socket_port: either string "unix" if it's a unix
-                            socket, or port otherwise
         :type socket_port: str
         """
         if self.is_connected():
             self._close_management_socket()
 
         try:
-            self._tn = UDSTelnet(socket_host, socket_port)
+            self._tn = UDSTelnet(self._host, self._port)
 
             # XXX make password optional
             # specially for win. we should generate
@@ -138,42 +142,16 @@ class VPNManagement(object):
                 self._tn.read_eager()
 
         except Exception as e:
+            print "ERROR", e
             self.log.warn('Could not connect to OpenVPN yet: %r' % (e,))
             self._tn = None
 
-    def _connectCb(self, *args):
-        """
-        Callback for connection.
-
-        :param args: not used
-        """
-        if not self._tn:
-            self.log.warn('Cannot connect to management...')
-
-    def _connectErr(self, failure):
-        """
-        Errorback for connection.
-
-        :param failure: Failure
-        """
-        self.log.failure('Error while connecting to management!')
-
-    def connect_to_management(self, host, port):
-        """
-        Connect to a management interface.
-
-        :param host: the host of the management interface
-        :type host: str
-
-        :param port: the port of the management interface
-        :type port: str
-
-        :returns: a deferred
-        """
-        self.connectd = defer.maybeDeferred(
-            self._connect_management, host, port)
-        self.connectd.addCallbacks(self._connectCb, self._connectErr)
-        return self.connectd
+        if self._tn:
+            return True
+        else:
+            print "ERROR!"
+            #self.log.failure('Error while connecting to management!')
+            return False
 
     def is_connected(self):
         """
@@ -205,7 +183,7 @@ class VPNManagement(object):
                            'not alive.')
             return
         if not self.aborted and not self.is_connected():
-            self.connect_to_management(self._socket_host, self._socket_port)
+            self.connect_to_management()
             reactor.callLater(
                 self.CONNECTION_RETRY_TIME,
                 self.try_to_connect_to_management, retry + 1)
@@ -235,6 +213,8 @@ class VPNManagement(object):
             if state != self._last_state:
                 # XXX this status object is the vpn status observer
                 if self._status:
+                    # XXX DEBUG -----------------------
+                    print "SETTING STATUS", state
                     self._status.set_status(state, None)
                 self._last_state = state
 
@@ -316,7 +296,7 @@ class VPNManagement(object):
         """
         if self._socket_port == "unix":
             self.log.debug('Cleaning socket file temp folder')
-            tempfolder = _first(os.path.split(self._socket_host))
+            tempfolder = _first(os.path.split(self._host))
             if tempfolder and os.path.isdir(tempfolder):
                 try:
                     shutil.rmtree(tempfolder)
@@ -397,7 +377,7 @@ class VPNManagement(object):
                 port = cmdline[index + 2]
                 self.log.debug("Trying to connect to %s:%s"
                                % (host, port))
-                self.connect_to_management(host, port)
+                self.connect_to_management()
 
                 # XXX this has a problem with connections to different
                 # remotes. So the reconnection will only work when we are

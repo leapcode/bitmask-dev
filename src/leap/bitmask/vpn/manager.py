@@ -27,16 +27,14 @@ from ._config import _TempVPNConfig, _TempProviderConfig
 from .constants import IS_WIN
 
 
-# TODO this is very badly named. There is another class that is called
-# manager. This
+# TODO this is very badly named. There is another class that is called manager.
+# TODO Call it Tunnel? Tunnel = vpn + firewall
 
 class TunnelManager(object):
 
     def __init__(self, provider, remotes, cert_path, key_path, ca_path,
                  extra_flags):
         """
-        Initialize the VPNManager object.
-
         :param remotes: a list of gateways tuple (ip, port) looking like this:
             ((ip1, portA), (ip2, portB), ...)
         :type remotes: tuple of tuple(str, int)

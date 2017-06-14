@@ -125,6 +125,8 @@ class VPNControl(object):
         else:
             log.debug('VPN is not running.')
 
+        self._vpnproc.traffic_status = (0, 0)
+
         return True
 
     @property

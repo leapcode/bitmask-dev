@@ -76,13 +76,12 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
                              openvpn invocation
         :type openvpn_verb: int
         """
+        # TODO handle management as a component
         _management.VPNManagement.__init__(self)
+        self.set_connection(socket_host, socket_port)
 
         self._vpnconfig = vpnconfig
         self._providerconfig = providerconfig
-        self._socket_host = socket_host
-        self._socket_port = socket_port
-
         self._launcher = get_vpn_launcher()
 
         self._last_state = None
@@ -106,6 +105,10 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
     @property
     def traffic_status(self):
         return self._status.get_traffic_status()
+
+    @traffic_status.setter
+    def traffic_status(self, value):
+        self._status.set_traffic_status(value)
 
     # processProtocol methods
 
@@ -203,8 +206,8 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         command = self._launcher.get_vpn_command(
             vpnconfig=self._vpnconfig,
             providerconfig=self._providerconfig,
-            socket_host=self._socket_host,
-            socket_port=self._socket_port,
+            socket_host=self._host,
+            socket_port=self._port,
             openvpn_verb=self._openvpn_verb,
             remotes=self._remotes)
 
