@@ -140,6 +140,8 @@ You can also uninstall them::
   sudo `which bitmask_helpers` uninstall 
 
 
+.. note: split a Contributing page on its own, this is getting too long/messy
+
 How to contribute code
 ---------------------------------
 
@@ -224,3 +226,6 @@ Some areas in which we always need contribution are:
 * Windows and OSX packaging (talk to kali)
 * Windows Firewall integration for VPN
 * Migrating components to py3 (look for vshyba or kali).
+* Minimal C++ Qt client (see `kali's bitmaskqt5 repo`_)
+
+.. _`kali's bitmaskqt5 repo`: https://github.com/kalikaneko/bitmaskqt5

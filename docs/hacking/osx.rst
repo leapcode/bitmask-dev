@@ -27,7 +27,7 @@ After those fixes, you should be able to build the bundle::
 Privileged helper
 =================
 
-The OSX privileged helper is in ``src/leap/bitmask/vpn/fw/osx/``.
+The OSX privileged helper is in ``src/leap/bitmask/vpn/helpers/osx/``.
 
 .. note: move it to vpn/helpers/osx
 
@@ -62,16 +62,58 @@ There are other helpers that the installer drops in a well-know path.
 These are shipped in ``pkg/osx``, and copied to
 ``/Applications/Bitmask.app/Contents/Resources``.
 
+
+OSX Firewall
+------------
+
+The OSX Firewall lives in ``src/leap/bitmask/vpn/helpers/osx/bitmask.pf.conf``. It gets
+installed to the same path mentioned in the previous section.
+
 .. note: cleanup unused helpers
 
 Installing the bundle with homebrew
 ===================================
 
-For testing purposes, homebrew can be used to distribute and install the
+For testing purposes, `homebrew`_ can be used to distribute and install the
 bundle. This should download and install the latest version of the bundle::
 
   brew install kalikaneko/bitmask/bitmask
+
+After that, you should be able to launch the bundle::
+
   bitmask
+
+
+.. _`homebrew`: https://brew.sh/
+
+
+Debug logs
+----------
+
+Bitmask rotates logs. The latest one can be found at::
+
+  /Users/<youruser>/Library/Preferences/leap/bitmaskd.log
+
+
+Known Issues
+------------
+
+The current state of the bundle that is distributed with homebrew is yet buggy,
+so it's in a pre-alpha state. Reports or bugfixes are welcome a this point.
+
+Major blockers for a usable homebrew distribution are:
+
+* OpenVPN is launched, but cannnot stopped https://0xacab.org/leap/bitmask-dev/issues/8924
+* Cannot find the gpg binary installed by homebrew https://0xacab.org/leap/bitmask-dev/issues/8934
+
+
+OSX Development Roadmap
+=======================
+
+1. Get a smooth 0.10 installation experience for power-users via homebrew.
+2. Merge bugfixes.
+3. Distribute Bitmask.pkg again, with the installer executing the same
+   installation scripts as homebrew Formula is doing.
 
 
 Other notes
