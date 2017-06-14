@@ -17,7 +17,6 @@
 """
 Bitmask-core Service.
 """
-import json
 import os
 import uuid
 try:
@@ -145,9 +144,9 @@ class BitmaskBackend(configurable.ConfigurableService):
         sessions.setServiceParent(self)
 
     def _start_child_service(self, name):
-        log.debug('Starting backend child service: %s' % name)
         service = self.getServiceNamed(name)
-        if service:
+        if service and not service.running:
+            log.debug('Starting backend child service: %s' % name)
             service.startService()
 
     def _stop_child_service(self, name):

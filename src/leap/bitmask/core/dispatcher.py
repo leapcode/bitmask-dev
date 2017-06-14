@@ -247,7 +247,6 @@ class MailCmd(SubCommand):
 
     @register_method('dict')
     def do_ENABLE(self, service, *parts, **kw):
-        # FIXME -- service doesn't have this method
         d = service.do_enable_service(self.label)
         return d
 
