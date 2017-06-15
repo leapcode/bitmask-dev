@@ -397,13 +397,13 @@ class KeymanagerService(HookableService):
         d.addCallback(lambda keys: [dict(key) for key in keys])
         return d
 
-    def do_export(self, userid, address, private=False):
+    def do_export(self, userid, address, private=False, fetch_remote=False):
         km = self._container.get_instance(userid)
         if km is None:
             return defer.fail(ValueError("User " + userid + " has no active "
                                          "keymanager"))
 
-        d = km.get_key(address, private=private, fetch_remote=False)
+        d = km.get_key(address, private=private, fetch_remote=fetch_remote)
         d.addCallback(lambda key: dict(key))
         return d
 

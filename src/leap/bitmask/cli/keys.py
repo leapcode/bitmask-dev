@@ -70,6 +70,9 @@ SUBCOMMANDS:
                             help='Select the userid of the keyring')
         parser.add_argument('--private', action='store_true',
                             help='Use private keys (by default uses public)')
+        parser.add_argument('--fetch', action='store_true',
+                            help='Try to fetch remotely the key if it is not '
+                            'in the local storage')
         parser.add_argument('address', nargs=1,
                             help='email address of the key')
         subargs = parser.parse_args(raw_args)
@@ -78,10 +81,14 @@ SUBCOMMANDS:
         if not userid:
             userid = self.cfg.get('bonafide', 'active', default='')
         self.data += ['export', userid, subargs.address[0]]
+
+        if subargs.private and subargs.fetch:
+            print('Cannot fetch private keys')
+            return
         if subargs.private:
             self.data += ['private']
-        else:
-            self.data += ['public']
+        if subargs.fetch:
+            self.data += ['fetch']
 
         return self._send(self._print_key)
 

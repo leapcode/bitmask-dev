@@ -315,10 +315,14 @@ class KeysCmd(SubCommand):
         address = parts[3]
 
         private = False
-        if parts[-1] == 'private':
-            private = True
+        fetch_remote = False
+        if len(parts) > 4:
+            if parts[4] == 'private':
+                private = True
+            elif parts[4] == 'fetch':
+                fetch_remote = True
 
-        return service.do_export(uid, address, private)
+        return service.do_export(uid, address, private, fetch_remote)
 
     @register_method('dict')
     def do_INSERT(self, service, *parts, **kw):

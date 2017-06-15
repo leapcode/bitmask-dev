@@ -359,11 +359,17 @@ var bitmask = function(){
              * @param {string} address The email address of the key
              * @param {boolean} priv Should get the private key?
              *                       If it's not provided the public one will be fetched.
+             * @param {boolean} fetch If the key is not in keymanager, should we fetch it remotely.
+             *                        If it's not provided keys will not be fetched remotely
              *
              * @return {Promise<KeyObject>} The key
              */
-            exprt: function(uid, address, priv) {
-                return call(['keys', 'export', uid, address, private_str(priv)]);
+            exprt: function(uid, address, priv, fetch) {
+                var privstr = private_str(priv);
+                if ((typeof fetch === 'bool') && fetch) {
+                    privstr = 'fetch';
+                }
+                return call(['keys', 'export', uid, address, privstr]);
             },
 
             /**
