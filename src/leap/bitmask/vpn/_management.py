@@ -79,8 +79,6 @@ class VPNManagement(object):
         if not self._host or not self._port:
             raise ImproperlyConfigured('Connection is not configured')
 
-        if self.is_connected():
-            self._close_management_socket()
         try:
             self._tn = UDSTelnet(self._host, self._port)
             self._tn.read_eager()
@@ -117,7 +115,7 @@ class VPNManagement(object):
                 self.connect_retry, retry + 1)
 
     def process_log(self):
-        if not self._watcher:
+        if not self._watcher or not self._tn:
             return
 
         lines = self._send_command('log 20')
@@ -203,6 +201,7 @@ class VPNManagement(object):
         :type output: list
         """
         for line in output:
+            status_step = ''
             stripped = line.strip()
             if stripped == "END":
                 continue
@@ -212,7 +211,10 @@ class VPNManagement(object):
             try:
                 ts, status_step, ok, ip, remote, port, _, _, _ = parts
             except ValueError:
-                ts, status_step, ok, ip, remote, port, _, _ = parts
+                try:
+                    ts, status_step, ok, ip, remote, port, _, _ = parts
+                except ValueError:
+                    self.log.debug('Could not parse %s' % parts)
 
             state = status_step
             if state != self._last_state:
@@ -280,7 +282,7 @@ class VPNManagement(object):
         if self.is_connected():
             return self._parse_status_and_notify(self._send_command("status"))
 
-    def terminate_openvpn(self, shutdown=False):
+    def terminate(self, shutdown=False):
         """
         Attempts to terminate openvpn by sending a SIGTERM.
         """

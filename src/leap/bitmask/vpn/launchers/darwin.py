@@ -49,7 +49,6 @@ class HelperCommand(object):
             raise RuntimeError(msg)
 
     def send(self, cmd, args=''):
-        # TODO check cmd is in allowed list
         self._connect()
         sock = self._sock
         data = ""

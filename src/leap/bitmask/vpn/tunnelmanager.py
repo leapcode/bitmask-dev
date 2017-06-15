@@ -30,7 +30,7 @@ from leap.bitmask.vpn.tunnel import VPNTunnel
 class TunnelManager(object):
 
     """
-    A TunnelManager controls VPN and Firewall
+    A TunnelManager controls a VPNTunnel and the Firewall
     """
 
     def __init__(self, provider, remotes, cert, key, ca, flags):

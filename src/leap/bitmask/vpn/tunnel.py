@@ -34,6 +34,8 @@ from .constants import IS_WIN
 # TODO DO NOT pass VPNConfig/ProviderConfig beyond this class.
 # TODO split sync/async vpn control mechanisms.
 
+# TODO ConfiguredVPNConnection ?
+
 
 class VPNTunnel(object):
 
@@ -63,16 +65,16 @@ class VPNTunnel(object):
 
         host, port = self._get_management_location()
 
-        self._vpn = VPNControl(remotes=remotes,
-                               vpnconfig=self._vpnconfig,
-                               providerconfig=self._providerconfig,
-                               socket_host=host, socket_port=port)
+        self._vpncontrol = VPNControl(
+            remotes=remotes, vpnconfig=self._vpnconfig,
+            providerconfig=self._providerconfig,
+            socket_host=host, socket_port=port)
 
     def start(self):
         """
         Start the VPN process.
         """
-        result = self._vpn.start()
+        result = self._vpncontrol.start()
         return result
 
     def stop(self):
@@ -83,16 +85,16 @@ class VPNTunnel(object):
         :rtype: bool
         """
         # TODO how to return False if this fails
-        result = self._vpn.stop(False, False)  # TODO review params
+        result = self._vpncontrol.stop(False, False)  # TODO review params
         return result
 
     @property
     def status(self):
-        return self._vpn.status
+        return self._vpncontrol.status
 
     @property
     def traffic_status(self):
-        return self._vpn.traffic_status
+        return self._vpncontrol.traffic_status
 
     def _get_management_location(self):
         """

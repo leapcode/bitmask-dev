@@ -10,10 +10,7 @@ from .constants import IS_MAC
 
 log = Logger()
 
-# NOTE: We need to set a bigger poll time in OSX because it seems
-# openvpn malfunctions when you ask it a lot of things in a short
-# amount of time. Check this!
-POLL_TIME = 2.5 if IS_MAC else 1.0
+POLL_TIME = 1
 
 
 class VPNControl(object):
@@ -25,6 +22,9 @@ class VPNControl(object):
     suited for the running platform and connect to the management interface
     opened by the openvpn process, executing commands over that interface on
     demand.
+
+    This class also has knowledge of the reactor, since it controlls the
+    pollers that write and read to the management interface.
     """
     TERMINATE_MAXTRIES = 10
     TERMINATE_WAIT = 1  # secs
@@ -84,7 +84,8 @@ class VPNControl(object):
         # generic watchers
 
         poll_list = [LoopingCall(vpnproc.pollStatus),
-                     LoopingCall(vpnproc.pollState)]
+                     LoopingCall(vpnproc.pollState),
+                     LoopingCall(vpnproc.pollLog)]
         self._pollers.extend(poll_list)
         self._start_pollers()
         return True
@@ -107,26 +108,29 @@ class VPNControl(object):
         :type restart: bool
         """
         self._stop_pollers()
+        try:
+            self._vpnproc.preDown()
+        except Exception as e:
+            log.error('Error on vpn pre-down {0!r}'.format(e))
+            raise
 
-        # First we try to be polite and send a SIGTERM...
-        if self._vpnproc is not None:
-            # We assume that the only valid stops are initiated
-            # by an user action, not hard restarts
-            self._user_stopped = not restart
-            self._vpnproc.restarting = restart
+        if IS_LINUX:
+            # TODO factor this out to a linux-only launcher mechanism.
+            # First we try to be polite and send a SIGTERM...
+            if self._vpnproc is not None:
+                # We assume that the only valid stops are initiated
+                # by an user action, not hard restarts
+                self._user_stopped = not restart
+                self._vpnproc.restarting = restart
 
-            self._sentterm = True
-            self._vpnproc.terminate_openvpn(shutdown=shutdown)
+                self._sentterm = True
+                self._vpnproc.terminate(shutdown=shutdown)
 
-            # ...but we also trigger a countdown to be unpolite
-            # if strictly needed.
-            reactor.callLater(
-                self.TERMINATE_WAIT, self._kill_if_left_alive)
-        else:
-            log.debug('VPN is not running.')
-
-        self._vpnproc.traffic_status = (0, 0)
-
+                # ...but we also trigger a countdown to be unpolite
+                # if strictly needed.
+                reactor.callLater(
+                    self.TERMINATE_WAIT, self._kill_if_left_alive)
+                self._vpnproc.traffic_status = (0, 0)
         return True
 
     @property

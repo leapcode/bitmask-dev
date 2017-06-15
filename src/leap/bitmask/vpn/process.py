@@ -137,7 +137,6 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
             # TODO -- internalize this into _status!!! so that it can be shared
             if 'SIGTERM[soft,ping-restart]' in line:
                 self.restarting = True
-            self.log.info(line)
 
     def processExited(self, failure):
         """
@@ -151,9 +150,13 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         elif err == internet_error.ProcessTerminated:
             status, errmsg = 'failure', failure.value.exitCode
             if errmsg:
-                self.log.debug('processExited, status %d' % (errmsg,))
+                self.log.debug('Process Exited, status %d' % (errmsg,))
             else:
                 self.log.warn('%r' % failure.value)
+
+        if IS_MAC:
+            # TODO: need to exit properly!
+            status, errmsg = 'off', None
 
         self._status.set_status(status, errmsg)
         self._alive = False
@@ -193,6 +196,9 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
     # launcher
 
     def preUp(self):
+        pass
+
+    def preDown(self):
         pass
 
     def getCommand(self):
@@ -255,8 +261,8 @@ elif IS_MAC:
     class _VPNCanary(_VPNProcess):
 
         """
-        Special form of _VPNProcess, for Darwin Launcher (windows might use
-        same strategy).
+        Special form of _VPNProcess, for Darwin Launcher (windows might end up
+        using the same strategy).
 
         This is a Canary Process that does not run openvpn itself, but it's
         notified by the privileged process when the process dies.
@@ -274,10 +280,13 @@ elif IS_MAC:
             cmd = self.getVPNCommand()
             self.helper.send('openvpn_start %s' % ' '.join(cmd))
 
+        def preDown(self):
+            self.helper.send('openvpn_stop')
+
         def connectionMade(self):
-            super(_VPNProcess, self).connectionMade()
             self.setupHelper()
             reactor.callLater(2, self.registerPID)
+            _VPNProcess.connectionMade(self)
 
         def registerPID(self):
             cmd = 'openvpn_set_watcher %s' % self.pid
@@ -293,11 +302,9 @@ elif IS_MAC:
 
         def getCommand(self):
             canary = '''import sys, signal, time
-    def receive_signal(signum, stack):
-        sys.exit()
-    signal.signal(signal.SIGTERM, receive_signal)
-    while True:
-        time.sleep(60)'''
+def receive_signal(signum, stack): sys.exit()
+signal.signal(signal.SIGTERM, receive_signal)
+while True: time.sleep(90)'''
             return ['python', '-c', '%s' % canary]
 
     VPNProcess = _VPNCanary

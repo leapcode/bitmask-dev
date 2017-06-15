@@ -48,27 +48,31 @@ class _OSXFirewallManager(object):
     def __init__(self, remotes):
         self._remotes = list(remotes)
         self._helper = darwin.HelperCommand()
+        self._started = False
 
     def start(self, restart=False):
         gateways = [gateway for gateway, port in self._remotes]
         cmd = 'firewall_start %s' % (' '.join(gateways),)
         self._helper.send(cmd)
+        self._started = True
         # TODO parse OK from result
         return True
 
     def stop(self):
         cmd = 'firewall_stop'
         self._helper.send(cmd)
+        self._started = False
         return True
 
     def is_up(self):
         # TODO implement!!!
-        return True
+        return self._started
 
     @property
     def status(self):
         # TODO implement!!! -- factor out, too
-        return {'status': 'on', 'error': None}
+        status = 'on' if self._started else 'off'
+        return {'status': status, 'error': None}
 
 
 class _LinuxFirewallManager(object):
