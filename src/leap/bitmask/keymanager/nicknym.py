@@ -22,7 +22,7 @@ import urllib
 from twisted.internet import defer
 from twisted.logger import Logger
 from twisted.web import client
-from twisted.web._responses import NOT_FOUND
+from twisted.web._responses import NOT_FOUND, SERVICE_UNAVAILABLE
 
 from leap.bitmask.keymanager.errors import KeyNotFound
 from leap.common.check import leap_assert
@@ -135,16 +135,21 @@ class Nicknym(object):
         :rtype: Deferred
         """
 
-        def check_404(response):
+        def check_code(response):
             if response.code == NOT_FOUND:
                 message = ' %s: Key not found. Request: %s' \
                           % (response.code, uri)
                 self.log.warn(message)
                 raise KeyNotFound(message), None, sys.exc_info()[2]
+            if response.code == SERVICE_UNAVAILABLE:
+                message = ' %s: Service unavailable (maybe in maintenance).' \
+                          'Request: %s' % (response.code, uri)
+                self.log.warn(message)
+                raise KeyNotFound(message), None, sys.exc_info()[2]
             return response
 
         d = self._async_client_pinned.request(str(uri), 'GET',
-                                              callback=check_404)
+                                              callback=check_code)
         d.addCallback(client.readBody)
         return d
 
