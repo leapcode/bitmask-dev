@@ -2,7 +2,7 @@ import os
 import shutil
 import socket
 
-from twisted.internet import defer, reactor
+from twisted.internet import reactor
 from twisted.logger import Logger
 
 import psutil
@@ -56,6 +56,7 @@ class VPNManagement(object):
         self._last_state = None
         self._last_status = None
         self._status = None
+        self._logs = {}
 
     def set_connection(self, host, port):
         """
@@ -67,6 +68,9 @@ class VPNManagement(object):
         """
         self._host = host
         self._port = port
+
+    def set_watcher(self, watcher):
+        self._watcher = watcher
 
     def is_connected(self):
         return bool(self._tn)
@@ -111,6 +115,23 @@ class VPNManagement(object):
             reactor.callLater(
                 self.CONNECTION_RETRY_TIME,
                 self.connect_retry, retry + 1)
+
+    def process_log(self):
+        if not self._watcher:
+            return
+
+        lines = self._send_command('log 20')
+        for line in lines:
+            try:
+                splitted = line.split(',')
+                ts = splitted[0]
+                msg = ','.join(splitted[2:])
+                if ts not in self._logs:
+                    self._watcher.watch(msg)
+                    self.log.info('VPN: %s' % msg)
+                    self._logs[ts] = msg
+            except Exception:
+                pass
 
     def _seek_to_eof(self):
         """
@@ -172,7 +193,6 @@ class VPNManagement(object):
         self._tn.get_socket().close()
         self._tn = None
 
-
     def _parse_state_and_notify(self, output):
         """
         Parses the output of the state command, and trigger a state transition
@@ -183,7 +203,6 @@ class VPNManagement(object):
         :type output: list
         """
         for line in output:
-            print "PARSING", line
             stripped = line.strip()
             if stripped == "END":
                 continue
@@ -199,8 +218,6 @@ class VPNManagement(object):
             if state != self._last_state:
                 # XXX this status object is the vpn status observer
                 if self._status:
-                    # XXX DEBUG -----------------------
-                    print "SETTING STATUS", state
                     self._status.set_status(state, None)
                 self._last_state = state
 
@@ -213,13 +230,11 @@ class VPNManagement(object):
                        as its output
         :type output: list
         """
-        print "PARSING STATUS", output
         tun_tap_read = ""
         tun_tap_write = ""
 
         for line in output:
             stripped = line.strip()
-            print "LINE", stripped
             if stripped.endswith("STATISTICS") or stripped == "END":
                 continue
             parts = stripped.split(",")
@@ -245,7 +260,6 @@ class VPNManagement(object):
 
         traffic_status = (tun_tap_read, tun_tap_write)
         if traffic_status != self._last_status:
-            # XXX this status object is the vpn status observer
             if self._status:
                 self._status.set_traffic_status(traffic_status)
             self._last_status = traffic_status

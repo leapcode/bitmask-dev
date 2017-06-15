@@ -94,8 +94,9 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         self._restartfun = restartfun
 
         self._status = _status.VPNStatus()
-        self.restarting = False
+        self.set_watcher(self._status)
 
+        self.restarting = False
         self._remotes = remotes
 
     @property
@@ -115,8 +116,6 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
     def connectionMade(self):
         """
         Called when the connection is made.
-
-        .. seeAlso: `http://twistedmatrix.com/documents/13.0.0/api/twisted.internet.protocol.ProcessProtocol.html` # noqa
         """
         self._alive = True
         self.aborted = False
@@ -125,23 +124,25 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
     def outReceived(self, data):
         """
         Called when new data is available on stdout.
+        We only use this to drive the status state machine in linux, OSX uses
+        the management interface.
 
         :param data: the data read on stdout
-
-        .. seeAlso: `http://twistedmatrix.com/documents/13.0.0/api/twisted.internet.protocol.ProcessProtocol.html` # noqa
         """
-        # truncate the newline
-        line = data[:-1]
-        if 'SIGTERM[soft,ping-restart]' in line:
-            self.restarting = True
-        self.log.info(line)
-        self._status.watch(line)
+        # TODO deprecate, use log through management  interface too.
+
+        if IS_LINUX:
+            # truncate the newline
+            line = data[:-1]
+            # TODO -- internalize this into _status!!! so that it can be shared
+            if 'SIGTERM[soft,ping-restart]' in line:
+                self.restarting = True
+            self.log.info(line)
+            # self._status.watch(line)
 
     def processExited(self, failure):
         """
         Called when the child process exits.
-
-        .. seeAlso: `http://twistedmatrix.com/documents/13.0.0/api/twisted.internet.protocol.ProcessProtocol.html` # noqa
         """
         err = failure.trap(
             internet_error.ProcessDone, internet_error.ProcessTerminated)
@@ -162,8 +163,6 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         """
         Called when the child process exits and all file descriptors associated
         with it have been closed.
-
-        .. seeAlso: `http://twistedmatrix.com/documents/13.0.0/api/twisted.internet.protocol.ProcessProtocol.html` # noqa
         """
         exit_code = reason.value.exitCode
         if isinstance(exit_code, int):
@@ -187,6 +186,10 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         """
         if self._alive:
             self.get_state()
+
+    def pollLog(self):
+        if self._alive:
+            self.process_log()
 
     # launcher
 

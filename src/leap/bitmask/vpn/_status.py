@@ -1,8 +1,8 @@
 from itertools import chain, repeat
-from ._human import bytes2human
 
 from leap.common.events import catalog, emit_async
 
+from leap.bitmask.vpn._human import bytes2human
 
 # TODO implement a more explicit state machine
 # TODO check good transitions
