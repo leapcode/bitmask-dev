@@ -120,7 +120,7 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         """
         self._alive = True
         self.aborted = False
-        self.try_to_connect_to_management(max_retries=10)
+        self.connect_retry(max_retries=10)
 
     def outReceived(self, data):
         """

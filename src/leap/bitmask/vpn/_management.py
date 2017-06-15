@@ -28,6 +28,10 @@ class AlienOpenVPNAlreadyRunning(Exception):
                "not be stopped because it was not launched by LEAP.")
 
 
+class ImproperlyConfigured(Exception):
+    pass
+
+
 class VPNManagement(object):
     """
     This is a mixin that we use in the VPNProcess class.
@@ -46,6 +50,12 @@ class VPNManagement(object):
     def __init__(self):
         self._tn = None
         self.aborted = False
+        self._host = None
+        self._port = None
+
+        self._last_state = None
+        self._last_status = None
+        self._status = None
 
     def set_connection(self, host, port):
         """
@@ -57,6 +67,50 @@ class VPNManagement(object):
         """
         self._host = host
         self._port = port
+
+    def is_connected(self):
+        return bool(self._tn)
+
+    def connect(self):
+        if not self._host or not self._port:
+            raise ImproperlyConfigured('Connection is not configured')
+
+        if self.is_connected():
+            self._close_management_socket()
+        try:
+            self._tn = UDSTelnet(self._host, self._port)
+            self._tn.read_eager()
+
+        except Exception as e:
+            self.log.warn('Could not connect to OpenVPN yet: %r' % (e,))
+            self._tn = None
+
+        if self._tn:
+            return True
+        else:
+            self.log.error('Error while connecting to management!')
+            return False
+
+    def connect_retry(self, retry=0, max_retries=None):
+        """
+        Attempts to connect to a management interface, and retries
+        after CONNECTION_RETRY_TIME if not successful.
+
+        :param retry: number of the retry
+        :type retry: int
+        """
+        if max_retries and retry > max_retries:
+            self.log.warn(
+                'Max retries reached while attempting to connect '
+                'to management. Aborting.')
+            self.aborted = True
+            return
+
+        if not self.aborted and not self.is_connected():
+            self.connect()
+            reactor.callLater(
+                self.CONNECTION_RETRY_TIME,
+                self.connect_retry, retry + 1)
 
     def _seek_to_eof(self):
         """
@@ -100,7 +154,7 @@ class VPNManagement(object):
             self.log.warn('Socket error (command was: "%s")' % (command,))
             self._close_management_socket(announce=False)
             self.log.debug('Trying to connect to management again')
-            self.try_to_connect_to_management(max_retries=5)
+            self.connect_retry(max_retries=5)
             return []
 
         except Exception as e:
@@ -118,75 +172,6 @@ class VPNManagement(object):
         self._tn.get_socket().close()
         self._tn = None
 
-    def connect_to_management(self):
-        """
-        Connects to the management interface.
-
-        :type socket_port: str
-        """
-        if self.is_connected():
-            self._close_management_socket()
-
-        try:
-            self._tn = UDSTelnet(self._host, self._port)
-
-            # XXX make password optional
-            # specially for win. we should generate
-            # the pass on the fly when invoking manager
-            # from conductor
-
-            # self.tn.read_until('ENTER PASSWORD:', 2)
-            # self.tn.write(self.password + '\n')
-            # self.tn.read_until('SUCCESS:', 2)
-            if self._tn:
-                self._tn.read_eager()
-
-        except Exception as e:
-            print "ERROR", e
-            self.log.warn('Could not connect to OpenVPN yet: %r' % (e,))
-            self._tn = None
-
-        if self._tn:
-            return True
-        else:
-            print "ERROR!"
-            #self.log.failure('Error while connecting to management!')
-            return False
-
-    def is_connected(self):
-        """
-        Returns the status of the management interface.
-
-        :returns: True if connected, False otherwise
-        :rtype: bool
-        """
-        return True if self._tn else False
-
-    def try_to_connect_to_management(self, retry=0, max_retries=None):
-        """
-        Attempts to connect to a management interface, and retries
-        after CONNECTION_RETRY_TIME if not successful.
-
-        :param retry: number of the retry
-        :type retry: int
-        """
-        if max_retries and retry > max_retries:
-            self.log.warn(
-                'Max retries reached while attempting to connect '
-                'to management. Aborting.')
-            self.aborted = True
-            return
-
-        # _alive flag is set in the VPNProcess class.
-        if not self._alive:
-            self.log.debug('Tried to connect to management but process is '
-                           'not alive.')
-            return
-        if not self.aborted and not self.is_connected():
-            self.connect_to_management()
-            reactor.callLater(
-                self.CONNECTION_RETRY_TIME,
-                self.try_to_connect_to_management, retry + 1)
 
     def _parse_state_and_notify(self, output):
         """
@@ -198,6 +183,7 @@ class VPNManagement(object):
         :type output: list
         """
         for line in output:
+            print "PARSING", line
             stripped = line.strip()
             if stripped == "END":
                 continue
@@ -227,11 +213,13 @@ class VPNManagement(object):
                        as its output
         :type output: list
         """
+        print "PARSING STATUS", output
         tun_tap_read = ""
         tun_tap_write = ""
 
         for line in output:
             stripped = line.strip()
+            print "LINE", stripped
             if stripped.endswith("STATISTICS") or stripped == "END":
                 continue
             parts = stripped.split(",")
@@ -295,7 +283,6 @@ class VPNManagement(object):
         under normal circumstances, we should be able to delete.
         """
         if self._socket_port == "unix":
-            self.log.debug('Cleaning socket file temp folder')
             tempfolder = _first(os.path.split(self._host))
             if tempfolder and os.path.isdir(tempfolder):
                 try:
@@ -377,7 +364,7 @@ class VPNManagement(object):
                 port = cmdline[index + 2]
                 self.log.debug("Trying to connect to %s:%s"
                                % (host, port))
-                self.connect_to_management()
+                self.connect()
 
                 # XXX this has a problem with connections to different
                 # remotes. So the reconnection will only work when we are
