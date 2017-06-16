@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-VPN Manager
+VPN Tunnel.
 """
 
 import os
@@ -27,10 +27,20 @@ from ._config import _TempVPNConfig, _TempProviderConfig
 from .constants import IS_WIN
 
 
-# TODO this is very badly named. There is another class that is called manager.
-# TODO Call it Tunnel? Tunnel = vpn + firewall
+# TODO refactor - this class is still a very light proxy around the
+# underlying VPNControl. The main methods here are start/stop, so this
+# looks like it could better use the Service interface.
+# TODO gateway selection should be done in this class.
+# TODO DO NOT pass VPNConfig/ProviderConfig beyond this class.
+# TODO split sync/async vpn control mechanisms.
 
-class TunnelManager(object):
+
+class VPNTunnel(object):
+
+    """
+    A VPN Tunnel holds the configuration for a VPN connection, and allows to
+    control that connection.
+    """
 
     def __init__(self, provider, remotes, cert_path, key_path, ca_path,
                  extra_flags):
@@ -52,6 +62,7 @@ class TunnelManager(object):
         self._providerconfig = _TempProviderConfig(provider, ca_path)
 
         host, port = self._get_management_location()
+
         self._vpn = VPNControl(remotes=remotes,
                                vpnconfig=self._vpnconfig,
                                providerconfig=self._providerconfig,

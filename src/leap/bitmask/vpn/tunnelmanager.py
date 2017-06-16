@@ -19,15 +19,23 @@
 from colorama import Fore
 
 from leap.bitmask.util import merge_status
-from leap.bitmask.vpn.manager import TunnelManager
+
 from leap.bitmask.vpn.fw.firewall import FirewallManager
+from leap.bitmask.vpn.tunnel import VPNTunnel
 
 
-class VPNManager(object):
+# TODO further refactor pending: merge with VPNService?
+
+
+class TunnelManager(object):
+
+    """
+    A TunnelManager controls VPN and Firewall
+    """
 
     def __init__(self, provider, remotes, cert, key, ca, flags):
 
-        self._vpn = TunnelManager(
+        self._vpntunnel = VPNTunnel(
             provider, remotes, cert, key, ca, flags)
         self._firewall = FirewallManager(remotes)
         self.starting = False
@@ -45,7 +53,7 @@ class VPNManager(object):
         print(Fore.GREEN + "Firewall: started" + Fore.RESET)
 
         try:
-            vpn_ok = self._vpn.start()
+            vpn_ok = self._vpntunnel.start()
         except Exception:
             self.starting = False
             return False
@@ -71,7 +79,7 @@ class VPNManager(object):
         print(Fore.GREEN + "Firewall: stopped." + Fore.RESET)
         print(Fore.BLUE + "VPN: stopping..." + Fore.RESET)
 
-        vpn_ok = self._vpn.stop()
+        vpn_ok = self._vpntunnel.stop()
         if not vpn_ok:
             print (Fore.RED + "VPN: Error stopping." + Fore.RESET)
             return False
@@ -87,7 +95,7 @@ class VPNManager(object):
 
     def get_status(self):
         childrenStatus = {
-            "vpn": self._vpn.status,
+            "vpn": self._vpntunnel.status,
             "firewall": self._firewall.status
         }
         if self.starting:

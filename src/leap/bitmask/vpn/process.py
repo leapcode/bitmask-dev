@@ -138,7 +138,6 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
             if 'SIGTERM[soft,ping-restart]' in line:
                 self.restarting = True
             self.log.info(line)
-            # self._status.watch(line)
 
     def processExited(self, failure):
         """

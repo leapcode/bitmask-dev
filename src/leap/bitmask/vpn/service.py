@@ -26,7 +26,7 @@ from time import strftime
 from twisted.internet import defer
 
 from leap.bitmask.hooks import HookableService
-from leap.bitmask.vpn.vpn import VPNManager
+from leap.bitmask.vpn.tunnelmanager import TunnelManager
 from leap.bitmask.vpn._checks import is_service_ready, get_vpn_cert_path
 from leap.bitmask.vpn import privilege, helpers
 from leap.bitmask.vpn.privilege import NoPolkitAuthAgentAvailable
@@ -53,7 +53,7 @@ class VPNService(HookableService):
         super(VPNService, self).__init__()
 
         self._started = False
-        self._vpn = None
+        self._tunnelmanager = None
         self._domain = ''
 
         if basepath is None:
@@ -87,7 +87,7 @@ class VPNService(HookableService):
         yield self._setup(domain)
 
         try:
-            started = self._vpn.start()
+            started = self._tunnelmanager.start()
 
         # XXX capture it inside start method
         # here I'd like to get (status, message)
@@ -108,15 +108,15 @@ class VPNService(HookableService):
         # TODO -----------------------------
         # when shutting down the main bitmaskd daemon, this should be called.
 
-        if not self._vpn:
+        if not self._tunnelmanager:
             raise Exception('VPN was not running')
 
         if self._started:
-            self._vpn.stop()
+            self._tunnelmanager.stop()
             self._started = False
             return {'result': 'vpn stopped'}
-        elif self._vpn.is_firewall_up():
-            self._vpn.stop_firewall()
+        elif self._tunnelmanager.is_firewall_up():
+            self._tunnelmanager.stop_firewall()
             return {'result': 'firewall stopped'}
         else:
             raise Exception('VPN was not running')
@@ -128,8 +128,8 @@ class VPNService(HookableService):
             'childrenStatus': {}
         }
 
-        if self._vpn:
-            status = self._vpn.get_status()
+        if self._tunnelmanager:
+            status = self._tunnelmanager.get_status()
 
         if self._domain:
             status['domain'] = self._domain
@@ -179,7 +179,7 @@ class VPNService(HookableService):
 
     @defer.inlineCallbacks
     def _setup(self, provider):
-        """Set up VPNManager for a specified provider.
+        """Set up TunnelManager for a specified provider.
 
         :param provider: the provider to use, e.g. 'demo.bitmask.net'
         :type provider: str"""
@@ -203,8 +203,8 @@ class VPNService(HookableService):
                 'Cannot find provider certificate. '
                 'Please configure provider.')
 
-        self._vpn = VPNManager(provider, remotes, cert_path, key_path, ca_path,
-                               extra_flags)
+        self._tunnelmanager = TunnelManager(
+            provider, remotes, cert_path, key_path, ca_path, extra_flags)
 
     def _cert_expires(self, provider):
         path = os.path.join(self._basepath, "leap", "providers", provider,
