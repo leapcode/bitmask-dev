@@ -1,12 +1,11 @@
 import os
-import subprocess
 
 from twisted.internet.task import LoopingCall
 from twisted.internet import reactor
 from twisted.logger import Logger
 
 from .process import VPNProcess
-from .constants import IS_MAC
+from .constants import IS_LINUX
 
 log = Logger()
 
