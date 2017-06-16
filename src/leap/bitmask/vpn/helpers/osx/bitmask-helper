@@ -18,6 +18,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+bitmask-helper
+==============================================================================
 This is a privileged helper script for safely running certain commands as root
 under OSX.
 
@@ -56,6 +58,7 @@ from commands import getoutput as exec_cmd
 from functools import partial
 
 import daemon
+import re
 
 VERSION = "1"
 SCRIPT = "bitmask-helper"
@@ -145,20 +148,21 @@ def serve_forever():
         thread = threading.Thread(target=handle_command, args=[connection])
         thread.daemon = True
         thread.start()
-    
+
+
 def recv_until_marker(sock):
     end = '/CMD'
-    total_data=[]
-    data=''
+    total_data = []
+    data = ''
     while True:
-        data=sock.recv(8192)
+        data = sock.recv(8192)
         if end in data:
             total_data.append(data[:data.find(end)])
             break
         total_data.append(data)
-        if len(total_data)>1:
-            #check if end_of_data was split
-            last_pair=total_data[-2]+total_data[-1]
+        if len(total_data) > 1:
+            # check if end_of_data was split
+            last_pair = total_data[-2] + total_data[-1]
             if end in last_pair:
                 total_data[-2] = last_pair[:last_pair.find(end)]
                 total_data.pop()
@@ -170,9 +174,7 @@ def handle_command(sock):
     syslog.syslog(syslog.LOG_WARNING, "handle")
 
     received = recv_until_marker(sock)
-    syslog.syslog(syslog.LOG_WARNING, "GOT -----> %s" % received)
     line = received.replace('\n', '').split(' ')
-
     command, args = line[0], line[1:]
     syslog.syslog(syslog.LOG_WARNING, 'command %s' % (command))
 
@@ -208,10 +210,12 @@ def handle_command(sock):
                 sock.sendall("%s: OK\n" % command)
 
         else:
-            syslog.syslog(syslog.LOG_WARNING, 'invalid command: %s' % (command,))
+            syslog.syslog(
+                syslog.LOG_WARNING, 'invalid command: %s' % (command,))
             sock.sendall("%s: ERROR\n" % command)
     except Exception as exc:
-        syslog.syslog(syslog.LOG_WARNING, "error executing function %r" % (exc))
+        syslog.syslog(
+            syslog.LOG_WARNING, "error executing function %r" % (exc))
     finally:
         sock.close()
 
@@ -246,14 +250,9 @@ def openvpn_start(*args):
 
     # syslog.syslog(syslog.LOG_WARNING, 'LAUNCHING VPN: ' + ' '.join(cmd))
 
-    # TODO sanitize options
     global openvpn_proc
+    # TODO sanitize options
     openvpn_proc = subprocess.Popen(cmd, shell=False, bufsize=-1)
-    # try:
-    #    result = subprocess.check_output(cmd, shell=False, stderr=subprocess.STDOUT)
-    # except Exception as exc:
-    #    syslog.syslog(syslog.LOG_WARNING, exc.output)
-    # syslog.syslog(syslog.LOG_WARNING, "OpenVPN PID: %s" % str(openvpn_proc.pid))
 
 
 def openvpn_stop(sig='TERM'):
@@ -266,7 +265,8 @@ def openvpn_stop(sig='TERM'):
     global openvpn_proc
 
     if openvpn_proc:
-        syslog.syslog(syslog.LOG_WARNING, "OVPN PROC: %s" % str(openvpn_proc.pid))
+        syslog.syslog(
+            syslog.LOG_WARNING, "OpenVPN Process: %s" % str(openvpn_proc.pid))
 
         if sig == 'KILL':
             stop_signal = signal.SIGKILL
@@ -274,12 +274,18 @@ def openvpn_stop(sig='TERM'):
         elif sig == 'TERM':
             stop_signal = signal.SIGTERM
             openvpn_proc.terminate()
-    
-        returncode = openvpn_proc.wait()
-        syslog.syslog(syslog.LOG_WARNING, "openvpn return code: %s" % str(returncode))
-        syslog.syslog(syslog.LOG_WARNING, "openvpn_watcher_pid: %s" % str(openvpn_watcher_pid))
+        retcode = openvpn_proc.wait()
+        syslog.syslog(
+            syslog.LOG_WARNING, "OpenVPN died. Return code: %s" % str(retcode))
+        syslog.syslog(
+            syslog.LOG_WARNING, "openvpn_watcher_pid: %s" % str(
+                openvpn_watcher_pid))
+        openvpn_proc = None
         if openvpn_watcher_pid:
-            os.kill(openvpn_watcher_pid, stop_signal)
+            try:
+                os.kill(openvpn_watcher_pid, stop_signal)
+            except Exception:
+                pass
 
 
 def openvpn_set_watcher(pid, *args):
@@ -326,7 +332,6 @@ def firewall_isup():
     """
     Return YES if anchor bitmask is loaded with rules
     """
-    syslog.syslog(syslog.LOG_WARNING, 'PID---->%s' % os.getpid())
     cmd = '{pfctl} -s rules -a {anchor} | wc -l'.format(
         pfctl=PFCTL, anchor=BITMASK_ANCHOR)
     output = exec_cmd(cmd)
@@ -344,26 +349,27 @@ def _enable_pf():
 def _reset_bitmask_gateways_table(gateways):
     cmd = '{pfctl} -a {anchor} -t bitmask_gateways -T delete'.format(
         pfctl=PFCTL, anchor=BITMASK_ANCHOR)
-    output = exec_cmd(cmd)
+    exec_cmd(cmd)
 
     for gateway in gateways:
         cmd = '{pfctl} -a {anchor} -t bitmask_gateways -T add {gw}'.format(
             pfctl=PFCTL, anchor=BITMASK_ANCHOR, gw=gateway)
-        output = exec_cmd(cmd)
+        exec_cmd(cmd)
         syslog.syslog(syslog.LOG_WARNING, "adding gw %s" % gateway)
 
-    #cmd = '{pfctl} -a {anchor} -t bitmask_nameservers -T delete'.format(
+    # cmd = '{pfctl} -a {anchor} -t bitmask_nameservers -T delete'.format(
     #    pfctl=PFCTL, anchor=BITMASK_ANCHOR)
-    #output = exec_cmd(cmd)
+    # output = exec_cmd(cmd)
 
     cmd = '{pfctl} -a {anchor} -t bitmask_gateways -T add {ns}'.format(
         pfctl=PFCTL, anchor=BITMASK_ANCHOR, ns=NAMESERVER)
-    output = exec_cmd(cmd)
+    exec_cmd(cmd)
     syslog.syslog(syslog.LOG_WARNING, "adding ns %s" % NAMESERVER)
+
 
 def _load_bitmask_anchor(default_device):
     cmd = ('{pfctl} -D default_device={defaultdevice} '
-          '-a {anchor} -f {rulefile}').format(
+           '-a {anchor} -f {rulefile}').format(
         pfctl=PFCTL, defaultdevice=default_device,
         anchor=BITMASK_ANCHOR,
         rulefile=RESOURCES_PATH + 'bitmask-helper/bitmask.pf.conf')
@@ -385,7 +391,6 @@ def _get_default_device():
     iface = iface.replace("interface: ", "").strip()
     syslog.syslog(syslog.LOG_WARNING, "default device %s" % iface)
     return iface
-
 
 
 #
@@ -431,8 +436,7 @@ def get_gateways(gateways):
         return result
 
 
-
 if __name__ == "__main__":
     with daemon.DaemonContext():
-        syslog.syslog(syslog.LOG_WARNING, "Serving...") 
+        syslog.syslog(syslog.LOG_WARNING, "Serving...")
         serve_forever()
