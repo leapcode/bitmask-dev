@@ -82,5 +82,5 @@ if sys.platform.startswith('darwin'):
           'dist', 'Bitmask.app'),
           appname='Bitmask',
           version=BITMASK_VERSION,
-          icon='../osx/bitmask.icns',
+          icon='pkg/osx/bitmask.icns',
 	  bundle_identifier='bitmask-' + BITMASK_VERSION)
