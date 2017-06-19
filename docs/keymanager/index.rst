@@ -4,10 +4,37 @@
 Keymanager
 =================
 
-Soledad documents
------------------
+Keymanager is the Bitmask component that does key management, including generation,
+discovery and validation. It is, esentially, a `nicknym`_ client that uses `Soledad`_
+as its storage layer.
 
-KeyManager uses two types of documents for the keyring:
+Keymanager handles the creation of a OpenPGP transparently in user's behalf. When
+bootstrapping a new account, keymanager will generate a new key pair. The key
+pair is stored encrypted inside soledad (and therefore able to be synced by
+other replicas). After generating it, the public key is sent to the provider,
+which will sign it and replace any prior keys for the same address in its database.
+
+To discover keys for other users, the `nicknym`_ client in keymanager will query
+the nicknym server associated with user's provider, and will process the keys
+that the server returns. This query has the following form::
+
+  https://nicknym.test.bitmask.net:6425?address=user@example.com
+
+And it's up to the the provider's service to determine the sources for the keys.
+
+Keymanager currently implements all the levels defined in the `Transitional Key
+Validation`_ spec, although the mechanisms for validation currently in place
+only reach level 2 of what's contemplated in the spec.
+
+
+.. _nicknym: https://leap.se/en/docs/design/nicknym
+.. _Soledad: https://leap.se/en/docs/design/soledad
+.. _'transitional key validation': https://leap.se/en/docs/design/transitional-key-validation
+
+Implementation: using Soledad documents
+---------------------------------------
+
+KeyManager uses two types of Soledad documents for the keyring:
 
 * key document, that stores each gpg key.
 
