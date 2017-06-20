@@ -1,5 +1,8 @@
 # This makefile should be called from the topmost bitmask folder
-#
+
+default:
+	echo "enter 'make bundle or make bundle_osx'"
+
 bundle: bundle_clean
 	pyinstaller -y pkg/pyinst/app.spec
 	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/_scrypt.so $(DIST)
@@ -37,7 +40,7 @@ bundle_osx_helpers:
 	mkdir -p $(DIST_VERSION)/apps/helpers
 	cp src/leap/bitmask/vpn/helpers/osx/bitmask-helper $(DIST_VERSION)/apps/helpers/
 	cp src/leap/bitmask/vpn/helpers/osx/bitmask.pf.conf $(DIST_VERSION)/apps/helpers/
-	cp pkg/osx/se.leap.bitmask-helper.plist $(DIST_VERSION)/apps/helpers/
+	cp pkg/osx/installer/se.leap.bitmask-helper.plist $(DIST_VERSION)/apps/helpers/
 	cp -r pkg/osx/daemon $(DIST_VERSION)/apps/helpers/
 	cp -r pkg/osx/openvpn $(DIST_VERSION)/apps/helpers/
 
@@ -51,6 +54,11 @@ bundle_osx: bundle bundle_osx_helpers
 	cp -r $(DIST_VERSION)/lib/pixelated_www dist/Bitmask.app/Contents/MacOS/
 	mv dist/Bitmask.app/Contents/MacOS/bitmask dist/Bitmask.app/Contents/MacOS/bitmask-app
 	cp pkg/osx/bitmask-wrapper dist/Bitmask.app/Contents/MacOS/bitmask
+	mkdir -p dist/Bitmask.app/Contents/Resources/bitmask-helper
+	cp -r $(DIST_VERSION)/apps/helpers/bitmask-helper dist/Bitmask.app/Contents/Resources/bitmask-helper/
+	cp -r $(DIST_VERSION)/apps/helpers/bitmask.pf.conf dist/Bitmask.app/Contents/Resources/bitmask-helper/
+	cp -r $(DIST_VERSION)/apps/helpers/daemon/daemon.py dist/Bitmask.app/Contents/Resources/
+	cp -r $(DIST_VERSION)/apps/helpers/openvpn/* dist/Bitmask.app/Contents/Resources/
 
 bundle_win:
 	pyinstaller -y pkg/pyinst/app.spec
@@ -69,4 +77,3 @@ bundle_upload:
 
 bundle_clean:
 	rm -rf "dist" "build"
-

@@ -4,10 +4,6 @@ DIST_VERSION = dist/bitmask-$(NEXT_VERSION)/
 include pkg/pyinst/build.mk
 include pkg/thirdparty/openvpn/build.mk
 
-clean:
-	find . -type f -name "*.py[co]" -delete
-	find . -type d -name "__pycache__" -delete
-
 dev-mail:
 	pip install -e '.[mail]'
 
@@ -64,3 +60,7 @@ bundle_in_docker:
 
 docker_container:
 	cd pkg/docker_bundle && docker build -t mybundle .
+
+clean:
+	find . -type f -name "*.py[co]" -delete
+	find . -type d -name "__pycache__" -delete
