@@ -4,7 +4,13 @@ import sys
 
 block_cipher = None
 
+IS_MAC = sys.platform.startswith('darwin')
+
 BITMASK_VERSION = open('pkg/next-version').read()
+if IS_MAC:
+    # launchd chokes because more digits are added to the version string,
+    # so let's skip the patch part of the version.
+    BITMASK_VERSION  = '.'.join(BITMASK_VERSION.split('.')[:-1])
 
 hiddenimports = [
      'appdirs',
@@ -17,6 +23,7 @@ hiddenimports = [
      'leap.soledad.common', 
      'leap.soledad.common.document', 
      'leap.soledad.common.l2db',
+     'leap.soledad.client.events',
      'leap.bitmask_js',
      'packaging', 'packaging.version', 'packaging.specifiers',
      'packaging.requirements']
@@ -75,7 +82,7 @@ coll = COLLECT(exe,
                upx=True,
                name='bitmask')
 
-if sys.platform.startswith('darwin'):
+if IS_MAC:
     app = BUNDLE(
     	coll,
         name=os.path.join(

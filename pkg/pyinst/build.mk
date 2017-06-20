@@ -45,6 +45,12 @@ bundle_osx_helpers:
 bundle_linux: bundle bundle_linux_gpg bundle_linux_vpn bundle_linux_helpers
 
 bundle_osx: bundle bundle_osx_helpers
+	cp $(DIST_VERSION)/lib/_scrypt.so dist/Bitmask.app/Contents/MacOS/
+	cp $(DIST_VERSION)/lib/bitmaskd.tac dist/Bitmask.app/Contents/MacOS/
+	cp -r $(DIST_VERSION)/lib/leap dist/Bitmask.app/Contents/MacOS/
+	cp -r $(DIST_VERSION)/lib/pixelated_www dist/Bitmask.app/Contents/MacOS/
+	mv dist/Bitmask.app/Contents/MacOS/bitmask dist/Bitmask.app/Contents/MacOS/bitmask-app
+	cp pkg/osx/bitmask-wrapper dist/Bitmask.app/Contents/MacOS/bitmask
 
 bundle_win:
 	pyinstaller -y pkg/pyinst/app.spec
