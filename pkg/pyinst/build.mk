@@ -61,9 +61,10 @@ bundle_osx: bundle bundle_osx_helpers
 	mkdir -p $(OSX_RES)/bitmask-helper
 	cp -r $(DIST_VERSION)/apps/helpers/bitmask-helper $(OSX_RES)/bitmask-helper/
 	cp -r $(DIST_VERSION)/apps/helpers/bitmask.pf.conf $(OSX_RES)/bitmask-helper/
-	cp -r $(DIST_VERSION)/apps/helpers/daemon/daemon.py $(OSX_RES)/
+	cp -r $(DIST_VERSION)/apps/helpers/daemon/daemon.py $(OSX_RES)/bitmask-helper/
 	cp -r $(DIST_VERSION)/apps/helpers/openvpn/* $(OSX_RES)/
 	wget https://downloads.leap.se/thirdparty/osx/openvpn/openvpn -O $(OSX_RES)/openvpn.leap
+	chmod +x $(OSX_RES)/openvpn.leap
 
 bundle_win:
 	pyinstaller -y pkg/pyinst/app.spec
