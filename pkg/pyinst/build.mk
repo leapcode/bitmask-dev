@@ -1,4 +1,8 @@
 # This makefile should be called from the topmost bitmask folder
+#
+OSX_RES = dist/Bitmask.app/Contents/Resources
+OSX_CON = dist/Bitmask.app/Contents/MacOS
+
 
 default:
 	echo "enter 'make bundle or make bundle_osx'"
@@ -48,17 +52,18 @@ bundle_osx_helpers:
 bundle_linux: bundle bundle_linux_gpg bundle_linux_vpn bundle_linux_helpers
 
 bundle_osx: bundle bundle_osx_helpers
-	cp $(DIST_VERSION)/lib/_scrypt.so dist/Bitmask.app/Contents/MacOS/
-	cp $(DIST_VERSION)/lib/bitmaskd.tac dist/Bitmask.app/Contents/MacOS/
-	cp -r $(DIST_VERSION)/lib/leap dist/Bitmask.app/Contents/MacOS/
-	cp -r $(DIST_VERSION)/lib/pixelated_www dist/Bitmask.app/Contents/MacOS/
-	mv dist/Bitmask.app/Contents/MacOS/bitmask dist/Bitmask.app/Contents/MacOS/bitmask-app
-	cp pkg/osx/bitmask-wrapper dist/Bitmask.app/Contents/MacOS/bitmask
-	mkdir -p dist/Bitmask.app/Contents/Resources/bitmask-helper
-	cp -r $(DIST_VERSION)/apps/helpers/bitmask-helper dist/Bitmask.app/Contents/Resources/bitmask-helper/
-	cp -r $(DIST_VERSION)/apps/helpers/bitmask.pf.conf dist/Bitmask.app/Contents/Resources/bitmask-helper/
-	cp -r $(DIST_VERSION)/apps/helpers/daemon/daemon.py dist/Bitmask.app/Contents/Resources/
-	cp -r $(DIST_VERSION)/apps/helpers/openvpn/* dist/Bitmask.app/Contents/Resources/
+	cp $(DIST_VERSION)/lib/_scrypt.so $(OSX_CON)/
+	cp $(DIST_VERSION)/lib/bitmaskd.tac $(OSX_CON)/
+	cp -r $(DIST_VERSION)/lib/leap $(OSX_CON)/
+	cp -r $(DIST_VERSION)/lib/pixelated_www $(OSX_CON)/
+	mv dist/Bitmask.app/Contents/MacOS/bitmask $(OSX_CON)/bitmask-app
+	cp pkg/osx/bitmask-wrapper $(OSX_CON)/bitmask
+	mkdir -p $(OSX_RES)/bitmask-helper
+	cp -r $(DIST_VERSION)/apps/helpers/bitmask-helper $(OSX_RES)/bitmask-helper/
+	cp -r $(DIST_VERSION)/apps/helpers/bitmask.pf.conf $(OSX_RES)/bitmask-helper/
+	cp -r $(DIST_VERSION)/apps/helpers/daemon/daemon.py $(OSX_RES)/
+	cp -r $(DIST_VERSION)/apps/helpers/openvpn/* $(OSX_RES)/
+	wget https://downloads.leap.se/thirdparty/osx/openvpn/openvpn -O $(OSX_RES)/openvpn.leap
 
 bundle_win:
 	pyinstaller -y pkg/pyinst/app.spec
