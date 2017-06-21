@@ -26,16 +26,18 @@ mkdir -p $SRC
 LZO="lzo-2.10"
 ZLIB="zlib-1.2.11"
 MBEDTLS="mbedtls-2.4.2"
-OPENVPN="openvpn-2.4.1"
+OPENVPN="openvpn-2.4.2"
 
 WGET="wget --prefer-family=IPv4"
 DEST=$BASE/install
 LDFLAGS="-L$DEST/lib -L$DEST/usr/local/lib -W"
 CPPFLAGS="-I$DEST/include"
-CFLAGS="-D_FORTIFY_SOURCE=2 -O1 -Wformat -Wformat-security -fstack-protector -pie -fPIE"
+CFLAGS="-D_FORTIFY_SOURCE=2 -O1 -Wformat -Wformat-security -fstack-protector -fPIE"
 CXXFLAGS=$CFLAGS
 CONFIGURE="./configure --prefix=/install"
 MAKE="make -j2"
+
+echo "DEST" $DEST
 
 
 ######## ####################################################################
@@ -82,6 +84,7 @@ function build_mbedtls()
 	make install DESTDIR=$BASE/install
 }
 
+
 ######## ####################################################################
 # LZO2 # ####################################################################
 ######## ####################################################################
@@ -118,30 +121,37 @@ function build_openvpn()
 	tar zxvf $OPENVPN.tar.gz
 	cd $OPENVPN
 
-	POLARSSL_CFLAGS=-I$DEST/usr/local/include \
-	POLARSSL_LIBS=$DEST/lib/ \
+	MBEDTLS_CFLAGS=-I$BASE/install/usr/local/include/ \
+    MBEDTLS_LIBS="$DEST/usr/local/lib/libmbedtls.a $DEST/usr/local/lib/libmbedcrypto.a $DEST/usr/local/lib/libmbedx509.a" \
 	LDFLAGS=$LDFLAGS \
 	CPPFLAGS=$CPPFLAGS \
-	CFLAGS=$CFLAGS \
+	CFLAGS="$CFLAGS -I$BASE/install/usr/local/include" \
 	CXXFLAGS=$CXXFLAGS \
 	$CONFIGURE \
 	--disable-plugin-auth-pam \
-	--enable-password-save \
 	--with-crypto-library=mbedtls \
 	--enable-small \
 	--disable-debug
 
-	$MAKE LIBS="-all-static -lssl -lcrypto -lz -llzo2"
+	$MAKE LIBS="-all-static -lz -llzo2"
 	make install DESTDIR=$BASE/openvpn
+}
+
+function build_all()
+{
+      build_zlib
+	  build_lzo2
+	  build_mbedtls
+	  build_openvpn
 }
 
 function main()
 {
     if [[ $platform == 'linux' ]]; then
-        build_zlib
-	build_mbedtls
-	build_lzo2
-	build_openvpn
+      build_all
+    fi
+    if [[ $platform == 'osx' ]]; then
+      build_all
     fi
 }
 
