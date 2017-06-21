@@ -192,16 +192,16 @@ def handle_command(sock):
     # syslog.syslog(syslog.LOG_WARNING, 'call: %s' % (str(cmd_call)))
     try:
         if cmd_call:
-            syslog.syslog(
-                syslog.LOG_WARNING, 'GOT "%s"' % (command))
+            # syslog.syslog(
+            #    syslog.LOG_WARNING, 'GOT "%s"' % (command))
             cmd, args = cmd_call
             if args:
                 cmd = partial(cmd, *args)
 
             # TODO Use a MUTEX in here
             result = cmd()
-            syslog.syslog(syslog.LOG_WARNING, "Executed")
-            syslog.syslog(syslog.LOG_WARNING, "Result: %s" % (str(result)))
+            syslog.syslog(syslog.LOG_WARNING, "%s result: %s" % (
+                command, str(result)))
             if result == 'YES':
                 sock.sendall("%s: YES\n" % command)
             elif result == 'NO':
@@ -253,8 +253,11 @@ def openvpn_start(*args):
     global openvpn_proc
     # TODO sanitize options
     openvpn_proc = subprocess.Popen(cmd, shell=False, bufsize=-1)
+
+    # XXX DEBUG -------------------------------------------------
     # try:
-    #    result = subprocess.check_output(cmd, shell=False, stderr=subprocess.STDOUT)
+    #    result = subprocess.check_output(
+    #    cmd, shell=False, stderr=subprocess.STDOUT)
     # except Exception as exc:
     #    syslog.syslog(syslog.LOG_WARNING, exc.output)
 
