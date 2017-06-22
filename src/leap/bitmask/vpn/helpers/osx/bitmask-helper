@@ -167,7 +167,7 @@ def recv_until_marker(sock):
                 total_data[-2] = last_pair[:last_pair.find(end)]
                 total_data.pop()
                 break
-    return ''.join(total_data)
+    return ''.join(total_data).strip()
 
 
 def handle_command(sock):
@@ -256,10 +256,10 @@ def openvpn_start(*args):
 
     # XXX DEBUG -------------------------------------------------
     # try:
-    #    result = subprocess.check_output(
-    #    cmd, shell=False, stderr=subprocess.STDOUT)
+    #  result = subprocess.check_output(
+    #  cmd, shell=False, stderr=subprocess.STDOUT)
     # except Exception as exc:
-    #    syslog.syslog(syslog.LOG_WARNING, exc.output)
+    #  syslog.syslog(syslog.LOG_WARNING, exc.output)
 
 
 def openvpn_stop(sig='TERM'):
