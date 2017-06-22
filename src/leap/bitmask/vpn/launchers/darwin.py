@@ -19,16 +19,13 @@
 Darwin VPN launcher implementation.
 """
 
-import getpass
 import os
 import socket
-import sys
 
 from twisted.logger import Logger
 
 from leap.bitmask.vpn.launcher import VPNLauncher
 from leap.bitmask.vpn.launcher import VPNLauncherException
-from leap.common.config import get_path_prefix
 
 
 logger = Logger()
@@ -65,10 +62,6 @@ class HelperCommand(object):
         return data
 
 
-class NoTunKextLoaded(VPNLauncherException):
-    pass
-
-
 class DarwinVPNLauncher(VPNLauncher):
     """
     VPN launcher for the Darwin Platform
@@ -76,7 +69,7 @@ class DarwinVPNLauncher(VPNLauncher):
     UP_SCRIPT = None
     DOWN_SCRIPT = None
 
-    # TODO -- move this to bitmask-helper
+    # TODO -- move this to bitmask-helper??
 
     # Hardcode the installation path for OSX for security, openvpn is
     # run as root
@@ -95,62 +88,3 @@ class DarwinVPNLauncher(VPNLauncher):
     else:
         # let's try with the homebrew path
         OPENVPN_BIN_PATH = '/usr/local/sbin/openvpn'
-
-    @classmethod
-    def is_kext_loaded(kls):
-        # latest versions do not need tuntap, so we're going to deprecate
-        # the kext checking.
-        True
-
-    @classmethod
-    def get_vpn_command(kls, vpnconfig, providerconfig, socket_host,
-                        remotes, socket_port="unix", openvpn_verb=1):
-        """
-        Returns the OSX implementation for the vpn launching command.
-
-        Might raise:
-            NoTunKextLoaded,
-            OpenVPNNotFoundException,
-            VPNLauncherException.
-
-        :param eipconfig: eip configuration object
-        :type eipconfig: EIPConfig
-        :param providerconfig: provider specific configuration
-        :type providerconfig: ProviderConfig
-        :param socket_host: either socket path (unix) or socket IP
-        :type socket_host: str
-        :param socket_port: either string "unix" if it's a unix socket,
-                            or port otherwise
-        :type socket_port: str
-        :param openvpn_verb: the openvpn verbosity wanted
-        :type openvpn_verb: int
-
-        :return: A VPN command ready to be launched.
-        :rtype: list
-        """
-        # if not kls.is_kext_loaded():
-        #    raise NoTunKextLoaded('tun kext is needed, but was not found')
-
-        # we use `super` in order to send the class to use
-        command = super(DarwinVPNLauncher, kls).get_vpn_command(
-            vpnconfig, providerconfig, socket_host, socket_port, remotes,
-            openvpn_verb)
-        command.extend(['--setenv', "LEAPUSER", getpass.getuser()])
-
-        return command
-
-    # TODO ship statically linked binary and deprecate.
-    @classmethod
-    def get_vpn_env(kls):
-        """
-        Returns a dictionary with the custom env for the platform.
-        This is mainly used for setting LD_LIBRARY_PATH to the correct
-        path when distributing a standalone client
-
-        :rtype: dict
-        """
-        ld_library_path = os.path.join(get_path_prefix(), "..", "lib")
-        ld_library_path.encode(sys.getfilesystemencoding())
-        return {
-            "DYLD_LIBRARY_PATH": ld_library_path
-        }
