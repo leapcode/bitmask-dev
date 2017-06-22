@@ -198,7 +198,6 @@ class VPNLauncher(object):
         args = []
 
         args += [
-            '--setenv', "LEAPOPENVPN", "1",
             '--nobind'
         ]
 
@@ -212,10 +211,9 @@ class VPNLauncher(object):
 
         args += [
             '--client',
-            '--dev', ' tun',
             '--tls-client',
             '--remote-cert-tls',
-            'server'
+            'server',
         ]
 
         openvpn_configuration = vpnconfig.get_openvpn_configuration()
@@ -236,25 +234,10 @@ class VPNLauncher(object):
         args += [
             '--management-signal',
             '--management', socket_host, socket_port,
-            '--script-security', '2'
-        ]
-
-        if kls.UP_SCRIPT is not None:
-            if _has_updown_scripts(kls.UP_SCRIPT):
-                args += [
-                    '--up', '\"%s\"' % (kls.UP_SCRIPT,),
-                ]
-
-        if kls.DOWN_SCRIPT is not None:
-            if _has_updown_scripts(kls.DOWN_SCRIPT):
-                args += [
-                    '--down', '\"%s\"' % (kls.DOWN_SCRIPT,)
-                ]
-
-        args += [
+            '--script-security', '2',
+            '--ca', providerconfig.get_ca_cert_path(),
             '--cert', vpnconfig.get_client_cert_path(providerconfig),
-            '--key', vpnconfig.get_client_cert_path(providerconfig),
-            '--ca', providerconfig.get_ca_cert_path()
+            '--key', vpnconfig.get_client_cert_path(providerconfig)
         ]
 
         if not IS_MAC:
@@ -266,96 +249,3 @@ class VPNLauncher(object):
 
         command_and_args = [openvpn_path] + args
         return command_and_args
-
-    @classmethod
-    def missing_updown_scripts(kls):
-        """
-        Return what updown scripts are missing.
-
-        :rtype: list
-        """
-        # FIXME
-        # XXX remove method when we ditch UPDOWN in osx and win too
-        if IS_LINUX:
-            return []
-        else:
-            # leap_assert(kls.UPDOWN_FILES is not None,
-            #             "Need to define UPDOWN_FILES for this particular "
-            #             "launcher before calling this method")
-            # TODO assert vs except?
-            if kls.UPDOWN_FILES is None:
-                raise Exception(
-                    "Need to define UPDOWN_FILES for this particular "
-                    "launcher before calling this method")
-            file_exist = partial(_has_updown_scripts, warn=False)
-            zipped = zip(kls.UPDOWN_FILES, map(file_exist, kls.UPDOWN_FILES))
-            missing = filter(lambda (path, exists): exists is False, zipped)
-            return [path for path, exists in missing]
-
-    @classmethod
-    def missing_other_files(kls):
-        """
-        Return what other important files are missing during startup.
-        Same as missing_updown_scripts but does not check for exec bit.
-
-        :rtype: list
-        """
-        if kls.OTHER_FILES is None:
-            raise Exception(
-                "Need to define OTHER_FILES for this particular "
-                "auncher before calling this method")
-
-        other = force_eval(kls.OTHER_FILES)
-        file_exist = partial(_has_other_files, warn=False)
-
-        if flags_STANDALONE:
-            try:
-                from leap.bitmask import _binaries
-            except ImportError:
-                raise RuntimeError(
-                    "Could not find binary hash info in this bundle!")
-
-            _, bitmask_root_path, openvpn_bin_path = other
-
-            check_hash = _has_expected_binary_hash
-            openvpn_hash = _binaries.OPENVPN_BIN
-            bitmask_root_hash = _binaries.BITMASK_ROOT
-
-            correct_hash = (
-                True,  # we do not check the polkit file
-                check_hash(bitmask_root_path, bitmask_root_hash),
-                check_hash(openvpn_bin_path, openvpn_hash))
-
-            zipped = zip(other, map(file_exist, other), correct_hash)
-            missing = filter(
-                lambda (path, exists, hash_ok): (
-                    exists is False or hash_ok is False),
-                zipped)
-            return [path for path, exists, hash_ok in missing]
-        else:
-            zipped = zip(other, map(file_exist, other))
-            missing = filter(lambda (path, exists): exists is False, zipped)
-            return [path for path, exists in missing]
-
-
-def _has_expected_binary_hash(path, expected_hash):
-    """
-    Check if the passed path matches the expected hash.
-
-    Used from within the bundle, to know if we have to reinstall the shipped
-    binaries into the system path.
-
-    This path will be /usr/local/sbin for linux.
-
-    :param path: the path to check.
-    :type path: str
-    :param expected_hash: the sha256 hash that we expect
-    :type expected_hash: str
-    :rtype: bool
-    """
-    try:
-        with open(path) as f:
-            file_hash = hashlib.sha256(f.read()).hexdigest()
-        return expected_hash == file_hash
-    except IOError:
-        return False
