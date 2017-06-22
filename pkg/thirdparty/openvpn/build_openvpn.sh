@@ -25,8 +25,8 @@ mkdir -p $SRC
 
 LZO="lzo-2.10"
 ZLIB="zlib-1.2.11"
-MBEDTLS="mbedtls-2.4.2"
-OPENVPN="openvpn-2.4.2"
+MBEDTLS="mbedtls-2.5.1"
+OPENVPN="openvpn-2.4.3"
 
 WGET="wget --prefer-family=IPv4"
 DEST=$BASE/install
@@ -36,8 +36,6 @@ CFLAGS="-D_FORTIFY_SOURCE=2 -O1 -Wformat -Wformat-security -fstack-protector -fP
 CXXFLAGS=$CFLAGS
 CONFIGURE="./configure --prefix=/install"
 MAKE="make -j2"
-
-echo "DEST" $DEST
 
 
 ######## ####################################################################
@@ -122,7 +120,7 @@ function build_openvpn()
 	cd $OPENVPN
 
 	MBEDTLS_CFLAGS=-I$BASE/install/usr/local/include/ \
-    MBEDTLS_LIBS="$DEST/usr/local/lib/libmbedtls.a $DEST/usr/local/lib/libmbedcrypto.a $DEST/usr/local/lib/libmbedx509.a" \
+	MBEDTLS_LIBS="$DEST/usr/local/lib/libmbedtls.a $DEST/usr/local/lib/libmbedcrypto.a $DEST/usr/local/lib/libmbedx509.a" \
 	LDFLAGS=$LDFLAGS \
 	CPPFLAGS=$CPPFLAGS \
 	CFLAGS="$CFLAGS -I$BASE/install/usr/local/include" \
@@ -135,14 +133,17 @@ function build_openvpn()
 
 	$MAKE LIBS="-all-static -lz -llzo2"
 	make install DESTDIR=$BASE/openvpn
+	mkdir $BASE/sbin/
+	cp $BASE/openvpn/install/sbin/openvpn $BASE/sbin/$OPENVPN
+	strip $BASE/sbin/$OPENVPN
 }
 
 function build_all()
 {
-      build_zlib
-	  build_lzo2
-	  build_mbedtls
-	  build_openvpn
+	build_zlib
+	build_lzo2
+	build_mbedtls
+	build_openvpn
 }
 
 function main()
