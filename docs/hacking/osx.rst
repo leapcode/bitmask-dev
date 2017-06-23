@@ -103,15 +103,41 @@ so it's in a pre-alpha state. Reports or bugfixes are welcome a this point.
 
 Major blockers for a usable homebrew distribution are:
 
-* OpenVPN is launched, but cannnot stopped https://0xacab.org/leap/bitmask-dev/issues/8924
 * Cannot find the gpg binary installed by homebrew https://0xacab.org/leap/bitmask-dev/issues/8934
+
+How to produce a bundle to be distributed via homebrew
+------------------------------------------------------
+
+(This section is maintainer notes, but it can be useful also for you if you are working
+on changes that affect distribution and you want let others test your work.)
+
+The original homebrew formula is in ``https://github.com/kalikaneko/homebrew-bitmask/blob/master/bitmask.rb``.
+
+When running ``make bundle_osx``, PyInstaller generates two different folders
+(the initial PyInstaller folders get some extra files added by the rules in
+the makefile). One is the OSX Bundle - that is distributed by the installer in
+the form of a `.pkg` , and the other is the bare libs folder. The Bitmask
+Formula instructs homebrew to fetch a tar.gz with this last folder, so first
+step is preparing the tarball::
+
+  tar cvzf bitmask-`cat pkg/next-version`.tar.gz dist/bitmask-`cat pkg/next-version`
+
+If you already uploaded a bundle with that version, make sure that you rename it
+to include a patch version before uploading it::
+
+  scp bitmask-`cat pkg/next-version` downloads.leap.se:./client/osx/internal/
+
+Then the ``version`` file needs to be changed in the Formula.  The ``sha256``
+field has also to be updated, you can get the value with::
+
+   shasum -a 256 bitmask-0.10a1p2.tar.gz
 
 
 OSX Development Roadmap
 =======================
 
-1. Get a smooth 0.10 installation experience for power-users via homebrew.
-2. Merge bugfixes.
+1. [done] Get a smooth 0.10 installation experience for power-users via homebrew.
+2. [done] Merge bugfixes.
 3. Distribute Bitmask.pkg again, with the installer executing the same
    installation scripts as homebrew Formula is doing.
 
