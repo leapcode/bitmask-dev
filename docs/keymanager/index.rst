@@ -12,7 +12,7 @@ Keymanager handles the creation of a OpenPGP transparently in user's behalf. Whe
 bootstrapping a new account, keymanager will generate a new key pair. The key
 pair is stored encrypted inside soledad (and therefore able to be synced by
 other replicas). After generating it, the public key is sent to the provider,
-which will sign it and replace any prior keys for the same address in its database.
+which will replace any prior keys for the same address in its database.
 
 To discover keys for other users, the `nicknym`_ client in keymanager will query
 the nicknym server associated with user's provider, and will process the keys
@@ -30,6 +30,28 @@ only reach level 2 of what's contemplated in the spec.
 .. _nicknym: https://leap.se/en/docs/design/nicknym
 .. _Soledad: https://leap.se/en/docs/design/soledad
 .. _'transitional key validation': https://leap.se/en/docs/design/transitional-key-validation
+
+Sources of public keys
+----------------------
+
+Currently bitmask can discover new public keys from different sources:
+
+* Keys attached to incoming emails. Simple *.asc* attachments with the keys will be
+  taken into account, like the ones produced by enigmail.
+
+* OpenPGP header in incoming emails. The only field taken into account is the *url*
+  and it will only be used if it's an *https* address from the same domain as the
+  senders email address.
+
+* When sending emails if the recipient key is not known bitmask will ask for the key
+  to it's nicknym provider. The nicknym provider will try to discover the key from
+  other nicknym providers. If provider discovery doesn't bring any results, will
+  fetch it from the sks key servers (this sks discovery is probably going to be
+  removed some time in the future as it provides too many unused keys).
+
+Other methods are planned to be added in the future, like discovery from signatures in
+emails or other kind of key servers.
+
 
 Implementation: using Soledad documents
 ---------------------------------------
