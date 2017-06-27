@@ -112,7 +112,7 @@ class VPNManagement(object):
             self.connect()
             reactor.callLater(
                 self.CONNECTION_RETRY_TIME,
-                self.connect_retry, retry + 1)
+                self.connect_retry, retry + 1, max_retries)
 
     def process_log(self):
         if not self._watcher or not self._tn:
