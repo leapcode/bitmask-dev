@@ -7,8 +7,6 @@ from twisted.logger import Logger
 from .process import VPNProcess
 from .constants import IS_LINUX
 
-log = Logger()
-
 POLL_TIME = 1
 
 
@@ -31,6 +29,8 @@ class VPNControl(object):
 
     OPENVPN_VERB = "openvpn_verb"
 
+    log = Logger()
+
     def __init__(self, remotes, vpnconfig,
                  providerconfig, socket_host, socket_port):
         self._vpnproc = None
@@ -46,7 +46,7 @@ class VPNControl(object):
         self._port = socket_port
 
     def start(self):
-        log.debug('VPN: start')
+        self.log.debug('VPN: start')
 
         self._user_stopped = False
         self._stop_pollers()
@@ -58,18 +58,20 @@ class VPNControl(object):
 
         vpnproc = VPNProcess(*args, **kwargs)
         if vpnproc.get_openvpn_process():
-            log.info('Another vpn process is running. Will try to stop it.')
+            self.log.info(
+                'Another vpn process is running. Will try to stop it.')
             vpnproc.stop_if_already_running()
 
         try:
             vpnproc.preUp()
         except Exception as e:
-            log.error('Error on vpn pre-up {0!r}'.format(e))
+            self.log.error('Error on vpn pre-up {0!r}'.format(e))
             raise
         try:
             cmd = vpnproc.getCommand()
         except Exception as e:
-            log.error('Error while getting vpn command... {0!r}'.format(e))
+            self.log.error(
+                'Error while getting vpn command... {0!r}'.format(e))
             raise
 
         env = os.environ
@@ -110,7 +112,7 @@ class VPNControl(object):
         try:
             self._vpnproc.preDown()
         except Exception as e:
-            log.error('Error on vpn pre-down {0!r}'.format(e))
+            self.log.error('Error on vpn pre-down {0!r}'.format(e))
             raise
 
         if IS_LINUX:
@@ -148,7 +150,7 @@ class VPNControl(object):
         """
         self._stop_pollers()
         if self._vpnproc is None:
-            log.debug("There's no vpn process running to kill.")
+            self.log.debug("There's no vpn process running to kill.")
         else:
             self._vpnproc.aborted = True
             self._vpnproc.killProcess()
@@ -165,7 +167,7 @@ class VPNControl(object):
             if self._vpnproc.transport.pid is None:
                 return
             else:
-                log.debug('Process did not die, waiting...')
+                self.log.debug('Process did not die, waiting...')
 
             tries += 1
             reactor.callLater(self.TERMINATE_WAIT,
@@ -173,11 +175,11 @@ class VPNControl(object):
             return
 
         # after running out of patience, we try a killProcess
-        log.debug('Process did not die. Sending a SIGKILL.')
+        self.log.debug('Process did not die. Sending a SIGKILL.')
         try:
             self._killit()
         except OSError:
-            log.error('Could not kill process!')
+            self.log.error('Could not kill process!')
 
     def _start_pollers(self):
         """
