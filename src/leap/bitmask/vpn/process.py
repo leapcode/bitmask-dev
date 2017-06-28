@@ -96,7 +96,7 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         self._status = _status.VPNStatus()
         self.set_watcher(self._status)
 
-        self.restarting = False
+        self.restarting = True
         self._remotes = remotes
 
     @property
@@ -171,7 +171,7 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
             self.log.debug('processEnded, status %d' % (exit_code,))
             if self.restarting:
                 self.log.debug('Restarting VPN process')
-                reactor.callLater(2, self._restartfun)
+                self._restartfun()
 
     # polling
 

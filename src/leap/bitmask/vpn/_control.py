@@ -1,7 +1,7 @@
 import os
 
 from twisted.internet.task import LoopingCall
-from twisted.internet import reactor
+from twisted.internet import reactor, defer
 from twisted.logger import Logger
 
 from .process import VPNProcess
@@ -91,8 +91,9 @@ class VPNControl(object):
         self._start_pollers()
         return True
 
+    @defer.inlineCallbacks
     def restart(self):
-        self.stop(shutdown=False, restart=True)
+        yield self.stop(shutdown=False, restart=True)
         reactor.callLater(
             self.RESTART_WAIT, self.start)
 
@@ -115,6 +116,7 @@ class VPNControl(object):
             self.log.error('Error on vpn pre-down {0!r}'.format(e))
             raise
 
+        d = defer.succeed(True)
         if IS_LINUX:
             # TODO factor this out to a linux-only launcher mechanism.
             # First we try to be polite and send a SIGTERM...
@@ -122,17 +124,17 @@ class VPNControl(object):
                 # We assume that the only valid stops are initiated
                 # by an user action, not hard restarts
                 self._user_stopped = not restart
-                self._vpnproc.restarting = restart
 
                 self._sentterm = True
                 self._vpnproc.terminate(shutdown=shutdown)
 
                 # ...but we also trigger a countdown to be unpolite
                 # if strictly needed.
+                d = defer.Deferred()
                 reactor.callLater(
-                    self.TERMINATE_WAIT, self._kill_if_left_alive)
+                    self.TERMINATE_WAIT, self._kill_if_left_alive, d)
                 self._vpnproc.traffic_status = (0, 0)
-        return True
+        return d
 
     @property
     def status(self):
@@ -155,7 +157,7 @@ class VPNControl(object):
             self._vpnproc.aborted = True
             self._vpnproc.killProcess()
 
-    def _kill_if_left_alive(self, tries=0):
+    def _kill_if_left_alive(self, deferred, tries=0):
         """
         Check if the process is still alive, and send a
         SIGKILL after a timeout period.
@@ -163,15 +165,16 @@ class VPNControl(object):
         :param tries: counter of tries, used in recursion
         :type tries: int
         """
-        while tries < self.TERMINATE_MAXTRIES:
+        if tries < self.TERMINATE_MAXTRIES:
             if self._vpnproc.transport.pid is None:
+                deferred.callback(True)
                 return
             else:
                 self.log.debug('Process did not die, waiting...')
 
             tries += 1
             reactor.callLater(self.TERMINATE_WAIT,
-                              self._kill_if_left_alive, tries)
+                              self._kill_if_left_alive, deferred, tries)
             return
 
         # after running out of patience, we try a killProcess
@@ -180,6 +183,7 @@ class VPNControl(object):
             self._killit()
         except OSError:
             self.log.error('Could not kill process!')
+        deferred.callback(True)
 
     def _start_pollers(self):
         """

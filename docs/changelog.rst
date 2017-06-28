@@ -13,6 +13,7 @@ Features
 - `#8765 <https://0xacab.org/leap/bitmask-dev/issues/8765>`_: Require a global authentication token for the api
 - `#8819 <https://0xacab.org/leap/bitmask-dev/issues/8819>`_: Send key to provider if a new priv key is putted in the keyring
 - `#8821 <https://0xacab.org/leap/bitmask-dev/issues/8821>`_: Add a 'fetch' flag to key export
+- `#8049 <https://0xacab.org/leap/bitmask-dev/issues/8049>`_: Restart the VPN automatically
 - Initial cli port of the legacy vpn code
 - Add VPN API to bitmask.js
 - Add vpn get_cert command
