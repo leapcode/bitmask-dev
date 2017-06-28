@@ -165,7 +165,7 @@ class KeyManager(object):
         """
         Send user's key to provider.
 
-        Public key bound to user's is sent to provider, which will sign it and
+        Public key bound to user's is sent to provider, which will
         replace any prior keys for the same address in its database.
 
         :return: A Deferred which fires when the key is sent, or which fails

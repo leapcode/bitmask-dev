@@ -34,7 +34,7 @@ only reach level 2 of what's contemplated in the spec.
 Sources of public keys
 ----------------------
 
-Currently bitmask can discover new public keys from different sources:
+Currently Bitmask can discover new public keys from different sources:
 
 * Keys attached to incoming emails. Simple *.asc* attachments with the keys will be
   taken into account, like the ones produced by enigmail.
@@ -53,10 +53,10 @@ Other methods are planned to be added in the future, like discovery from signatu
 emails or other kind of key servers.
 
 
-Implementation: using Soledad documents
+Implementation: using Soledad Documents
 ---------------------------------------
 
-KeyManager uses two types of Soledad documents for the keyring:
+KeyManager uses two types of Soledad Documents for the keyring:
 
 * key document, that stores each gpg key.
 
