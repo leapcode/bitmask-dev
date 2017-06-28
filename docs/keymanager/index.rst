@@ -20,7 +20,7 @@ that the server returns. This query has the following form::
 
   https://nicknym.test.bitmask.net:6425?address=user@example.com
 
-And it's up to the the provider's service to determine the sources for the keys.
+It is up to the the provider's service to determine the sources for the keys.
 
 Keymanager currently implements all the levels defined in the `Transitional Key
 Validation`_ spec, although the mechanisms for validation currently in place
@@ -40,17 +40,11 @@ Currently Bitmask can discover new public keys from different sources:
   taken into account, like the ones produced by enigmail.
 
 * OpenPGP header in incoming emails. The only field taken into account is the *url*
-  and it will only be used if it's an *https* address from the same domain as the
-  senders email address.
+  and it will only be used if it's an *https* address from the same domain as the senders email address.
 
-* When sending emails if the recipient key is not known bitmask will ask for the key
-  to it's nicknym provider. The nicknym provider will try to discover the key from
-  other nicknym providers. If provider discovery doesn't bring any results, will
-  fetch it from the sks key servers (this sks discovery is probably going to be
-  removed some time in the future as it provides too many unused keys).
+* When sending emails, if the recipient key is not known, Bitmask will ask for the key to its nicknym provider. The nicknym provider will try to discover the key from other nicknym providers. If provider discovery does not bring any results, the key will be fetched from the sks key servers. Note that this *sks discovery mechanism is probably going to be removed at some time in the future as it provides too many unused keys*.
 
-Other methods are planned to be added in the future, like discovery from signatures in
-emails or other kind of key servers.
+Other methods are planned to be added in the future, like discovery from signatures in emails, headers (autocrypt spec) or other kind of key servers.  
 
 
 Implementation: using Soledad Documents
