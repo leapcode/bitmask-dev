@@ -14,6 +14,7 @@ Features
 - `#8819 <https://0xacab.org/leap/bitmask-dev/issues/8819>`_: Send key to provider if a new priv key is putted in the keyring
 - `#8821 <https://0xacab.org/leap/bitmask-dev/issues/8821>`_: Add a 'fetch' flag to key export
 - `#8049 <https://0xacab.org/leap/bitmask-dev/issues/8049>`_: Restart the VPN automatically
+- `#8852 <https://0xacab.org/leap/bitmask-dev/issues/8852>`_: Stop the vpn (and all services) when application is shut down
 - Initial cli port of the legacy vpn code
 - Add VPN API to bitmask.js
 - Add vpn get_cert command

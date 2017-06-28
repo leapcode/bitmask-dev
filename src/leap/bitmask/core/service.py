@@ -245,6 +245,8 @@ class BitmaskBackend(configurable.ConfigurableService):
         return self.core_commands.do_version()
 
     def do_stop(self):
+        for service in self:
+            service.stopService()
         return self.core_commands.do_stop()
 
     # Service Toggling

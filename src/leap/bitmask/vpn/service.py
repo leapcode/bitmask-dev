@@ -62,13 +62,12 @@ class VPNService(HookableService):
             self._basepath = basepath
 
     def startService(self):
-        print "Starting VPN Service..."
         # TODO this could trigger a check for validity of the certificates,
         # etc.
         super(VPNService, self).startService()
 
     def stopService(self):
-        print "Stopping VPN Service..."
+        self.stop_vpn()
         super(VPNService, self).stopService()
 
     @defer.inlineCallbacks
@@ -105,9 +104,6 @@ class VPNService(HookableService):
             raise Exception('Could not start VPN, check logs')
 
     def stop_vpn(self):
-        # TODO -----------------------------
-        # when shutting down the main bitmaskd daemon, this should be called.
-
         if not self._tunnelmanager:
             raise Exception('VPN was not running')
 
