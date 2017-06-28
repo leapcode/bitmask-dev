@@ -101,7 +101,10 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
 
     @property
     def status(self):
-        return self._status.status
+        status = self._status.status
+        if status['status'] == 'off' and self.restarting:
+            status['status'] = 'starting'
+        return status
 
     @property
     def traffic_status(self):
