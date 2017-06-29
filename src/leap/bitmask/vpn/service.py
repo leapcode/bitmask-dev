@@ -29,7 +29,7 @@ from twisted.logger import Logger
 from leap.bitmask.hooks import HookableService
 from leap.bitmask.util import merge_status
 from leap.bitmask.vpn.fw.firewall import FirewallManager
-from leap.bitmask.vpn.tunnel import VPNTunnel
+from leap.bitmask.vpn.tunnel import TunnelManager
 from leap.bitmask.vpn._checks import is_service_ready, get_vpn_cert_path
 from leap.bitmask.vpn import privilege, helpers
 from leap.bitmask.vpn.privilege import NoPolkitAuthAgentAvailable
@@ -212,7 +212,7 @@ class VPNService(HookableService):
                 'Cannot find provider certificate. '
                 'Please configure provider.')
 
-        self._tunnel = VPNTunnel(
+        self._tunnel = TunnelManager(
             provider, remotes, cert_path, key_path, ca_path, extra_flags)
         self._firewall = FirewallManager(remotes)
 

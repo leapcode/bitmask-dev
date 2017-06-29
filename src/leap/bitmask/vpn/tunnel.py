@@ -37,7 +37,7 @@ from .constants import IS_WIN
 # TODO ConfiguredVPNConnection ?
 
 
-class VPNTunnel(object):
+class TunnelManager(object):
 
     """
     A VPN Tunnel holds the configuration for a VPN connection, and allows to
