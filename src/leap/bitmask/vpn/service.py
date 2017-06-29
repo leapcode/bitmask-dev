@@ -67,7 +67,10 @@ class VPNService(HookableService):
         super(VPNService, self).startService()
 
     def stopService(self):
-        self.stop_vpn()
+        try:
+            self.stop_vpn()
+        except Exception as e:
+            self.log.error('Error stopping vpn service... {0!r}'.format(e))
         super(VPNService, self).stopService()
 
     @defer.inlineCallbacks

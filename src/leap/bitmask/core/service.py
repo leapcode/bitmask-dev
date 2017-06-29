@@ -246,7 +246,10 @@ class BitmaskBackend(configurable.ConfigurableService):
 
     def do_stop(self):
         for service in self:
-            service.stopService()
+            try:
+                service.stopService()
+            except Exception as e:
+                log.error('Error stopping service... {0!r}'.format(e))
         return self.core_commands.do_stop()
 
     # Service Toggling
