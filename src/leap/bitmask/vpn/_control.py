@@ -66,17 +66,23 @@ class VPNControl(object):
             vpnproc.preUp()
         except Exception as e:
             self.log.error('Error on vpn pre-up {0!r}'.format(e))
-            raise
+            return False
         try:
             cmd = vpnproc.getCommand()
         except Exception as e:
             self.log.error(
                 'Error while getting vpn command... {0!r}'.format(e))
-            raise
+            return False
 
         env = os.environ
 
-        runningproc = reactor.spawnProcess(vpnproc, cmd[0], cmd, env)
+        try:
+            runningproc = reactor.spawnProcess(vpnproc, cmd[0], cmd, env)
+        except Exception as e:
+            self.log.error(
+                'Error while spwanning vpn process... {0!r}'.format(e))
+            return False
+
         vpnproc.pid = runningproc.pid
         self._vpnproc = vpnproc
 

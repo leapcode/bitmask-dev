@@ -24,9 +24,12 @@ import os
 
 from time import strftime
 from twisted.internet import defer
+from twisted.logger import Logger
 
 from leap.bitmask.hooks import HookableService
-from leap.bitmask.vpn.tunnelmanager import TunnelManager
+from leap.bitmask.util import merge_status
+from leap.bitmask.vpn.fw.firewall import FirewallManager
+from leap.bitmask.vpn.tunnel import VPNTunnel
 from leap.bitmask.vpn._checks import is_service_ready, get_vpn_cert_path
 from leap.bitmask.vpn import privilege, helpers
 from leap.bitmask.vpn.privilege import NoPolkitAuthAgentAvailable
@@ -45,6 +48,7 @@ class VPNService(HookableService):
 
     name = 'vpn'
     _last_vpn_path = os.path.join('leap', 'last_vpn')
+    log = Logger()
 
     def __init__(self, basepath=None):
         """
@@ -52,8 +56,8 @@ class VPNService(HookableService):
         """
         super(VPNService, self).__init__()
 
-        self._started = False
-        self._tunnelmanager = None
+        self._tunnel = None
+        self._firewall = None
         self._domain = ''
 
         if basepath is None:
@@ -75,7 +79,7 @@ class VPNService(HookableService):
 
     @defer.inlineCallbacks
     def start_vpn(self, domain=None):
-        if self._started:
+        if self.do_status()['status'] == 'on':
             exc = Exception('VPN already started')
             exc.expected = True
             raise exc
@@ -89,7 +93,14 @@ class VPNService(HookableService):
         yield self._setup(domain)
 
         try:
-            started = self._tunnelmanager.start()
+            fw_ok = self._firewall.start()
+            if not fw_ok:
+                raise Exception('Could not start firewall')
+
+            vpn_ok = self._tunnel.start()
+            if not vpn_ok:
+                self._firewall.stop()
+                raise Exception('Could not start VPN')
 
         # XXX capture it inside start method
         # here I'd like to get (status, message)
@@ -98,37 +109,36 @@ class VPNService(HookableService):
             raise e
         # --------------------------------------
 
-        self._started = started
         self._domain = domain
         self._write_last(domain)
-        if started:
-            defer.returnValue({'result': 'started'})
-        else:
-            raise Exception('Could not start VPN, check logs')
+        defer.returnValue({'result': 'started'})
 
     def stop_vpn(self):
-        if not self._tunnelmanager:
+        if self._firewall and self._firewall.is_up():
+            fw_ok = self._firewall.stop()
+            if not fw_ok:
+                self.log.error("Firewall: error stopping")
+
+        if not self._tunnel or self._tunnel.status['status'] is not 'on':
             raise Exception('VPN was not running')
 
-        if self._started:
-            self._tunnelmanager.stop()
-            self._started = False
-            return {'result': 'vpn stopped'}
-        elif self._tunnelmanager.is_firewall_up():
-            self._tunnelmanager.stop_firewall()
-            return {'result': 'firewall stopped'}
-        else:
-            raise Exception('VPN was not running')
+        vpn_ok = self._tunnel.stop()
+        if not vpn_ok:
+            self.log.error("VPN: error stopping")
+
+        return {'result': 'vpn stopped'}
 
     def do_status(self):
-        status = {
-            'status': 'off',
-            'error': None,
-            'childrenStatus': {}
+        childrenStatus = {
+            'vpn': {'status': 'off', 'error': None},
+            'firewall': {'status': 'off', 'error': None},
         }
 
-        if self._tunnelmanager:
-            status = self._tunnelmanager.get_status()
+        if self._tunnel:
+            childrenStatus['vpn'] = self._tunnel.status
+        if self._firewall:
+            childrenStatus['firewall'] = self._firewall.status
+        status = merge_status(childrenStatus)
 
         if self._domain:
             status['domain'] = self._domain
@@ -202,8 +212,9 @@ class VPNService(HookableService):
                 'Cannot find provider certificate. '
                 'Please configure provider.')
 
-        self._tunnelmanager = TunnelManager(
+        self._tunnel = VPNTunnel(
             provider, remotes, cert_path, key_path, ca_path, extra_flags)
+        self._firewall = FirewallManager(remotes)
 
     def _cert_expires(self, provider):
         path = os.path.join(self._basepath, "leap", "providers", provider,
