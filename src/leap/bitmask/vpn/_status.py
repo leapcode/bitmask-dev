@@ -74,9 +74,10 @@ class VPNStatus(object):
         elif status in self._CONNECTED:
             status = "on"
 
-        self._status = status
-        self.errcode = errcode
-        emit_async(catalog.VPN_STATUS_CHANGED)
+        if self._status != status:
+            self._status = status
+            self.errcode = errcode
+            emit_async(catalog.VPN_STATUS_CHANGED)
 
     def get_traffic_status(self):
         down = None
@@ -87,7 +88,8 @@ class VPNStatus(object):
             up = bytes2human(self._traffic_up)
         return {'down': down, 'up': up}
 
-    def set_traffic_status(self, status):
-        up, down = status
-        self._traffic_up = up
-        self._traffic_down = down
+    def set_traffic_status(self, up, down):
+        if up != self._traffic_up or down != self._traffic_down:
+            self._traffic_up = up
+            self._traffic_down = down
+            emit_async(catalog.VPN_STATUS_CHANGED)

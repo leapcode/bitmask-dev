@@ -53,9 +53,7 @@ class VPNManagement(object):
         self._host = None
         self._port = None
 
-        self._last_state = None
-        self._last_status = None
-        self._status = None
+        self._watcher = None
         self._logs = {}
 
     def set_connection(self, host, port):
@@ -75,24 +73,6 @@ class VPNManagement(object):
     def is_connected(self):
         return bool(self._tn)
 
-    def connect(self):
-        if not self._host or not self._port:
-            raise ImproperlyConfigured('Connection is not configured')
-
-        try:
-            self._tn = UDSTelnet(self._host, self._port)
-            self._tn.read_eager()
-
-        except Exception as e:
-            self.log.warn('Could not connect to OpenVPN yet: %r' % (e,))
-            self._tn = None
-
-        if self._tn:
-            return True
-        else:
-            self.log.error('Error while connecting to management!')
-            return False
-
     def connect_retry(self, retry=0, max_retries=None):
         """
         Attempts to connect to a management interface, and retries
@@ -109,10 +89,28 @@ class VPNManagement(object):
             return
 
         if not self.aborted and not self.is_connected():
-            self.connect()
+            self._connect()
             reactor.callLater(
                 self.CONNECTION_RETRY_TIME,
                 self.connect_retry, retry + 1, max_retries)
+
+    def _connect(self):
+        if not self._host or not self._port:
+            raise ImproperlyConfigured('Connection is not configured')
+
+        try:
+            self._tn = UDSTelnet(self._host, self._port)
+            self._tn.read_eager()
+
+        except Exception as e:
+            self.log.warn('Could not connect to OpenVPN yet: %r' % (e,))
+            self._tn = None
+
+        if self._tn:
+            return True
+        else:
+            self.log.error('Error while connecting to management!')
+            return False
 
     def process_log(self):
         if not self._watcher or not self._tn:
@@ -191,10 +189,9 @@ class VPNManagement(object):
         self._tn.get_socket().close()
         self._tn = None
 
-    def _parse_state_and_notify(self, output):
+    def _parse_state(self, output):
         """
-        Parses the output of the state command, and trigger a state transition
-        when the state changes.
+        Parses the output of the state command.
 
         :param output: list of lines that the state command printed as
                        its output
@@ -216,17 +213,11 @@ class VPNManagement(object):
                 except ValueError:
                     self.log.debug('Could not parse %s' % parts)
 
-            state = status_step
-            if state != self._last_state:
-                # XXX this status object is the vpn status observer
-                if self._status:
-                    self._status.set_status(state, None)
-                self._last_state = state
+            return status_step
 
-    def _parse_status_and_notify(self, output):
+    def _parse_status(self, output):
         """
-        Parses the output of the status command and emits
-        status_changed signal when the status changes.
+        Parses the output of the status command.
 
         :param output: list of lines that the status command printed
                        as its output
@@ -260,27 +251,25 @@ class VPNManagement(object):
             elif text == "TUN/TAP write bytes":
                 tun_tap_write = value  # upload
 
-        traffic_status = (tun_tap_read, tun_tap_write)
-        if traffic_status != self._last_status:
-            if self._status:
-                self._status.set_traffic_status(traffic_status)
-            self._last_status = traffic_status
+        return (tun_tap_read, tun_tap_write)
 
     def get_state(self):
         """
         Notifies the gui of the output of the state command over
         the openvpn management interface.
         """
-        if self.is_connected():
-            return self._parse_state_and_notify(self._send_command("state"))
+        if not self.is_connected():
+            return ""
+        return self._parse_state(self._send_command("state"))
 
-    def get_status(self):
+    def get_traffic_status(self):
         """
         Notifies the gui of the output of the status command over
         the openvpn management interface.
         """
-        if self.is_connected():
-            return self._parse_status_and_notify(self._send_command("status"))
+        if not self.is_connected():
+            return (None, None)
+        return self._parse_status(self._send_command("status"))
 
     def terminate(self, shutdown=False):
         """
@@ -380,7 +369,7 @@ class VPNManagement(object):
                 port = cmdline[index + 2]
                 self.log.debug("Trying to connect to %s:%s"
                                % (host, port))
-                self.connect()
+                self._connect()
 
                 # XXX this has a problem with connections to different
                 # remotes. So the reconnection will only work when we are

@@ -29,8 +29,8 @@ from twisted.internet import error as internet_error
 from twisted.logger import Logger
 
 from leap.bitmask.vpn.utils import get_vpn_launcher
-from leap.bitmask.vpn import _status
-from leap.bitmask.vpn import _management
+from leap.bitmask.vpn._status import VPNStatus
+from leap.bitmask.vpn._management import VPNManagement
 
 from leap.bitmask.vpn.launchers import darwin
 from leap.bitmask.vpn.constants import IS_MAC, IS_LINUX
@@ -40,7 +40,7 @@ from leap.bitmask.vpn.constants import IS_MAC, IS_LINUX
 OPENVPN_VERBOSITY = 1
 
 
-class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
+class _VPNProcess(protocol.ProcessProtocol):
 
     """
     A ProcessProtocol class that can be used to spawn a process that will
@@ -76,16 +76,15 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
                              openvpn invocation
         :type openvpn_verb: int
         """
-        # TODO handle management as a component
-        _management.VPNManagement.__init__(self)
-        self.set_connection(socket_host, socket_port)
+        self._management = VPNManagement()
+        self._management.set_connection(socket_host, socket_port)
+        self._host = socket_host
+        self._port = socket_port
 
         self._vpnconfig = vpnconfig
         self._providerconfig = providerconfig
         self._launcher = get_vpn_launcher()
 
-        self._last_state = None
-        self._last_status = None
         self._alive = False
 
         # XXX use flags, maybe, instead of passing
@@ -93,8 +92,8 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         self._openvpn_verb = openvpn_verb
         self._restartfun = restartfun
 
-        self._status = _status.VPNStatus()
-        self.set_watcher(self._status)
+        self._status = VPNStatus()
+        self._management.set_watcher(self._status)
 
         self.restarting = True
         self._remotes = remotes
@@ -110,10 +109,6 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
     def traffic_status(self):
         return self._status.get_traffic_status()
 
-    @traffic_status.setter
-    def traffic_status(self, value):
-        self._status.set_traffic_status(value)
-
     # processProtocol methods
 
     def connectionMade(self):
@@ -122,7 +117,7 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         """
         self._alive = True
         self.aborted = False
-        self.connect_retry(max_retries=10)
+        self._management.connect_retry(max_retries=10)
 
     def outReceived(self, data):
         """
@@ -183,18 +178,20 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         Polls connection status.
         """
         if self._alive:
-            self.get_status()
+            up, down = self._management.get_traffic_status()
+            self._status.set_traffic_status(up, down)
 
     def pollState(self):
         """
         Polls connection state.
         """
         if self._alive:
-            self.get_state()
+            state = self._management.get_state()
+            self._status.set_status(state, None)
 
     def pollLog(self):
         if self._alive:
-            self.process_log()
+            self._management.process_log()
 
     # launcher
 
@@ -243,7 +240,16 @@ class _VPNProcess(protocol.ProcessProtocol, _management.VPNManagement):
         # filter out ports since we don't need that info
         return [gateway for gateway, port in gateways_ports]
 
+    def get_openvpn_process(self):
+        return self._management.get_openvpn_process()
+
     # shutdown
+
+    def stop_if_already_running(self):
+        return self._management.stop_if_already_running()
+
+    def terminate(self, shutdown=False):
+        self._management.terminate(shutdown)
 
     def killProcess(self):
         """
