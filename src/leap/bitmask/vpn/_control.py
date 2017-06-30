@@ -124,6 +124,7 @@ class VPNControl(object):
                 # We assume that the only valid stops are initiated
                 # by an user action, not hard restarts
                 self._user_stopped = not restart
+                self._vpnproc.restarting = restart
 
                 self._sentterm = True
                 self._vpnproc.terminate(shutdown=shutdown)
