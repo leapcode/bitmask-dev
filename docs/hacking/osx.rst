@@ -120,12 +120,12 @@ the form of a `.pkg` , and the other is the bare libs folder. The Bitmask
 Formula instructs homebrew to fetch a tar.gz with this last folder, so first
 step is preparing the tarball::
 
-  tar cvzf bitmask-`cat pkg/next-version`.tar.gz dist/bitmask-`cat pkg/next-version`
+  cd dist && tar cvzf bitmask-`cat ../pkg/next-version`.tar.gz bitmask-`cat pkg/next-version`
 
 If you already uploaded a bundle with that version, make sure that you rename it
 to include a patch version before uploading it::
 
-  scp bitmask-`cat pkg/next-version` downloads.leap.se:./client/osx/internal/
+  scp dist/bitmask-`cat pkg/next-version` downloads.leap.se:./client/osx/internal/
 
 Then the ``version`` file needs to be changed in the Formula.  The ``sha256``
 field has also to be updated, you can get the value with::
