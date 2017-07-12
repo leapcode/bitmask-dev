@@ -214,10 +214,12 @@ class KeyManager(object):
             if (domain == _get_domain(self._nickserver_uri)):
                 validation_level = ValidationLevels.Provider_Trust
 
-        yield self.put_raw_key(
-            server_keys[self.OPENPGP_KEY],
-            address=address,
-            validation=validation_level)
+            yield self.put_raw_key(
+                server_keys[self.OPENPGP_KEY],
+                address=address,
+                validation=validation_level)
+        else:
+            raise KeyNotFound("No openpgp key found")
 
     def get_key(self, address, private=False, fetch_remote=True):
         """

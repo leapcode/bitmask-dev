@@ -32,6 +32,7 @@ Bugfixes
 - `#8868 <https://0xacab.org/leap/bitmask-dev/issues/8868>`_: can't upload generated key with bitmask
 - `#8832 <https://0xacab.org/leap/bitmask-dev/issues/8832>`_: don't allow putting non-private keys for the keyring address
 - `#8901 <https://0xacab.org/leap/bitmask-dev/issues/8901>`_: use gpg1 binary if present
+- `#8971 <https://0xacab.org/leap/bitmask-dev/issues/8971>`_: handle 502 replies from nicknym
 
 Misc
 ~~~~

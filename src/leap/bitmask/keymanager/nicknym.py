@@ -22,7 +22,7 @@ import urllib
 from twisted.internet import defer
 from twisted.logger import Logger
 from twisted.web import client
-from twisted.web._responses import NOT_FOUND, SERVICE_UNAVAILABLE
+from twisted.web._responses import NOT_FOUND, SERVICE_UNAVAILABLE, BAD_GATEWAY
 
 from leap.bitmask.keymanager.errors import KeyNotFound
 from leap.common.check import leap_assert
@@ -144,6 +144,11 @@ class Nicknym(object):
             if response.code == SERVICE_UNAVAILABLE:
                 message = ' %s: Service unavailable (maybe in maintenance).' \
                           'Request: %s' % (response.code, uri)
+                self.log.warn(message)
+                raise KeyNotFound(message), None, sys.exc_info()[2]
+            if response.code == BAD_GATEWAY:
+                message = ' %s: Bad gateway. Request: %s. Response: %s' \
+                          % (response.code, uri, response)
                 self.log.warn(message)
                 raise KeyNotFound(message), None, sys.exc_info()[2]
             return response
