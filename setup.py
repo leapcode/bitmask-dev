@@ -20,6 +20,7 @@ required = [
     'colorama',
     'srp',
     'python-daemon',
+    'certifi',
     'leap.common',
 ]
 
