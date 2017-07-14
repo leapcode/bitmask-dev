@@ -179,14 +179,11 @@ class Provider(object):
         self._disco = Discovery('https://%s' % domain)
         self._provider_config = None
 
+        cert_path = None
         is_configured = self.is_configured()
         if is_configured:
-            self._http = HTTPClient(self._get_ca_cert_path())
-        else:
-            # TODO: we distribute our own cert bundle but it's too outdated,
-            #       let's use for now the one from the system
-            #       see: leap.common.ca_bundle.where()
-            self._http = HTTPClient(cert_path)
+            cert_path = self._get_ca_cert_path()
+        self._http = HTTPClient(cert_path)
 
         self._load_provider_json()
 
