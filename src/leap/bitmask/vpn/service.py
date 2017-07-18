@@ -124,7 +124,7 @@ class VPNService(HookableService):
 
         vpn_ok = self._tunnel.stop()
         if not vpn_ok:
-            self.log.error("VPN: error stopping")
+            raise Exception("Error stopping VPN")
 
         return {'result': 'vpn stopped'}
 
