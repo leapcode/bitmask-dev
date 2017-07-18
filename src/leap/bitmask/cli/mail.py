@@ -38,7 +38,7 @@ SUBCOMMANDS:
 
 '''.format(name=command.appname)
 
-    commands = ['enable', 'disable', 'get_token']
+    commands = ['enable', 'disable']
 
     def status(self, raw_args):
         parser = argparse.ArgumentParser(
@@ -56,6 +56,23 @@ SUBCOMMANDS:
         self.data += ['status', uid]
 
         return self._send(command.print_status)
+
+    def get_token(self, raw_args):
+        parser = argparse.ArgumentParser(
+            description='Bitmask email status',
+            prog='%s %s %s' % tuple(sys.argv[:3]))
+        parser.add_argument('uid', nargs='?', default=None,
+                            help='uid to check the status of')
+        subargs = parser.parse_args(raw_args)
+
+        uid = None
+        if subargs.uid:
+            uid = subargs.uid
+        else:
+            uid = self.cfg.get('bonafide', 'active', default=None)
+        self.data += ['get_token', uid]
+
+        return self._send(command.default_dict_printer)
 
     def mixnet_status(self, raw_args):
         parser = argparse.ArgumentParser(

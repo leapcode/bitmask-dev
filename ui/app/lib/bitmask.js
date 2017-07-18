@@ -316,10 +316,12 @@ var bitmask = function(){
              *
              * This token is used as password to authenticate in the IMAP and SMTP services.
              *
+             * @param {string} uid The uid to get status about
+             *
              * @return {Promise<string>} The token
              */
-            get_token: function() {
-                return call(['mail', 'get_token']);
+            get_token: function(uid) {
+                return call(['mail', 'get_token', uid]);
             },
 
             /**

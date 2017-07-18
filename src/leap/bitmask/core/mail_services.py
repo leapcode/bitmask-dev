@@ -475,7 +475,6 @@ class StandardMailService(service.MultiService, HookableService):
         self._keymanager_sessions = {}
         self._sendmail_opts = {}
         self._service_tokens = {}
-        self._active_user = None
         self._mixnet_enabled = mixnet_enabled
         super(StandardMailService, self).__init__()
         self.initializeChildrenServices()
@@ -508,7 +507,6 @@ class StandardMailService(service.MultiService, HookableService):
 
         def registerToken(token):
             self._service_tokens[userid] = token
-            self._active_user = userid
             return token
 
         incoming = self.getServiceNamed('incoming_mail')
@@ -612,12 +610,9 @@ class StandardMailService(service.MultiService, HookableService):
             status = 'ok'
         return {'status': status}
 
-    def get_token(self):
-        active_user = self._active_user
-        if not active_user:
-            return defer.succeed({'user': None})
-        token = self._service_tokens.get(active_user)
-        return defer.succeed({'user': active_user, 'token': token})
+    def get_token(self, userid):
+        token = self._service_tokens.get(userid)
+        return {'user': userid, 'token': token}
 
     # access to containers
 
