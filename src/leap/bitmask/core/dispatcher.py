@@ -267,6 +267,17 @@ class MailCmd(SubCommand):
         d = mail.get_token()
         return d
 
+    @register_method('dict')
+    def do_MIXNET_STATUS(self, mail, *parts, **kw):
+        try:
+            userid = parts[2]
+            address = parts[3]
+        except IndexError:
+            raise DispatchError(
+                'wrong number of arguments: expected 2')
+        d = mail.do_mixnet_status(userid, address)
+        return d
+
 
 class WebUICmd(SubCommand):
 

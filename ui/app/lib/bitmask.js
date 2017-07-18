@@ -320,6 +320,19 @@ var bitmask = function(){
              */
             get_token: function() {
                 return call(['mail', 'get_token']);
+            },
+
+            /**
+             * Get status on the mixnet for an address.
+             *
+             * @param {string} uid The uid to get status about
+             * @param {string} address The recipient address to be mixed
+             *
+             * @return {Promise<{'status': string}>} Where the status string can be 'ok',
+             *                                       'unsuported' or 'disabled'
+             */
+            mixnet_status: function(uid, address) {
+                return call(['mail', 'mixnet_status', uid, address]);
             }
         },
 

@@ -20,8 +20,6 @@ Bitmask Command Line interface: mail
 import argparse
 import sys
 
-from colorama import Fore
-
 from leap.bitmask.cli import command
 
 
@@ -58,3 +56,22 @@ SUBCOMMANDS:
         self.data += ['status', uid]
 
         return self._send(command.print_status)
+
+    def mixnet_status(self, raw_args):
+        parser = argparse.ArgumentParser(
+            description='Bitmask mixnet status',
+            prog='%s %s %s' % tuple(sys.argv[:3]))
+        parser.add_argument('-u', '--userid', default='',
+                            help='uid to check the status of')
+        parser.add_argument('address', nargs=1,
+                            help='the recipient address')
+        subargs = parser.parse_args(raw_args)
+
+        userid = None
+        if subargs.userid:
+            userid = subargs.userid
+        else:
+            userid = self.cfg.get('bonafide', 'active', default=None)
+        self.data += ['mixnet_status', userid, subargs.address[0]]
+
+        return self._send(command.default_dict_printer)

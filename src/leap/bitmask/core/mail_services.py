@@ -469,13 +469,14 @@ class StandardMailService(service.MultiService, HookableService):
 
     # TODO factor out Mail Service to inside mail package.
 
-    def __init__(self, basedir):
+    def __init__(self, basedir, mixnet_enabled=False):
         self._basedir = basedir
         self._soledad_sessions = {}
         self._keymanager_sessions = {}
         self._sendmail_opts = {}
         self._service_tokens = {}
         self._active_user = None
+        self._mixnet_enabled = mixnet_enabled
         super(StandardMailService, self).__init__()
         self.initializeChildrenServices()
 
@@ -602,6 +603,14 @@ class StandardMailService(service.MultiService, HookableService):
             'incoming': incoming_status
         }
         defer.returnValue(merge_status(childrenStatus))
+
+    def do_mixnet_status(self, userid, address):
+        # XXX: for now there is no support in the provider
+        #      we'll mock it if it's enabled
+        status = 'disabled'
+        if self._mixnet_enabled:
+            status = 'ok'
+        return {'status': status}
 
     def get_token(self):
         active_user = self._active_user

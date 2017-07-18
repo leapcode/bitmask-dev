@@ -83,9 +83,6 @@ class BitmaskBackend(configurable.ConfigurableService):
         # top of the global app token, this should be removed.
         self.tokens = {}
 
-        def enabled(service):
-            return self.get_config('services', service, False, boolean=True)
-
         def with_manhole():
             user = self.get_config('manhole', 'user', '')
             passwd = self.get_config('manhole', 'passwd', '')
@@ -101,25 +98,28 @@ class BitmaskBackend(configurable.ConfigurableService):
         on_start(self.init_bonafide)
         on_start(self.init_sessions)
 
-        if enabled('mail'):
+        if self._enabled('mail'):
             on_start(self._init_mail_services)
 
-        if enabled('vpn'):
+        if self._enabled('vpn'):
             on_start(self._init_vpn)
 
-        if enabled('zmq'):
+        if self._enabled('zmq'):
             on_start(self._init_zmq)
 
-        if enabled('web'):
-            onion = enabled('onion')
+        if self._enabled('web'):
+            onion = self._enabled('onion')
             on_start(self._init_web, onion=onion)
 
-        if enabled('websockets'):
+        if self._enabled('websockets'):
             on_start(self._init_websockets)
 
         manholecfg = with_manhole()
         if manholecfg:
             on_start(self._init_manhole, manholecfg)
+
+    def _enabled(self, service):
+        return self.get_config('services', service, False, boolean=True)
 
     def _touch_token_file(self):
         path = os.path.join(self.basedir, 'authtoken')
@@ -203,7 +203,8 @@ class BitmaskBackend(configurable.ConfigurableService):
 
     def _init_mail(self):
         service = mail_services.StandardMailService
-        self._maybe_init_service('mail', service, self.basedir)
+        self._maybe_init_service('mail', service, self.basedir,
+                                 self._enabled('mixnet'))
 
     def _init_vpn(self):
         if HAS_VPN:

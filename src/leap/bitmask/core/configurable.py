@@ -51,6 +51,7 @@ zmq = True
 web = True
 onion = False
 websockets = False
+mixnet = False
 """
 
 __all__ = ["ConfigurableService", DEFAULT_BASEDIR, MissingConfigEntry]
