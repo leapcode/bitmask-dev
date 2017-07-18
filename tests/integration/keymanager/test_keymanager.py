@@ -452,7 +452,7 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
 
     @defer.inlineCallbacks
     def test_fetch_key_uses_ca_bundle_if_empty_string_specified(self):
-        ca_cert_path = ''
+        ca_cert_path = None
         km = self._key_manager(ca_cert_path=ca_cert_path)
         get_mock = self._mock_get_response(km, PUBLIC_KEY_OTHER)
 
