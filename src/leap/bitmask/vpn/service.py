@@ -57,13 +57,16 @@ class VPNService(HookableService):
         super(VPNService, self).__init__()
 
         self._tunnel = None
-        self._firewall = None
+        self._firewall = FirewallManager([])
         self._domain = ''
 
         if basepath is None:
             self._basepath = get_path_prefix()
         else:
             self._basepath = basepath
+
+        if self._firewall.is_up():
+            self._firewall.stop()
 
     def startService(self):
         # TODO this could trigger a check for validity of the certificates,
@@ -114,7 +117,7 @@ class VPNService(HookableService):
         defer.returnValue({'result': 'started'})
 
     def stop_vpn(self):
-        if self._firewall and self._firewall.is_up():
+        if self._firewall.is_up():
             fw_ok = self._firewall.stop()
             if not fw_ok:
                 self.log.error("Firewall: error stopping")
@@ -136,8 +139,7 @@ class VPNService(HookableService):
 
         if self._tunnel:
             childrenStatus['vpn'] = self._tunnel.status
-        if self._firewall:
-            childrenStatus['firewall'] = self._firewall.status
+        childrenStatus['firewall'] = self._firewall.status
         status = merge_status(childrenStatus)
 
         if self._domain:
