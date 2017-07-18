@@ -179,9 +179,8 @@ class Provider(object):
         self._disco = Discovery('https://%s' % domain)
         self._provider_config = None
 
-        cert_path = None
         is_configured = self.is_configured()
-        if is_configured:
+        if not cert_path and is_configured:
             cert_path = self._get_ca_cert_path()
         self._http = HTTPClient(cert_path)
 
