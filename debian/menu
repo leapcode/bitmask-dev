@@ -1,0 +1,7 @@
+?package(bitmask):needs="X11"\
+         hints="LEAP,Routing,Network Routing,Anonymous,openvpn"\
+         section="Applications/System/Security"\
+         title="Bitmask, the Internet Encryption Toolkit"\
+         command="/usr/bin/bitmask"\
+         icon="/usr/share/pixmaps/bitmask.xpm"
+

@@ -1,0 +1,279 @@
+bitmask (0.10.0) unstable; urgency=medium
+
+  * Update to 0.10.0 release.
+  * Ported new UI with VPN and Email support.
+
+ -- Ben Carrillo <ben@futeisha.org>  Thu, 19 Jul 2017 00:00:00 +0100
+
+bitmask (0.9.2.1) unstable; urgency=medium
+
+  * Hotfix: suport newest OpenVPN status format.
+
+ -- Ben Carrillo <ben@futeisha.org>  Sun, 12 Feb 2017 16:13:25 +0100
+
+bitmask (0.9.2) unstable; urgency=medium
+
+  [ Ben Carrillo ]
+  * Update to 0.9.2 release "panis et circenses" 
+
+  [ Micah Anderson]
+  * Add missing versioned dependency on leap-keymanager
+
+ -- Ben Carrillo <ben@futeisha.org>  Mon, 25 Apr 2016 21:33:01 -0400
+
+bitmask (0.9.1) unstable; urgency=medium
+
+  * Update to 0.9.1 release "the day of the calaca" 
+
+ -- Ben Carrillo <ben@futeisha.org>  Wed, 04 Nov 2015 10:51:52 -0400
+
+bitmask (0.9.0) unstable; urgency=medium
+
+  * Update to 0.9.0 release.
+  * Update debian/control Description
+  * Remove deprecated Encoding key in debian/bitmask.desktop
+  * Add Keywords entry to debian/bitmask.desktop
+  * Add explicit dependency on python-txzmq
+  * Add versioned dependency on python-logbook
+  * Add versioned dependency on python-twisted-core
+  * Add Recommends on thunderbird extension
+  * Cherry-pick 9362e25 to avoid using system tornado in zmq.
+  * Cherry-pick 5d48352, pick gpg1 if /usr/bin/gpg is symlink.
+  * Add dependency libssl-dev as a workaround for #7566
+
+ -- Ben Carrillo <ben@futeisha.org>  Thu, 29 Oct 2015 12:16:57 -0400
+
+bitmask (0.8.1) unstable; urgency=medium
+
+  * Update to 0.8.1 release. 
+
+ -- Ben Carrillo <ben@futeisha.org>  Fri, 27 Feb 2015 10:48:29 -0400
+
+bitmask (0.8.0) unstable; urgency=medium
+
+  * Update to 0.8.0 release.
+  * Change build-depends on python-requests to not build on -1 revision
+  * Update debian/copyright to fix space-in-std-shortname
+  * Update debian/copyright to fix dep5 copyright short name
+  * Update standards version to 3.9.6 - no changes
+
+ -- Ben Carrillo <ben@futeisha.org>  Thu, 05 Feb 2015 15:23:14 -0400
+
+bitmask (0.7.0.1) unstable; urgency=medium
+
+  * Add missing dependency on python-daemon (github #796)
+
+ -- Micah Anderson <micah@debian.org>  Fri, 26 Dec 2014 02:06:38 -0500
+
+bitmask (0.7.0) unstable; urgency=medium
+
+  * Update to 0.7.0 release
+  * Workarounds for #6219 and #6133
+  * Bump python-zmq package requirement to use leap
+    provided build against libsodium
+
+ -- Ben Carrillo <ben@futeisha.org>  Mon, 24 Nov 2014 17:17:17 +0100
+
+bitmask (0.6.1.2) unstable; urgency=medium
+
+  * add versioned depend on leap's python-zmq until libsodium is in debian
+
+ -- Micah Anderson <micah@debian.org>  Tue, 26 Aug 2014 09:38:36 -0700
+
+bitmask (0.6.1) unstable; urgency=medium
+
+  * Cherry-pick ced7ebf and c23f2be, fixing three bugs related to
+    provider change (#5995, #5996, #5997)
+  * Remove saucy required pydist-overrides for pyopenssl
+  * Cherry-pick fix for missing openvpn.pem not being re-downloaded 
+  * Cherry-pick fix for 2.6 syntax error with dict comprenhension
+  * Update to 0.6.1 release
+
+ -- Micah Anderson <micah@debian.org>  Tue, 19 Aug 2014 13:45:05 -0400
+
+bitmask (0.5.4) unstable; urgency=medium
+
+  * Update to 0.5.4 release
+  * Remove dependency on resolvconf and pep8
+
+ -- Ben Carrillo <ben@futeisha.org>  Fri, 25 Jul 2014 11:38:14 -0500
+
+bitmask (0.5.3.5) unstable; urgency=medium
+
+  * Neglected to set python-requests dependency for Depends 
+
+ -- Micah Anderson <micah@debian.org>  Sun, 06 Jul 2014 19:07:56 -0400
+
+bitmask (0.5.3.4) unstable; urgency=medium
+
+  * Add hint to pydist-overrides for python-openssl, seems this might be
+    needed for saucy (#676)
+
+ -- Micah Anderson <micah@debian.org>  Thu, 03 Jul 2014 21:45:37 -0400
+
+bitmask (0.5.3.3) unstable; urgency=medium
+
+  * Cherry-pick fix for syntax error on install for some suites 
+
+ -- Micah Anderson <micah@debian.org>  Wed, 02 Jul 2014 11:37:42 -0400
+
+bitmask (0.5.3.2) unstable; urgency=medium
+
+  * Lower version dependency on python requests so
+    that other suites can still install 
+
+ -- Micah Anderson <micah@debian.org>  Tue, 01 Jul 2014 21:19:27 -0400
+
+bitmask (0.5.3.1) unstable; urgency=medium
+
+  * Add version dependency for python-requests
+
+ -- Micah Anderson <micah@debian.org>  Tue, 01 Jul 2014 21:00:49 -0400
+
+bitmask (0.5.3) unstable; urgency=medium
+
+  * Update to 0.5.3 release 
+
+ -- Ben Carrillo <ben@futeisha.org>  Tue, 01 Jul 2014 01:49:02 -0500
+
+bitmask (0.5.2) unstable; urgency=medium
+
+  * Update to 0.5.2 release 
+
+ -- Ben Carrillo <ben@futeisha.org>  Tue, 10 Jun 2014 09:29:25 -0500
+
+bitmask (0.5.1) unstable; urgency=medium
+
+  * Update to 0.5.1 release.
+  * Block ipv6 traffic (leap #5693)
+
+ -- Ben Carrillo <ben@futeisha.org>  Mon, 19 May 2014 16:06:57 -0500
+
+bitmask (0.5.0) unstable; urgency=low
+
+  * Update to 0.5.0 release (first unified release, together with
+    soledad and mx).
+
+ -- Ben Carrillo <ben@futeisha.org>  Wed, 09 Apr 2014 16:24:40 -0500
+
+bitmask (0.3.8.4) unstable; urgency=medium
+
+  * Remove bitmask.trigger and bitmask.postinst, I misunderstood how
+    the triggers worked
+
+ -- Micah Anderson <micah@debian.org>  Mon, 16 Dec 2013 10:04:32 -0500
+
+bitmask (0.3.8.3) unstable; urgency=low
+
+  * Fix postinst trigger
+
+ -- Micah Anderson <micah@debian.org>  Sun, 15 Dec 2013 15:13:34 -0500
+
+bitmask (0.3.8.2) unstable; urgency=medium
+
+  * Update icons to get rendered versions with the right names
+
+ -- Micah Anderson <micah@debian.org>  Thu, 12 Dec 2013 15:07:53 -0500
+
+bitmask (0.3.8.1) unstable; urgency=medium
+
+  * Add desktop file
+  * Add icons and triggers for rebuilding icon cache
+
+ -- Micah Anderson <micah@debian.org>  Wed, 11 Dec 2013 10:29:26 -0500
+
+bitmask (0.3.8) unstable; urgency=low
+
+  * Update to 0.3.8 release, "The three-week child" 
+
+ -- Ben Carrillo <ben@futeisha.org>  Tue, 10 Dec 2013 18:14:26 -0400
+
+bitmask (0.3.7) unstable; urgency=low
+
+  * Update to 0.3.7 release, "The Big Lewosky"
+
+ -- Ben Carrillo <ben@futeisha.org>  Fri, 15 Nov 2013 23:43:35 -0200
+
+bitmask (0.3.6) unstable; urgency=low
+
+  * Update to 0.3.6 release. 
+  * Install CHANGELOG.rst after it was renamed.
+
+ -- Ben Carrillo <ben@futeisha.org>  Tue, 05 Nov 2013 11:41:39 -0200
+
+bitmask (0.3.5) unstable; urgency=low
+
+  * Update to 0.3.5 release.
+  * Freeze reported version to 0.3.5 using freeze_debianver
+
+ -- Ben Carrillo <ben@futeisha.org>  Wed, 30 Oct 2013 16:35:10 -0200
+
+bitmask (0.3.4) unstable; urgency=low
+
+  * Update to 0.3.4 release.
+  * Removed explicit gnupg dependency; now we indirectly depend on
+    python-gnupg-ng.
+
+ -- Ben Carrillo <ben@futeisha.org>  Mon, 14 Oct 2013 17:34:43 -0300
+
+bitmask (0.3.3) unstable; urgency=low
+
+  * Update to 0.3.3 release.
+
+ -- Micah Anderson <micah@debian.org>  Tue, 24 Sep 2013 17:07:42 -0400
+
+bitmask (0.3.2) unstable; urgency=low
+
+  * Merge master for 0.3.2 release.
+
+ -- Ben Carrillo <ben@futeisha.org>  Thu, 12 Sep 2013 14:30:01 +0200
+
+bitmask (0.3.1) unstable; urgency=low
+
+  [ Ben Carrillo ]
+  * Merge master for new release
+  * Cherrypick fix for updown script.
+  * Add data files to install /etc/leap/resolv-update
+  * Add leap.mail and leap.soledad.client dependencies explicitly.
+  * Install CHANGELOG.
+  * Update path to icon and menu entry to new package name.
+
+  [ Micah Anderson ]
+  * Update debian/copyright for new license
+  * Reformat extended description to fit properly
+  * Add leap-keymanager to pydist-overrides
+	
+ -- Ben Carrillo <ben@futeisha.org>  Mon, 26 Aug 2013 14:21:06 +0200
+
+bitmask (0.3.0) unstable; urgency=low
+
+  * Upgrade to 0.3.0
+  * Add python-pyside dependencies
+  * Remove versioned dependency on python-requests
+  * Rename manpage for bitmask rename
+  * Remove no longer existing NEWS file installation
+  * Disable running of tests on package build
+  * Add man pages back in
+  * Rename to bitmask
+  
+ -- Micah Anderson <micah@debian.org>  Thu, 15 Aug 2013 20:22:18 -0400
+
+leap-client (0.2.0) unstable; urgency=low
+  [ Kali ]
+  * add python-jsonschema dependency >= 0.8
+  * generate manpage from .rst file
+  * fixes to sphinxdoc install
+  * merged release/v0.2.0 branch
+  * updated dependency list
+
+  [ Micah Anderson ]
+  * updated build-dependencies to have necessary packages to pass tests
+  * removed unused comments from control file
+  * move build-depends to source package section of control file
+  * switch source/format to 3.0 (native)
+  * fix build-dependency on python-mock
+
+  [ Kali ]
+  * Initial release (Closes: #111111111111)
+
+ -- Ben Carrillo <ben@futeisha.org>  Fri, 01 Feb 2013 02:40:00 -0900
