@@ -27,7 +27,7 @@ override_dh_prep:
 	mv src/leap/bitmask/cli src/bitmask-cli.orig
 
 	# this will re-generate the resource files and locales.
-	make -f ./Makefile
+	make -f ./Makefile qt-resources
 
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 

@@ -6,7 +6,7 @@ Standards-Version: 3.9.6
 Uploaders: Micah Anderson <micah@debian.org>
 Homepage: https://leap.se
 Build-Depends: debhelper (>= 8.0.0), dh-python, python, python-setuptools,
-               pep8, python-sphinx, docutils-common, 
+               pep8, python-sphinx, docutils-common, pyqt5-dev-tools,
                docutils-common, python-keyring, python-dateutil, python-argparse
 X-Python-Version: >= 2.7 
 
