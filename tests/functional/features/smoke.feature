@@ -1,4 +1,3 @@
-@smoke
 Feature: login and logout
 
   Scenario: See user panel after login
@@ -12,3 +11,9 @@ Feature: login and logout
     And I logout
     Then I should see the second login page
 
+  @smoke
+  Scenario: Use VPN
+    Given I start bitmask for the first time
+    When I login
+    And I activate VPN
+    Then I should have my ass covered
