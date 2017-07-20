@@ -20,7 +20,7 @@ Setup your virtualenv and python packages:
 
     virtualenv venv-all
     source ./venv-all/bin/activate
-    make dev-all
+    make dev-latest-all
     make test_functional_setup
 
 ## Run tests
@@ -28,6 +28,18 @@ Setup your virtualenv and python packages:
     source ./venv-all/bin/activate
     export TEST_USERNAME='user@provider.tld' TEST_PASSWORD='...'
     make test_functional
+
+## Run tests inside docker with gitlab-runner
+
+Install Docker and [gitlab-runner](https://docs.gitlab.com/runner/).
+Run the `functional_tests` job:
+
+    gitlab-runner exec docker \
+      --docker-volumes /tmp/bitmask-test/artifacts:/tmp/bitmask-test/artifacts \
+      --env TEST_USERNAME='...' --env TEST_PASSWORD='...'\
+      functional_tests
+
+In case of failing tests the resulting artifacts (screenshot, `.config` folder) will be available at `/tmp/bitmask-test/artifacts` on the host.
 
 # Develop tests
 
