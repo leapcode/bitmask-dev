@@ -16,6 +16,7 @@ bundle: bundle_clean
 	# virtualenv, make sure that you're installing the packages from wheels and not eggs.
 	mkdir -p $(DIST)/leap/soledad/client/_db
 	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/soledad/client/_db/dbschema.sql $(DIST)/leap/soledad/client/_db/
+	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/common/cacert.pem $(DIST)/
 	cp -r $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/bitmask_js  $(DIST)/leap/
 	cp -r $(VIRTUAL_ENV)/lib/python2.7/site-packages/pixelated_www  $(DIST)/
 	mv $(DIST) _bundlelib && mkdir $(DIST_VERSION) && mv _bundlelib $(DIST_VERSION)/lib/
