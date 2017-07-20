@@ -10,7 +10,7 @@ from selenium.webdriver.chrome.options import Options
 from leap.common.config import get_path_prefix
 
 DEFAULT_IMPLICIT_WAIT_TIMEOUT_IN_S = 10
-HOME_PATH = '/tmp/bitmask-test'
+HOME_PATH = os.path.abspath('./tmp/bitmask-test')
 
 
 def before_all(context):
@@ -78,9 +78,8 @@ def _save_config(context, step):
 
 
 def _artifact_path(step, filename=''):
-    string = 'failed {}'.format(str(step.name))
-    slug = re.sub('\W', '-', string)
-    return os.path.join(HOME_PATH, 'artifacts', slug, filename)
+    slug = re.sub('\W', '-', str(step.name))
+    return os.path.abspath(os.path.join('failures', slug, filename))
 
 
 def _debug_on_error(context, step):

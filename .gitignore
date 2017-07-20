@@ -50,3 +50,9 @@ pkg/pyinst/build/
 pkg/launcher/bitmask
 
 NOTES
+
+# logs and screenshots from failed functional tests
+/failures/
+
+# temporary home folders for functional tests
+/tmp/

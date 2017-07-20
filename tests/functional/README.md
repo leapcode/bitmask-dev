@@ -35,11 +35,11 @@ Install Docker and [gitlab-runner](https://docs.gitlab.com/runner/).
 Run the `functional_tests` job:
 
     gitlab-runner exec docker \
-      --docker-volumes /tmp/bitmask-test/artifacts:/tmp/bitmask-test/artifacts \
+      --docker-volumes /tmp/bitmask-test/failures:/builds/project-0/failures \
       --env TEST_USERNAME='...' --env TEST_PASSWORD='...'\
       functional_tests
 
-In case of failing tests the resulting artifacts (screenshot, `.config` folder) will be available at `/tmp/bitmask-test/artifacts` on the host.
+In case of failing tests the resulting artifacts (screenshot, `.config` folder) will be available at `/tmp/bitmask-test/failures` on the host.
 
 # Develop tests
 
