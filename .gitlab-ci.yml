@@ -72,7 +72,7 @@ functional_tests:
   artifacts:
     when: on_failure
     paths:
-      - "/tmp/*.png"
+      - "/tmp/bitmask-test/artifacts/*"
     name: "Bitmask_linux64_${CI_BUILD_REF}_e2e_screenshots"
     expire_in: 1 month
   tags:

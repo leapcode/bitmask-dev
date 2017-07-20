@@ -21,6 +21,6 @@ def initial_run(context):
 
 def _initialize_home_path():
     home_path = '/tmp/bitmask-test'
-    shutil.rmtree(home_path, ignore_errors=True)
     os.environ['HOME'] = home_path
+    shutil.rmtree(get_path_prefix(), ignore_errors=True)
     os.makedirs(get_path_prefix())

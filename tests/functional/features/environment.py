@@ -1,4 +1,5 @@
 import os
+import shutil
 import re
 import time
 from urlparse import urlparse
@@ -6,11 +7,14 @@ import commands
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from leap.common.config import get_path_prefix
 
 DEFAULT_IMPLICIT_WAIT_TIMEOUT_IN_S = 10
+HOME_PATH = '/tmp/bitmask-test'
 
 
 def before_all(context):
+    os.environ['HOME'] = HOME_PATH
     _setup_webdriver(context)
     userdata = context.config.userdata
     context.host = userdata.get('host', 'http://localhost')
@@ -42,8 +46,37 @@ def after_all(context):
 
 def after_step(context, step):
     if step.status == 'failed':
+        _prepare_artifacts_folder(step)
         _save_screenshot(context, step)
+        _save_config(context, step)
         _debug_on_error(context, step)
+
+
+def _prepare_artifacts_folder(step):
+    try:
+        os.makedirs(_artifact_path(step))
+    except OSError as err:
+        # directory existed
+        if err.errno != 17:
+            raise
+
+
+def _save_screenshot(context, step):
+    filepath = _artifact_path(step, 'screenshot.png')
+    context.browser.save_screenshot(filepath)
+    print('saved screenshot to: file://%s' % filepath)
+
+
+def _save_config(context, step):
+    filepath = _artifact_path(step, 'config')
+    shutil.copytree(get_path_prefix(), filepath)
+    print('copied config to:    file://%s' % filepath)
+
+
+def _artifact_path(step, filename=''):
+    string = 'failed {}'.format(str(step.name))
+    slug = re.sub('\W', '-', string)
+    return os.path.join(HOME_PATH, 'artifacts', slug, filename)
 
 
 def _debug_on_error(context, step):
@@ -54,14 +87,3 @@ def _debug_on_error(context, step):
         except ImportError:
             import pdb
             pdb.post_mortem(step.exc_traceback)
-
-
-def _save_screenshot(context, step):
-    timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
-    filename = _slugify('{} failed {}'.format(timestamp, str(step.name)))
-    filepath = os.path.join('/tmp/', filename + '.png')
-    context.browser.save_screenshot(filepath)
-
-
-def _slugify(string_):
-    return re.sub('\W', '-', string_)
