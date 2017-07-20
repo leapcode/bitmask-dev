@@ -9,7 +9,6 @@ dev-mail:
 
 dev-gui: install_pixelated
 	pip install -e '.[gui]'
-
 dev-backend:
 	pip install -e '.[backend]'
 
@@ -18,6 +17,7 @@ dev-latest-backend: dev-backend
 	pip install -e 'git+https://0xacab.org/leap/soledad@master#egg=leap.soledad'
 
 dev-all: install_pixelated
+	pip install -I --install-option="--bundled" pysqlcipher
 	pip install -e '.[all]'
 
 dev-latest-all: dev-all
@@ -34,6 +34,15 @@ test_e2e:
 	tests/e2e/e2e-test-mail.sh
 	tests/e2e/e2e-test-vpn.sh
 
+test_functional_setup:
+	pip install behave selenium
+
+test_functional:
+	xvfb-run --server-args="-screen 0 1280x1024x24" behave --tags ~@wip --tags @smoke tests/functional/features -k -D host=localhost
+
+test_functional_graphical:
+	behave --tags ~@wip --tags @smoke tests/functional/features -k -D host=localhost
+
 install_helpers:
 	cp src/leap/bitmask/vpn/helpers/linux/bitmask-root /usr/local/sbin/
 	cp src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.policy /usr/share/polkit-1/actions/
@@ -41,7 +50,7 @@ install_helpers:
 install_pixelated:
 	# install pixelated from our repo until assets get packaged.
 	pip install requests==2.11.1 whoosh chardet
-	pip install pixelated-www pixelated-user-agent --find-links https://downloads.leap.se/libs/pixelated/  
+	pip install pixelated-www pixelated-user-agent --find-links https://downloads.leap.se/libs/pixelated/
 
 qt-resources:
 	pyrcc5 pkg/branding/icons.qrc -o src/leap/bitmask/gui/app_rc.py
