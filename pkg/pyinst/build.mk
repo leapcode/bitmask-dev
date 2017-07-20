@@ -40,6 +40,7 @@ bundle_linux_helpers:
 	mkdir -p $(DIST_VERSION)/apps/helpers
 	cp src/leap/bitmask/vpn/helpers/linux/bitmask-root $(DIST_VERSION)/apps/helpers/
 	cp src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.bundle.policy $(DIST_VERSION)/apps/helpers/
+	cp /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1.2.0 $(DIST_VERSION)/lib/libGL.so.1
 
 bundle_osx_helpers:
 	mkdir -p $(DIST_VERSION)/apps/helpers
