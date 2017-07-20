@@ -22,9 +22,13 @@ def before_all(context):
         context.host = 'https://{}'.format(context.host)
     context.hostname = urlparse(context.host).hostname
 
-    context.username = os.environ['TEST_USERNAME']
-    context.password = os.environ['TEST_PASSWORD']
-    context.user_email = '{}@{}'.format(context.username, context.hostname)
+    try:
+        context.username = os.environ['TEST_USERNAME']
+        context.password = os.environ['TEST_PASSWORD']
+        context.user_email = '{}@{}'.format(context.username, context.hostname)
+    except KeyError:
+        print('TEST_USERNAME or TEST_PASSWORD not set')
+        sys.exit(0)
 
 
 def _setup_webdriver(context):
