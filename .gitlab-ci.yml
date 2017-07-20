@@ -15,13 +15,16 @@ linux_test:
   tags:
     - linux
 
-osx_test:
-  stage: test
-  allow_failure: true
-  script:
-    - tox --recreate -e py27-dev
-  tags:
-    - osx
+# Currently, our only OSX gitlab runner is unavailable too often
+# and the tests fail in CI anyway so we disable it for now until
+# we fix both.
+#osx_test:
+#  stage: test
+#  allow_failure: true
+#  script:
+#    - tox --recreate -e py27-dev
+#  tags:
+#    - osx
 
 bitmask_latest_bundle:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
