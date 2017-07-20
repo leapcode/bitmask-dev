@@ -65,7 +65,7 @@ class VPNService(HookableService):
         else:
             self._basepath = basepath
 
-        if self._firewall.is_up():
+        if helpers.check() and self._firewall.is_up():
             self._firewall.stop()
 
     def startService(self):
