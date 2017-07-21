@@ -4,11 +4,15 @@ from common import (
     wait_until_button_is_visible,
     find_element_containing_text
 )
+from selenium.common.exceptions import TimeoutException
 
 
 @when('I activate VPN')
 def activate_vpn(context):
-    click_button(context, 'Install Helper Files')
+    try:
+        click_button(context, 'Install Helper Files')
+    except TimeoutException:
+        pass
     click_button(context, 'Turn ON')
 
 
