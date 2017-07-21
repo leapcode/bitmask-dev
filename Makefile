@@ -41,10 +41,13 @@ test_functional_setup:
 	pip install behave selenium
 
 test_functional:
-	xvfb-run --server-args="-screen 0 1280x1024x24" behave --tags ~@wip --tags @smoke tests/functional/features -k -D host=localhost
+	xvfb-run --server-args="-screen 0 1280x1024x24" behave --tags ~@wip --tags @smoke tests/functional/features -k --no-capture -D host=localhost
 
 test_functional_graphical:
-	behave --tags ~@wip --tags @smoke tests/functional/features -k -D host=localhost
+	behave --tags ~@wip --tags @smoke tests/functional/features -k --no-capture -D host=localhost
+
+test_functional_graphical_wip:
+	behave --tags @wip tests/functional/features -k --no-capture -D host=localhost
 
 install_helpers:
 	cp src/leap/bitmask/vpn/helpers/linux/bitmask-root /usr/local/sbin/
