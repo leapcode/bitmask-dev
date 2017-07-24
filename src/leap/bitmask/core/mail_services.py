@@ -614,6 +614,16 @@ class StandardMailService(service.MultiService, HookableService):
         token = self._service_tokens.get(userid)
         return {'user': userid, 'token': token}
 
+    def do_add_msg(self, userid, raw_msg, mailbox=None):
+        if not mailbox:
+            mailbox = INBOX_NAME
+
+        account = self._get_account(userid)
+        d = account.get_collection_by_mailbox(mailbox)
+        d.addCallback(lambda collection: collection.add_msg(raw_msg))
+        d.addCallback(lambda _: {'added': True})
+        return d
+
     # access to containers
 
     def get_soledad_session(self, userid):
@@ -642,12 +652,15 @@ class StandardMailService(service.MultiService, HookableService):
             json.dump(token_dict, ftokens)
 
     def _maybe_start_pixelated(self, passthrough, userid, soledad, keymanager):
-        incoming = self.getServiceNamed('incoming_mail')
-        account = incoming.getServiceNamed(userid).account
+        account = self._get_account(userid)
         if HAS_MUA and pixelizer.HAS_PIXELATED:
             pixelizer.start_pixelated_user_agent(
                 userid, soledad, keymanager, account)
         return passthrough
+
+    def _get_account(self, userid):
+        incoming = self.getServiceNamed('incoming_mail')
+        return incoming.getServiceNamed(userid).account
 
 
 class IMAPService(service.Service):

@@ -35,6 +35,7 @@ SUBCOMMANDS:
    disable              Stop service
    status               Display status about service
    get_token            Returns token for the mail service
+   add_msg              Add a msg file to a mailbox
 
 '''.format(name=command.appname)
 
@@ -71,6 +72,34 @@ SUBCOMMANDS:
         else:
             uid = self.cfg.get('bonafide', 'active', default=None)
         self.data += ['get_token', uid]
+
+        return self._send(command.default_dict_printer)
+
+    def add_msg(self, raw_args):
+        parser = argparse.ArgumentParser(
+            description='Bitmask email status',
+            prog='%s %s %s' % tuple(sys.argv[:3]))
+        parser.add_argument('-u', '--userid', default='',
+                            help='Select the userid of the mail')
+        parser.add_argument('-m', '--mailbox', default='',
+                            help='Select the mailbox to add the email')
+        parser.add_argument('file', nargs=1,
+                            help='file where the mail is stored')
+        subargs = parser.parse_args(raw_args)
+
+        if subargs.userid:
+            userid = subargs.userid
+        else:
+            userid = self.cfg.get('bonafide', 'active', default=None)
+
+        mailbox = ''
+        if subargs.mailbox:
+            mailbox = subargs.mailbox
+
+        with open(subargs.file[0], 'r') as msgfile:
+            rawmsg = msgfile.read()
+
+        self.data += ['add_msg', userid, mailbox, rawmsg]
 
         return self._send(command.default_dict_printer)
 

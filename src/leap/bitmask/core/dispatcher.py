@@ -282,6 +282,18 @@ class MailCmd(SubCommand):
         d = mail.do_mixnet_status(userid, address)
         return d
 
+    @register_method('dict')
+    def do_ADD_MSG(self, mail, *parts, **kw):
+        try:
+            userid = parts[2]
+            mailbox = parts[3]
+            msg = parts[4]
+        except IndexError:
+            raise DispatchError(
+                'wrong number of arguments: expected 3, got none')
+        d = mail.do_add_msg(userid, msg, mailbox)
+        return d
+
 
 class WebUICmd(SubCommand):
 
