@@ -49,3 +49,4 @@ init_pew
 apt_install
 clone_repo
 install_deps
+pew workon bitmask

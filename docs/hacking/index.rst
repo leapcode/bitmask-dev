@@ -47,13 +47,18 @@ environment with::
 
   make dev-bootstrap
 
-.. note:: the bootstrap script is, at the moment, quite opinionated. for
-          instance, it checks out the bitmask-dev repo under ~/leap folder, and
-          it assumes you are using zsh. if you think it should allow more
-          freedom of choices, feel free to open a pull request.
+To activate the freshly created virtualenv the next time, you must use `pew`_::
 
-Manual procedure
-~~~~~~~~~~~~~~~~
+  pew workon bitmask
+
+.. note:: the bootstrap script is, at the moment, quite opinionated. for
+          instance, it installs and depends on pew, it checks out the
+          bitmask-dev repo under ~/leap folder, and it assumes you are using
+          zsh. if you think it should allow more freedom of choices, feel free
+          to open a pull request.
+
+Manual instructions 
+~~~~~~~~~~~~~~~~~~~
 
 Install the system-wide dependencies. For debian-based systems::
 
@@ -126,6 +131,7 @@ This extension gets published to the `mozilla addons page`_.
 
 .. _`this repo`: https://0xacab.org/leap/bitmask_thunderbird
 .. _`mozilla addons page`: https://addons.mozilla.org/en-US/thunderbird/addon/bitmask
+
 
 Debugging Bitmask
 ---------------------------------
