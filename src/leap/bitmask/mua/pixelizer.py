@@ -49,8 +49,9 @@ try:
     from pixelated.bitmask_libraries.smtp import LeapSMTPConfig
     from pixelated.config.sessions import SessionCache
     from pixelated.config import services
+    from pixelated.resources import set_static_folder
     from pixelated.resources.root_resource import RootResource
-    import pixelated_www
+    import leap.pixelated_www
     HAS_PIXELATED = True
 
     class _LeapMailStore(LeapMailStore):
@@ -120,7 +121,6 @@ try:
                 name = mailboxes[lower_mboxes.index(lower)]
             defer.returnValue(name)
 
-
 except ImportError as exc:
     HAS_PIXELATED = False
 
@@ -150,10 +150,11 @@ def start_pixelated_user_agent(userid, soledad, keymanager, account):
 
     if getattr(sys, 'frozen', False):
         # we are running in a |PyInstaller| bundle
-        static_folder = os.path.join(sys._MEIPASS, 'pixelated_www')
+        static_folder = os.path.join(sys._MEIPASS, 'leap', 'pixelated_www')
     else:
-        static_folder = os.path.abspath(pixelated_www.__path__[0])
+        static_folder = os.path.abspath(leap.pixelated_www.__path__[0])
 
+    set_static_folder(static_folder)
     resource = RootResource(services_factory, static_folder=static_folder)
 
     config.host = 'localhost'
