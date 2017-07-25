@@ -4,6 +4,9 @@ DIST_VERSION = dist/bitmask-$(NEXT_VERSION)/
 include pkg/pyinst/build.mk
 include pkg/thirdparty/openvpn/build.mk
 
+dev-bootstrap:
+	pkg/tools/bitmask-bootstrap.sh
+
 dev-mail:
 	pip install -e '.[mail]'
 

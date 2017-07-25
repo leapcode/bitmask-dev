@@ -72,8 +72,6 @@ in the system)::
   bitmaskctl logs send
 
 
-
-
 Development
 ===========================================================
 
@@ -109,6 +107,11 @@ virtualenv.
 
 The various ``make dev-*`` commands will run the appropriate ``pip install``
 commands for you.
+
+If you want to setup your whole development environment, and you are running a
+debian-based system, you can try::
+
+  make dev-bootstrap
 
 Run headless backend in development mode
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

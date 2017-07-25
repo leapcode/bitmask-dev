@@ -5,7 +5,7 @@
 
 set -e
 
-APT_DEPS="build-essential python-dev python-virtualenv libsqlcipher-dev libssl1.0-dev libffi-dev python-pyqt5 python-pyqt5.qtwebkit"
+APT_DEPS="build-essential python-dev python-virtualenv libsqlcipher-dev libssl1.0-dev libffi-dev haveged python-pyqt5 python-pyqt5.qtwebkit"
 
 function add_pew_to_environment()
 {

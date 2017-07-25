@@ -38,6 +38,23 @@ parent folder.
 Setting up the development environment
 --------------------------------------
 
+Automated procedure
+~~~~~~~~~~~~~~~~~~~
+
+There is an automated script that runs, sequentially, all the commands in the
+section below. In debian-based systems, you can get a fully working development
+environment with::
+
+  make dev-bootstrap
+
+.. note:: the bootstrap script is, at the moment, quite opinionated. for
+          instance, it checks out the bitmask-dev repo under ~/leap folder, and
+          it assumes you are using zsh. if you think it should allow more
+          freedom of choices, feel free to open a pull request.
+
+Manual procedure
+~~~~~~~~~~~~~~~~
+
 Install the system-wide dependencies. For debian-based systems::
 
   sudo apt install build-essential python-dev python-virtualenv \
