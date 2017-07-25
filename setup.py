@@ -29,15 +29,16 @@ if platform.system() == "Windows":
     required.append(['appdirs'])
     required.append(['python-gnupg'])
 
-# TODO change to leap.soledad when we tag 0.10
 mail_deps = ['leap.soledad[client]', 'gnupg']
+pix_deps = ['leap.pixelated', 'leap.pixelated_www']
 gui_deps = ['vext.pyqt5', 'leap.bitmask_js']
 tor_deps = ['txtorcon']
 extras = {
     'mail': mail_deps,
+    'pixelated': pix_deps,
     'gui': gui_deps,
     'backend': mail_deps,
-    'all': mail_deps + gui_deps,
+    'all': mail_deps + gui_deps + pix_deps,
     'tor': tor_deps
 }
 

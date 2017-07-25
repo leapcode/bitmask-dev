@@ -48,9 +48,7 @@ install_helpers:
 	cp src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.policy /usr/share/polkit-1/actions/
 
 install_pixelated:
-	# install pixelated from our repo until assets get packaged.
-	pip install requests==2.11.1 whoosh chardet
-	pip install pixelated-www pixelated-user-agent --find-links https://downloads.leap.se/libs/pixelated/
+	pip install leap.pixelated leap.pixelated-www
 
 qt-resources:
 	pyrcc5 pkg/branding/icons.qrc -o src/leap/bitmask/gui/app_rc.py
