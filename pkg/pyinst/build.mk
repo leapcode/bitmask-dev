@@ -18,7 +18,7 @@ bundle: bundle_clean
 	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/soledad/client/_db/dbschema.sql $(DIST)/leap/soledad/client/_db/
 	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/common/cacert.pem $(DIST)/
 	cp -r $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/bitmask_js  $(DIST)/leap/
-	cp -r $(VIRTUAL_ENV)/lib/python2.7/site-packages/pixelated_www  $(DIST)/
+	cp -r $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/pixelated_www  $(DIST)/leap/
 	mv $(DIST) _bundlelib && mkdir $(DIST_VERSION) && mv _bundlelib $(DIST_VERSION)/lib/
 	cd pkg/launcher && make
 	cp pkg/launcher/bitmask $(DIST_VERSION)
@@ -26,7 +26,7 @@ bundle: bundle_clean
 bundle_linux_gpg:
 	# TODO build it in a docker container!
 	mkdir -p $(DIST_VERSION)/apps/mail
-	cp /usr/bin/gpg $(DIST_VERSION)/apps/mail/
+	cp /usr/bin/gpg1 $(DIST_VERSION)/apps/mail/gpg
 	# workaround for missing libreadline.so.6 in fresh ubuntu
 	patchelf --set-rpath '.' $(DIST_VERSION)/apps/mail/gpg
 	cp /lib/x86_64-linux-gnu/libusb-0.1.so.4 $(DIST_VERSION)/lib
@@ -40,7 +40,7 @@ bundle_linux_helpers:
 	mkdir -p $(DIST_VERSION)/apps/helpers
 	cp src/leap/bitmask/vpn/helpers/linux/bitmask-root $(DIST_VERSION)/apps/helpers/
 	cp src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.bundle.policy $(DIST_VERSION)/apps/helpers/
-	cp /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1.2.0 $(DIST_VERSION)/lib/libGL.so.1
+	cp /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1.2.0 $(DIST_VERSION)/lib/libGL.so.1 || echo "libGL version not found"
 
 bundle_osx_helpers:
 	mkdir -p $(DIST_VERSION)/apps/helpers
