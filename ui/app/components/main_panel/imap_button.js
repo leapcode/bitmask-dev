@@ -32,10 +32,8 @@ export default class IMAPButton extends React.Component {
 
   onClick() {
     if (!this.state.token) {
-      bitmask.mail.get_token().then(response => {
-        if (response.user == this.props.account.address) {
-          this.setState({token: response.token})
-        }
+      bitmask.mail.get_token(this.props.account.id).then(response => {
+        this.setState({token: response.token})
       })
     }
     this.setState({showModal: true})

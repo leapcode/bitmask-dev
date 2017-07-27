@@ -318,7 +318,7 @@ var bitmask = function(){
              *
              * @param {string} uid The uid to get status about
              *
-             * @return {Promise<string>} The token
+             * @return {Promise<{'token': string}>} The token
              */
             get_token: function(uid) {
                 return call(['mail', 'get_token', uid]);
