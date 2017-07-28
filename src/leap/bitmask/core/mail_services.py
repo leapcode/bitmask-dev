@@ -252,13 +252,19 @@ class KeymanagerContainer(Container):
 
         def _found_key(key):
             self.log.info('Found key: %r' % key)
+            self._set_status(userid, "on", keys="found")
             return key
+
+        def key_generated_cb(passthru):
+            self._set_status(userid, "on", keys="found")
+            return passthru
 
         def _if_not_found_generate(failure):
             failure.trap(KeyNotFound)
             self.log.info('Key not found, generating key for %s' % (userid,))
             self._set_status(userid, "starting", keys="generating")
             d = keymanager.gen_key()
+            d.addCallback(key_generated_cb)
             d.addErrback(_log_key_error)
             return d
 
@@ -272,7 +278,6 @@ class KeymanagerContainer(Container):
         d = keymanager.get_key(userid, private=True, fetch_remote=False)
         d.addCallbacks(_found_key, _if_not_found_generate)
         d.addCallback(self._on_keymanager_ready_cb, keymanager, userid)
-        self._set_status(userid, "on", keys="found")
         return d
 
     @defer.inlineCallbacks
