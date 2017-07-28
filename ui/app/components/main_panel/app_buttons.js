@@ -50,7 +50,7 @@ export default class AppButtons extends React.Component {
     }
   }
 
-  openBugReport() { this.openURL('https://0xacab.org/leap/bitmask-dev') }
+  openBugReport() { this.openURL('https://0xacab.org/leap/bitmask-dev/issues') }
   openDonate()    { this.openURL('https://leap.se/donate') }
   openCode()      { this.openURL('https://leap.se/source') }
 
