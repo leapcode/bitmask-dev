@@ -13,7 +13,7 @@ function add_pew_to_environment()
     read -p "Do you want to add pew executable to your .zshrc?> " yn
     case $yn in
 	    [Yy]* ) echo "PATH=~/.local/bin:\$PATH" >> ~/.zshrc; echo "source \$(pew shell_config)" >> ~/.zshrc; break;;
-	    [Nn]* ) exit;;
+	    [Nn]* ) return;;
 	    * ) echo "Please answer yes or no.";;
     esac
   done
