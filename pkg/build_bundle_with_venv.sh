@@ -7,13 +7,19 @@
 # Stop bundling in case of errors
 set -e
 
-echo "BUILDING BITMASK BUNDLE..."
-git describe
+VENV=venv
 
-virtualenv venv
-source venv/bin/activate
+echo "[+] BUILDING BITMASK BUNDLE..."
+echo "[+] GIT VERSION" `git describe`
+
+if [ ! -d "$VENV" ]; then
+  echo "[+] creating virtualenv in venv"
+  virtualenv $VENV
+fi
+source "$VENV"/bin/activate
+echo "[+] Using venv in" $VIRTUAL_ENV
+
 $VIRTUAL_ENV/bin/pip install appdirs packaging
-# $VIRTUAL_ENV/bin/pip install -U pyinstaller==3.1
 $VIRTUAL_ENV/bin/pip install -U pyinstaller
 $VIRTUAL_ENV/bin/pip install zope.interface zope.proxy
 
@@ -21,12 +27,11 @@ $VIRTUAL_ENV/bin/pip install zope.interface zope.proxy
 $VIRTUAL_ENV/bin/pip --no-cache-dir install pysqlcipher --install-option="--bundled"
 # FIXME pixelated needs some things but doesn't declare it
 $VIRTUAL_ENV/bin/pip install chardet
-# FIXME persuade pixelated to stop using requests in favor of treq
+# FIXME remove requests in pixelated fork, use treq instead
 $VIRTUAL_ENV/bin/pip install requests==2.11.1
 
-# For the Bitmask 0.10 bundles.
+# Soledad version: for the Bitmask 0.10 bundles, let's pick published soledad.
 $VIRTUAL_ENV/bin/pip install -U leap.soledad
-
 # CHANGE THIS IF YOU WANT A DIFFERENT BRANCH CHECKED OUT FOR COMMON/SOLEDAD --------------------
 #$VIRTUAL_ENV/bin/pip install -U leap.soledad --find-links https://devpi.net/kali/dev 
 # ----------------------------------------------------------------------------------------------
@@ -40,9 +45,10 @@ make dev-mail
 
 $VIRTUAL_ENV/bin/pip uninstall --yes leap.bitmask
 $VIRTUAL_ENV/bin/python setup.py sdist bdist_wheel --universal
-$VIRTUAL_ENV/bin/pip install dist/*.whl
 
-pip install leap.pixelated-www leap.pixelated
+echo "[+] Installing Bitmask from latest wheel..."
+$VIRTUAL_ENV/bin/pip install `ls -ltr dist/*.whl | tail -n 1 | cut -d' ' -f 9`
+
 
 # Get the bundled libzmq
 $VIRTUAL_ENV/bin/pip uninstall --yes pyzmq
