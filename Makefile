@@ -69,6 +69,9 @@ bundle_in_docker:
 docker_container:
 	cd pkg/docker_bundle && docker build -t mybundle .
 
+cleanpkg:
+	rm -rf dist build
+
 clean:
 	find . -type f -name "*.py[co]" -delete
 	find . -type d -name "__pycache__" -delete
