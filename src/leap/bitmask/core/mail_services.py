@@ -605,9 +605,13 @@ class StandardMailService(service.MultiService, HookableService):
     def do_mixnet_status(self, userid, address):
         # XXX: for now there is no support in the provider
         #      we'll mock it if it's enabled
-        status = 'disabled'
-        if self._mixnet_enabled:
+        provider = address.split('@')[1]
+        if not self._mixnet_enabled:
+            status = 'disabled'
+        elif provider in ['panoramix-project.eu', 'riseup.net']:
             status = 'ok'
+        else:
+            status = 'unsuported'
         return {'status': status}
 
     def get_token(self, userid):
