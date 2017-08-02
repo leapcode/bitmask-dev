@@ -38,19 +38,21 @@ from leap.common.config import get_path_prefix
 if platform.system() == 'Windows':
     from multiprocessing import freeze_support
     from PySide import QtCore, QtGui
-    from PySide import QtWebKit
+    #from PySide import QtWebKit
     from PySide.QtGui import QDialog
     from PySide.QtGui import QApplication
     from PySide.QtWebKit import QWebView, QGraphicsWebView
     from PySide.QtCore import QSize
 else:
     from PyQt5 import QtCore, QtGui
-    from PyQt5 import QtWebKit
+    #from PyQt5 import QtWebEngine
     from PyQt5.QtCore import QSize
     from PyQt5.QtCore import QObject, pyqtSlot
     from PyQt5.QtWidgets import QApplication
-    from PyQt5.QtWebKitWidgets import QWebView
-    from PyQt5.QtWebKit import QWebSettings
+    #from PyQt5.QtWebKitWidgets import QWebView
+    #from PyQt5.QtWebKit import QWebSettings
+    from PyQt5.QtWebEngineWidgets import QWebEngineView as QWebView
+    from PyQt5.QtWebEngineWidgets import QWebEngineSettings as QWebSettings
 
 
 IS_WIN = platform.system() == "Windows"
@@ -104,8 +106,8 @@ class BrowserWindow(QWebView):
         self.loadPage(self.url)
 
         self.proxy = AppProxy(self) if first else None
-        self.frame.addToJavaScriptWindowObject(
-            "bitmaskApp", self.proxy)
+        #self.frame.addToJavaScriptWindowObject(
+        #    "bitmaskApp", self.proxy)
 
         icon = QtGui.QIcon()
         icon.addPixmap(
@@ -114,8 +116,11 @@ class BrowserWindow(QWebView):
         self.setWindowIcon(icon)
 
     def loadPage(self, web_page):
-        self.settings().setAttribute(
-            QWebSettings.DeveloperExtrasEnabled, True)
+        try:
+            self.settings().setAttribute(
+                QWebSettings.DeveloperExtrasEnabled, True)
+        except Exception:
+            pass
 
         if os.environ.get('DEBUG'):
             self.inspector = QWebInspector(self)
@@ -126,9 +131,10 @@ class BrowserWindow(QWebView):
             web_page = os.path.relpath(web_page)
 
         url = QtCore.QUrl(web_page)
-        self.frame = self.page().mainFrame()
-        self.frame.addToJavaScriptWindowObject(
-            "bitmaskBrowser", self.bitmask_browser)
+        # TODO -- port this to QWebEngine
+        #self.frame = self.page().mainFrame()
+        #self.frame.addToJavaScriptWindowObject(
+        #    "bitmaskBrowser", self.bitmask_browser)
         self.load(url)
 
     def shutdown(self, *args):
