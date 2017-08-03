@@ -11,7 +11,7 @@ bundle: bundle_clean
 	pyinstaller -y pkg/pyinst/app.spec
 	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/_scrypt.so $(DIST)
 	cp src/leap/bitmask/core/bitmaskd.tac $(DIST)
-	mkdir $(DIST)/leap
+	mkdir -p $(DIST)/leap
 	# if you find yourself puzzled becase the following files are not found in your
 	# virtualenv, make sure that you're installing the packages from wheels and not eggs.
 	mkdir -p $(DIST)/leap/soledad/client/_db
@@ -58,7 +58,6 @@ bundle_osx: bundle bundle_osx_helpers
 	cp $(DIST_VERSION)/lib/_scrypt.so $(OSX_CON)/
 	cp $(DIST_VERSION)/lib/bitmaskd.tac $(OSX_CON)/
 	cp -r $(DIST_VERSION)/lib/leap $(OSX_CON)/
-	cp -r $(DIST_VERSION)/lib/pixelated_www $(OSX_CON)/
 	mv dist/Bitmask.app/Contents/MacOS/bitmask $(OSX_CON)/bitmask-app
 	cp pkg/osx/bitmask-wrapper $(OSX_CON)/bitmask
 	mkdir -p $(OSX_RES)/bitmask-helper

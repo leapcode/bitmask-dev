@@ -1,10 +1,12 @@
 # -*- mode: python -*-
-import platform
+import os
 import sys
+import platform
 
 block_cipher = None
 
 IS_MAC = sys.platform.startswith('darwin')
+IS_WIN = platform.system() == 'Windows'
 
 BITMASK_VERSION = open('pkg/next-version').read()
 if IS_MAC:
@@ -19,7 +21,6 @@ hiddenimports = [
      'pysqlcipher', 'service_identity',
      'leap.common', 'leap.bitmask', 
      'leap.bitmask.core.logs',
-     'leap.bitmask.gui.icons_rc',
      'leap.soledad.common', 
      'leap.soledad.common.document', 
      'leap.soledad.common.l2db',
@@ -28,7 +29,7 @@ hiddenimports = [
      'packaging', 'packaging.version', 'packaging.specifiers',
      'packaging.requirements']
 
-if platform.system() == 'Windows':
+if IS_WIN:
     print "Platform=Windows, using pyside..."
     hiddenimports.extend(
         ['PySide.QtCore', 'PySide.QtGui', 'PySide.QtWebKit',
@@ -39,19 +40,28 @@ if platform.system() == 'Windows':
 	'packaging.requirements',
 	'python-gnupg'])
     excludes = ['PyQt5']
+    QT5PATH = ['']
+elif IS_MAC:
+    hiddenimports.extend(['pywebview', 'pyobjc'])
+    excludes = ['PyQt5', 'IPython', 'PySide']
+    QT5PATH = ['']
 else:
     hiddenimports.extend(
-        ['PyQt5.QtCore', 'PyQt5.QtGui', 'PyQt5.QtWebKit'])
+        ['PyQt5.QtCore', 'PyQt5.QtGui', 'PyQt5.QtWebEngine',
+         'leap.bitmask.gui.icons_rc'])
     excludes = ['PySide']
 
-import os
 VENV = os.environ.get('VIRTUAL_ENV', '')
 
-a = Analysis(['../../src/leap/bitmask/gui/app.py'],
+if IS_MAC:
+    # experimental pywebview entrypoint
+    ENTRYPOINT = ['../../src/leap/bitmask/gui/app2.py']
+else:
+    ENTRYPOINT = ['../../src/leap/bitmask/gui/app.py']
+
+a = Analysis(ENTRYPOINT,
              pathex=[
-	         '/usr/lib/python2.7/dist-packages/',
-	        VENV + '/Lib/site-packages/',
-	        VENV + '/Lib/site-packages/leap/soledad'],
+	         '/usr/lib/python2.7/dist-packages/'] + QT5PATH,
              binaries=None,
              datas=None,
              hiddenimports=hiddenimports,
