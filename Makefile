@@ -69,6 +69,9 @@ bundle_in_docker:
 docker_container:
 	cd pkg/docker_bundle && docker build -t mybundle .
 
+osx_pkg:
+	pkg/osx/quickpkg --output dist/Bitmask-$(NEXT_VERSION).pkg --scripts pkg/osx/scripts/ dist/Bitmask.app/
+
 cleanpkg:
 	rm -rf dist build
 

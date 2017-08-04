@@ -47,7 +47,7 @@ bundle_osx_helpers:
 	mkdir -p $(DIST_VERSION)/apps/helpers
 	cp src/leap/bitmask/vpn/helpers/osx/bitmask-helper $(DIST_VERSION)/apps/helpers/
 	cp src/leap/bitmask/vpn/helpers/osx/bitmask.pf.conf $(DIST_VERSION)/apps/helpers/
-	cp pkg/osx/installer/se.leap.bitmask-helper.plist $(DIST_VERSION)/apps/helpers/
+	cp pkg/osx/scripts/se.leap.bitmask-helper.plist $(DIST_VERSION)/apps/helpers/
 	cp -r pkg/osx/daemon $(DIST_VERSION)/apps/helpers/
 	cp -r pkg/osx/openvpn $(DIST_VERSION)/apps/helpers/
 

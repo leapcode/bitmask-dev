@@ -1,3 +1,5 @@
 #!/bin/sh
-# Bitmask Post-Instalation script
+# Bitmask Pre-Instalation script
 [[ -f /Library/LaunchDaemons/se.leap.bitmask-helper.plist ]] && launchctl unload /Library/LaunchDaemons/se.leap.bitmask-helper.plist
+echo `date` "::Bitmask pre-installation script succeeded." >> /tmp/bitmask-install.log
+exit 0
