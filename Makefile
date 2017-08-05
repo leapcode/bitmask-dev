@@ -1,8 +1,7 @@
 DIST=dist/bitmask
 NEXT_VERSION = $(shell cat pkg/next-version)
 DIST_VERSION = dist/bitmask-$(NEXT_VERSION)/
-OSX_CERT = "Developer ID Installer: LEAP Encryption Access Project"
-include pkg/pyinst/build.mk
+include pkg/bundles/build.mk
 include pkg/thirdparty/openvpn/build.mk
 
 dev-bootstrap:
@@ -69,13 +68,6 @@ bundle_in_docker:
 
 docker_container:
 	cd pkg/docker_bundle && docker build -t mybundle .
-
-osx_pkg:
-	pkg/osx/quickpkg --output dist/Bitmask-$(NEXT_VERSION)_pre.pkg --scripts pkg/osx/scripts/ dist/Bitmask.app/
-	productsign --sign $(OSX_CERT) dist/Bitmask-$(NEXT_VERSION)_pre.pkg dist/Bitmask-$(NEXT_VERSION).pkg
-
-cleanpkg:
-	rm -rf dist build
 
 clean:
 	find . -type f -name "*.py[co]" -delete

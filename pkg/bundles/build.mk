@@ -2,6 +2,7 @@
 #
 OSX_RES = dist/Bitmask.app/Contents/Resources
 OSX_CON = dist/Bitmask.app/Contents/MacOS
+OSX_CERT = "Developer ID Installer: LEAP Encryption Access Project"
 
 
 default:
@@ -51,10 +52,7 @@ bundle_osx_helpers:
 	cp -r pkg/osx/daemon $(DIST_VERSION)/apps/helpers/
 	cp -r pkg/osx/openvpn $(DIST_VERSION)/apps/helpers/
 
-
-bundle_linux: bundle bundle_linux_gpg bundle_linux_vpn bundle_linux_helpers
-
-bundle_osx: bundle bundle_osx_helpers
+bundle_osx_missing:
 	cp $(DIST_VERSION)/lib/_scrypt.so $(OSX_CON)/
 	cp $(DIST_VERSION)/lib/bitmaskd.tac $(OSX_CON)/
 	cp -r $(DIST_VERSION)/lib/leap $(OSX_CON)/
@@ -67,6 +65,15 @@ bundle_osx: bundle bundle_osx_helpers
 	cp -r $(DIST_VERSION)/apps/helpers/openvpn/* $(OSX_RES)/
 	wget https://downloads.leap.se/thirdparty/osx/openvpn/openvpn -O $(OSX_RES)/openvpn.leap
 	chmod +x $(OSX_RES)/openvpn.leap
+
+bundle_osx_pkg:
+	pkg/osx/quickpkg --output dist/Bitmask-$(NEXT_VERSION)_pre.pkg --scripts pkg/osx/scripts/ dist/Bitmask.app/
+	productsign --sign $(OSX_CERT) dist/Bitmask-$(NEXT_VERSION)_pre.pkg dist/Bitmask-$(NEXT_VERSION).pkg
+
+
+bundle_linux: bundle bundle_linux_gpg bundle_linux_vpn bundle_linux_helpers
+
+bundle_osx: bundle bundle_osx_helpers bundle_osx_missing bundle_osx_pkg
 
 bundle_win:
 	pyinstaller -y pkg/pyinst/app.spec
