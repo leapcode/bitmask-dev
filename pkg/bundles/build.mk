@@ -20,6 +20,7 @@ bundle: bundle_clean
 	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/common/cacert.pem $(DIST)/
 	cp -r $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/bitmask_js  $(DIST)/leap/
 	cp -r $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/pixelated_www  $(DIST)/leap/
+	echo `git describe` > $(DIST)/version
 	mv $(DIST) _bundlelib && mkdir $(DIST_VERSION) && mv _bundlelib $(DIST_VERSION)/lib/
 	cd pkg/launcher && make
 	cp pkg/launcher/bitmask $(DIST_VERSION)
@@ -55,6 +56,7 @@ bundle_osx_helpers:
 bundle_osx_missing:
 	cp $(DIST_VERSION)/lib/_scrypt.so $(OSX_CON)/
 	cp $(DIST_VERSION)/lib/bitmaskd.tac $(OSX_CON)/
+	cp $(DIST_VERSION)/lib/version $(OSX_CON)/
 	cp -r $(DIST_VERSION)/lib/leap $(OSX_CON)/
 	mv dist/Bitmask.app/Contents/MacOS/bitmask $(OSX_CON)/bitmask-app
 	cp pkg/osx/bitmask-wrapper $(OSX_CON)/bitmask

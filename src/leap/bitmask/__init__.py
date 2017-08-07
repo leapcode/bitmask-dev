@@ -1,5 +1,7 @@
+import os
 import sys
 import pkg_resources
+from .util import here
 from ._version import get_versions
 
 if not getattr(sys, 'frozen', False):
@@ -10,5 +12,12 @@ if not getattr(sys, 'frozen', False):
     # 'pip install -e .' and 'pip install leap.common'
     pkg_resources.get_distribution('leap.bitmask')
 
-__version__ = get_versions()['version']
-del get_versions
+    __version__ = get_versions()['version']
+    del get_versions
+
+else:
+    try:
+        __version__ = open(os.path.join(
+            here(), 'version')).read().strip()
+    except Exception:
+        __version__ = '0+0xacab-unknown'
