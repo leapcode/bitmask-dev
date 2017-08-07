@@ -34,8 +34,7 @@ class ImproperlyConfigured(Exception):
 
 class VPNManagement(object):
     """
-    This is a mixin that we use in the VPNProcess class.
-    Here we get together all methods related with the openvpn management
+    A class to handle the communication with the openvpn management
     interface.
 
     For more info about management methods::
