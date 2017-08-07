@@ -31,16 +31,20 @@ import webbrowser
 from functools import partial
 from multiprocessing import Process
 
+import webview
+import psutil
+
 from leap.bitmask.core.launcher import run_bitmaskd, pid
 from leap.common.config import get_path_prefix
 #from leap.bitmask.gui import app_rc
 
-import webview
 
 DEBUG = os.environ.get("DEBUG", False)
 
 BITMASK_URI = 'http://localhost:7070/'
 PIXELATED_URI = 'http://localhost:9090/'
+
+PROCNAME = 'bitmask-app'
 
 qApp = None
 bitmaskd = None
@@ -114,7 +118,13 @@ def launch_gui():
 
 def start_app():
     from leap.bitmask.util import STANDALONE
-    os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
+
+    mypid = os.getpid()
+
+    # Kill a previously-running process
+    for proc in psutil.process_iter():
+        if proc.name() == PROCNAME and proc.pid != mypid:
+            proc.kill()
 
     # Allow the frozen binary in the bundle double as the cli entrypoint
     # Why have only a user interface when you can have two?
