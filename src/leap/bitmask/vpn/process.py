@@ -178,20 +178,29 @@ class _VPNProcess(protocol.ProcessProtocol):
         Polls connection status.
         """
         if self._alive:
-            up, down = self._management.get_traffic_status()
-            self._status.set_traffic_status(up, down)
+            try:
+                up, down = self._management.get_traffic_status()
+                self._status.set_traffic_status(up, down)
+            except Exception:
+                self.log.debug('Could not parse traffic status')
 
     def pollState(self):
         """
         Polls connection state.
         """
         if self._alive:
-            state = self._management.get_state()
-            self._status.set_status(state, None)
+            try:
+                state = self._management.get_state()
+                self._status.set_status(state, None)
+            except Exception:
+                self.log.debug('Could not parse connection state')
 
     def pollLog(self):
         if self._alive:
-            self._management.process_log()
+            try:
+                self._management.process_log()
+            except Exception:
+                self.log.debug('Could not parse log')
 
     # launcher
 
