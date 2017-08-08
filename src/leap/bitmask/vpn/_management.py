@@ -121,6 +121,8 @@ class VPNManagement(object):
                 splitted = line.split(',')
                 ts = splitted[0]
                 msg = ','.join(splitted[2:])
+                if msg.startswith('MANAGEMENT'):
+                    continue
                 if ts not in self._logs:
                     self._watcher.watch(msg)
                     self.log.info('VPN: %s' % msg)
@@ -133,7 +135,7 @@ class VPNManagement(object):
         Read as much as available. Position seek pointer to end of stream
         """
         try:
-            self._tn.read_eager()
+            return self._tn.read_eager()
         except EOFError:
             self.log.debug('Could not read from socket. Assuming it died.')
             return
@@ -152,11 +154,10 @@ class VPNManagement(object):
         :return: response read
         :rtype: list
         """
-
         try:
             self._tn.write("%s\n" % (command,))
-            buf = self._tn.read_until(until, 2)
-            self._seek_to_eof()
+            buf = self._tn.read_until(until)
+            seek = self._seek_to_eof()
             blist = buf.split('\r\n')
             if blist[-1].startswith(until):
                 del blist[-1]
@@ -210,7 +211,7 @@ class VPNManagement(object):
                 try:
                     ts, status_step, ok, ip, remote, port, _, _ = parts
                 except ValueError:
-                    self.log.debug('Could not parse %s' % parts)
+                    self.log.debug('Could not parse state line: %s' % line)
 
             return status_step
 
@@ -236,7 +237,7 @@ class VPNManagement(object):
             try:
                 text, value = parts
             except ValueError:
-                self.log.debug('Could not parse %s' % parts)
+                self.log.debug('Could not parse status line %s' % line)
                 return
             # text can be:
             #   "TUN/TAP read bytes"
@@ -253,19 +254,12 @@ class VPNManagement(object):
         return (tun_tap_read, tun_tap_write)
 
     def get_state(self):
-        """
-        Notifies the gui of the output of the state command over
-        the openvpn management interface.
-        """
         if not self.is_connected():
             return ""
-        return self._parse_state(self._send_command("state"))
+        state = self._parse_state(self._send_command("state"))
+        return state
 
     def get_traffic_status(self):
-        """
-        Notifies the gui of the output of the status command over
-        the openvpn management interface.
-        """
         if not self.is_connected():
             return (None, None)
         return self._parse_status(self._send_command("status"))

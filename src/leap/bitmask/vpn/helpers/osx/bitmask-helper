@@ -251,6 +251,10 @@ def openvpn_start(*args):
     syslog.syslog(syslog.LOG_WARNING, 'LAUNCHING VPN: ' + ' '.join(cmd))
 
     global openvpn_proc
+    if openvpn_proc is not None:
+        syslog.syslog(syslog.LOG_WARNING, 'vpn: another process is already started')
+        return
+
     # TODO sanitize options
     openvpn_proc = subprocess.Popen(cmd, shell=False, bufsize=-1)
 
@@ -270,6 +274,8 @@ def openvpn_stop(sig='TERM'):
     :type args: list
     """
     global openvpn_proc
+    syslog.syslog(
+        syslog.LOG_WARNING, "Stopping OpenVPN...")
 
     if openvpn_proc:
         syslog.syslog(

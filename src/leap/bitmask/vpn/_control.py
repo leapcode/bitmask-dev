@@ -90,7 +90,8 @@ class VPNControl(object):
         # this could be extended to a collection of
         # generic watchers
 
-        poll_list = [LoopingCall(vpnproc.pollStatus),
+        poll_list = [
+                     LoopingCall(vpnproc.pollStatus),
                      LoopingCall(vpnproc.pollState),
                      LoopingCall(vpnproc.pollLog)]
         self._pollers.extend(poll_list)
@@ -115,6 +116,11 @@ class VPNControl(object):
         :param restart: whether this stop is part of a hard restart.
         :type restart: bool
         """
+        # We assume that the only valid stops are initiated
+        # by an user action, not hard restarts
+        self._user_stopped = not restart
+        self._vpnproc.restarting = restart
+
         self._stop_pollers()
         try:
             self._vpnproc.preDown()
@@ -127,15 +133,10 @@ class VPNControl(object):
             # TODO factor this out to a linux-only launcher mechanism.
             # First we try to be polite and send a SIGTERM...
             if self._vpnproc is not None:
-                # We assume that the only valid stops are initiated
-                # by an user action, not hard restarts
-                self._user_stopped = not restart
-                self._vpnproc.restarting = restart
-
                 self._sentterm = True
                 self._vpnproc.terminate(shutdown=shutdown)
 
-                # ...but we also trigger a countdown to be unpolite
+                # we trigger a countdown to be unpolite
                 # if strictly needed.
                 d = defer.Deferred()
                 reactor.callLater(
