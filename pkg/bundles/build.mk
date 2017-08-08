@@ -54,6 +54,8 @@ bundle_osx_helpers:
 	cp -r pkg/osx/openvpn $(DIST_VERSION)/apps/helpers/
 
 bundle_osx_missing:
+	# relink _scrypt, it's linked against brew openssl!
+	install_name_tool -change /usr/local/opt/openssl/lib/libcrypto.1.0.0.dylib  "@loader_path/libcrypto.1.0.0.dylib" $(DIST_VERSION)/lib/_scrypt.so
 	cp $(DIST_VERSION)/lib/_scrypt.so $(OSX_CON)/
 	cp $(DIST_VERSION)/lib/bitmaskd.tac $(OSX_CON)/
 	cp $(DIST_VERSION)/lib/version $(OSX_CON)/
