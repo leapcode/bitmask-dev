@@ -197,6 +197,9 @@ class VPNService(HookableService):
 
         bonafide = self.parent.getServiceNamed("bonafide")
         config = yield bonafide.do_provider_read(provider, "eip")
+
+        # TODO - add gateway selection ability.
+        # First thing, we should port the TimezonSelector
         remotes = [(gw["ip_address"], gw["capabilities"]["ports"][0])
                    for gw in config.gateways]
         extra_flags = config.openvpn_configuration

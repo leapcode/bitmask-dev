@@ -24,6 +24,7 @@ Features
 - Port Pixelated UA integration from legacy bitmask
 - Add Pixelated Button to the UI
 - Add ability to ssh into the bitmask daemon for debug
+- New ``bitmask_chromium`` gui: launches Bitmask UI as a standalone chromium app if chromium is installed in your system.
 
 Bugfixes
 ~~~~~~~~
