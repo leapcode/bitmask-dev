@@ -23,7 +23,12 @@ import sys
 from colorama import Fore
 
 from leap.bitmask.cli import command
-from leap.bitmask.keymanager.validation import ValidationLevels
+
+try:
+    from leap.bitmask.keymanager.validation import ValidationLevels
+    HAS_KM = True
+except ImportError:
+    HAS_KM = False
 
 
 class Keys(command.Command):

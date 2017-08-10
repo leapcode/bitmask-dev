@@ -33,19 +33,31 @@ from twisted.logger import Logger
 
 from leap.common.events import catalog, emit_async
 from leap.common.files import check_and_fix_urw_only
-from leap.bitmask.mua import pixelizer
-from leap.bitmask.hooks import HookableService
+
 from leap.bitmask.bonafide import config
-from leap.bitmask.keymanager import KeyManager
-from leap.bitmask.keymanager.errors import KeyNotFound
-from leap.bitmask.keymanager.validation import ValidationLevels
-from leap.bitmask.mail.constants import INBOX_NAME
-from leap.bitmask.mail.mail import Account
-from leap.bitmask.mail.imap import service as imap_service
-from leap.bitmask.mail.smtp import service as smtp_service
-from leap.bitmask.mail.incoming.service import IncomingMail
-from leap.bitmask.mail.incoming.service import INCOMING_CHECK_PERIOD
+from leap.bitmask.hooks import HookableService
 from leap.bitmask.util import get_gpg_bin_path, merge_status
+
+try:
+    from leap.bitmask.keymanager import KeyManager
+    from leap.bitmask.keymanager.errors import KeyNotFound
+    from leap.bitmask.keymanager.validation import ValidationLevels
+    from leap.bitmask.mail.constants import INBOX_NAME
+    from leap.bitmask.mail.mail import Account
+    from leap.bitmask.mail.imap import service as imap_service
+    from leap.bitmask.mail.smtp import service as smtp_service
+    from leap.bitmask.mail.incoming.service import IncomingMail
+    from leap.bitmask.mail.incoming.service import INCOMING_CHECK_PERIOD
+    HAS_MAIL = True
+except ImportError:
+    HAS_MAIL = False
+
+try:
+    from leap.bitmask.mua import pixelizer
+    HAS_MUA = True
+except ImportError:
+    HAS_MUA = False
+
 from leap.soledad.client.api import Soledad
 
 from leap.bitmask.core.uuid_map import UserMap
@@ -628,7 +640,7 @@ class StandardMailService(service.MultiService, HookableService):
     def _maybe_start_pixelated(self, passthrough, userid, soledad, keymanager):
         incoming = self.getServiceNamed('incoming_mail')
         account = incoming.getServiceNamed(userid).account
-        if pixelizer.HAS_PIXELATED:
+        if HAS_MUA and pixelizer.HAS_PIXELATED:
             pixelizer.start_pixelated_user_agent(
                 userid, soledad, keymanager, account)
         return passthrough
@@ -646,6 +658,9 @@ class IMAPService(service.Service):
         super(IMAPService, self).__init__()
 
     def startService(self):
+        if not HAS_MAIL:
+            self.log.info('Mail module not found')
+            return
         self.log.info('Starting IMAP Service')
         port, factory = imap_service.run_service(
             self._soledad_sessions, factory=self._factory)
@@ -686,6 +701,9 @@ class SMTPService(service.Service):
         super(SMTPService, self).__init__()
 
     def startService(self):
+        if not HAS_MAIL:
+            self.log.info('Mail module not found')
+            return
         self.log.info('starting smtp service')
         port, factory = smtp_service.run_service(
             self._soledad_sessions,

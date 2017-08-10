@@ -35,8 +35,13 @@ from leap.bitmask.core import flags
 from leap.bitmask.core import _zmq
 from leap.bitmask.core import _session
 from leap.bitmask.core.web.service import HTTPDispatcherService
-from leap.bitmask.vpn.service import VPNService
 from leap.common.events import server as event_server
+try:
+    from leap.bitmask.vpn.service import VPNService
+    HAS_VPN = True
+except ImportError:
+    HAS_VPN = False
+
 
 backend = flags.BACKEND
 
@@ -201,7 +206,8 @@ class BitmaskBackend(configurable.ConfigurableService):
         self._maybe_init_service('mail', service, self.basedir)
 
     def _init_vpn(self):
-        self._maybe_init_service('vpn', VPNService)
+        if HAS_VPN:
+            self._maybe_init_service('vpn', VPNService)
 
     def _init_zmq(self):
         zs = _zmq.ZMQServerService(self)
