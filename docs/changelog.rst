@@ -15,6 +15,7 @@ Features
 - `#8821 <https://0xacab.org/leap/bitmask-dev/issues/8821>`_: Add a 'fetch' flag to key export
 - `#8049 <https://0xacab.org/leap/bitmask-dev/issues/8049>`_: Restart the VPN automatically
 - `#8852 <https://0xacab.org/leap/bitmask-dev/issues/8852>`_: Stop the vpn (and all services) when application is shut down
+- `#8804 <https://0xacab.org/leap/bitmask-dev/issues/8804>`_: Automatic selection of gateways, based on user timezone
 - Initial cli port of the legacy vpn code
 - Add VPN API to bitmask.js
 - Add vpn get_cert command
@@ -24,7 +25,7 @@ Features
 - Port Pixelated UA integration from legacy bitmask
 - Add Pixelated Button to the UI
 - Add ability to ssh into the bitmask daemon for debug
-- New ``bitmask_chromium`` gui: launches Bitmask UI as a standalone chromium app if chromium is installed in your system.
+- New ``bitmask_chromium`` gui: launches Bitmask UI as a standalone chromium app if chromium is installed in your system
 
 Bugfixes
 ~~~~~~~~

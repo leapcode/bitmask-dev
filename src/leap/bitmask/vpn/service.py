@@ -28,6 +28,7 @@ from twisted.logger import Logger
 
 from leap.bitmask.hooks import HookableService
 from leap.bitmask.util import merge_status
+from leap.bitmask.vpn.gateways import GatewaySelector
 from leap.bitmask.vpn.fw.firewall import FirewallManager
 from leap.bitmask.vpn.tunnel import TunnelManager
 from leap.bitmask.vpn._checks import is_service_ready, get_vpn_cert_path
@@ -198,14 +199,15 @@ class VPNService(HookableService):
         bonafide = self.parent.getServiceNamed("bonafide")
         config = yield bonafide.do_provider_read(provider, "eip")
 
-        # TODO - add gateway selection ability.
-        # First thing, we should port the TimezonSelector
-        remotes = [(gw["ip_address"], gw["capabilities"]["ports"][0])
-                   for gw in config.gateways]
+        sorted_gateways = GatewaySelector(
+            config.gateways, config.locations).select_gateways()
+
+        # TODO - add manual gateway selection ability.
+
         extra_flags = config.openvpn_configuration
 
-        prefix = os.path.join(self._basepath, "leap", "providers", provider,
-                              "keys")
+        prefix = os.path.join(
+            self._basepath, "leap", "providers", provider, "keys")
         cert_path = key_path = os.path.join(prefix, "client", "openvpn.pem")
         ca_path = os.path.join(prefix, "ca", "cacert.pem")
 
@@ -217,13 +219,16 @@ class VPNService(HookableService):
                 'Cannot find provider certificate. '
                 'Please configure provider.')
 
+        # TODO add remote ports, according to preferred sequence
+        remotes = tuple([(ip, '443') for ip in sorted_gateways])
         self._tunnel = TunnelManager(
             provider, remotes, cert_path, key_path, ca_path, extra_flags)
         self._firewall = FirewallManager(remotes)
 
     def _cert_expires(self, provider):
-        path = os.path.join(self._basepath, "leap", "providers", provider,
-                            "keys", "client", "openvpn.pem")
+        path = os.path.join(
+            self._basepath, "leap", "providers", provider,
+            "keys", "client", "openvpn.pem")
         with open(path, 'r') as f:
             cert = f.read()
         _, to = get_cert_time_boundaries(cert)

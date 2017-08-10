@@ -51,6 +51,7 @@ def get_url():
     url += '#' + token
     return url
 
+
 def delete_old_authtoken():
     try:
         os.remove(AUTHTOKEN_PATH)

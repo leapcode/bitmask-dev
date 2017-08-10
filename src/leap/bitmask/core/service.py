@@ -39,7 +39,7 @@ from leap.common.events import server as event_server
 try:
     from leap.bitmask.vpn.service import VPNService
     HAS_VPN = True
-except ImportError:
+except ImportError as exc:
     HAS_VPN = False
 
 

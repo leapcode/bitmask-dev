@@ -109,57 +109,6 @@ class VPNLauncher(object):
 
     PREFERRED_PORTS = ("443", "80", "53", "1194")
 
-    # FIXME -- dead code?
-    @classmethod
-    @abstractmethod
-    def get_gateways(kls, vpnconfig, providerconfig):
-        """
-        Return a list with the selected gateways for a given provider, looking
-        at the VPN config file.
-        Each item of the list is a tuple containing (gateway, port).
-
-        :param vpnconfig: vpn configuration object
-        :type vpnconfig: VPNConfig
-
-        :param providerconfig: provider specific configuration
-        :type providerconfig: ProviderConfig
-
-        :rtype: list
-        """
-        gateways = []
-
-        settings = Settings()
-        domain = providerconfig.get_domain()
-        gateway_conf = settings.get_selected_gateway(domain)
-        gateway_selector = VPNGatewaySelector(vpnconfig)
-
-        if gateway_conf == GATEWAY_AUTOMATIC:
-            gws = gateway_selector.get_gateways()
-        else:
-            gws = [gateway_conf]
-
-        if not gws:
-            log.error('No gateway was found!')
-            raise VPNLauncherException('No gateway was found!')
-
-        for idx, gw in enumerate(gws):
-            ports = vpnconfig.get_gateway_ports(idx)
-
-            the_port = "1194"  # default port
-
-            # pick the port preferring this order:
-            for port in kls.PREFERRED_PORTS:
-                if port in ports:
-                    the_port = port
-                    break
-                else:
-                    continue
-
-            gateways.append((gw, the_port))
-
-        log.debug('Using gateways (ip, port): {0!r}'.format(gateways))
-        return gateways
-
     @classmethod
     @abstractmethod
     def get_vpn_command(kls, vpnconfig, providerconfig,
