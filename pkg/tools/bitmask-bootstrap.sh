@@ -24,7 +24,8 @@ function init_pew()
   which pew || pip install pew
   which pew || add_pew_to_environment
   PATH=~/.local/bin:$PATH
-  pew ls | grep bitmask || pew new bitmask
+  # this hangs when creating for the first time
+  pew ls | grep bitmask || echo '[+] bitmask boostrap: creating new bitmask virtualenv. Type "exit" in the shell to continue!' && pew new bitmask
 }
 
 function apt_install()
