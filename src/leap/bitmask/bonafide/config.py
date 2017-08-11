@@ -446,8 +446,8 @@ class Provider(object):
             return d
 
         def check_if_invalid_config_fetch(ignored):
-            # For some old versions of the webapp, it returns a 200 but downloads
-            # a non-valid file. See #9004
+            # For some old versions of the webapp, it returns a 200 but
+            # downloads a non-valid file. See #9004
             try:
                 json.loads(open(self.get_configs_path()).read())
             except ValueError:

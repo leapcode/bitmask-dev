@@ -195,7 +195,7 @@ class VPNService(HookableService):
         bonafide = self.parent.getServiceNamed("bonafide")
         _providers = yield bonafide.do_provider_list()
         providers = [p['domain'] for p in _providers]
-        provider_dict = {} 
+        provider_dict = {}
         for provider in providers:
             try:
                 config = yield bonafide.do_provider_read(provider, 'eip')
@@ -209,7 +209,6 @@ class VPNService(HookableService):
                 for loc in locations])
             provider_dict[provider] = info
         defer.returnValue(provider_dict)
-
 
     @defer.inlineCallbacks
     def _setup(self, provider):
@@ -235,7 +234,7 @@ class VPNService(HookableService):
         sorted_gateways = GatewaySelector(
             config.gateways, config.locations,
             preferred={'cc': pref_cco, 'loc': pref_loc}
-            ).select_gateways()
+        ).select_gateways()
 
         extra_flags = config.openvpn_configuration
 

@@ -36,7 +36,8 @@ class GatewaySelector(object):
     # http://www.timeanddate.com/time/map/
     equivalent_timezones = {13: -11, 14: -10}
 
-    def __init__(self, gateways=None, locations=None, tz_offset=None, preferred=None):
+    def __init__(self, gateways=None, locations=None, tz_offset=None,
+                 preferred=None):
         '''
         Constructor for GatewaySelector.
 
@@ -117,7 +118,7 @@ class GatewaySelector(object):
             result.append((label, ip, country))
 
         filtered = self.apply_user_preferences(result)
-        return filtered 
+        return filtered
 
     def apply_user_preferences(self, options):
         """
@@ -142,7 +143,7 @@ class GatewaySelector(object):
                     applied.append((label, ip, country))
                     presorted.pop(index)
         if presorted:
-            applied += presorted 
+            applied += presorted
         return applied
 
     def get_gateways_country_code(self):
