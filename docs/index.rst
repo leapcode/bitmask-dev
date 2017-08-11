@@ -66,6 +66,7 @@ Contents
    hacking/index
    bundles/index
    cli/index
+   vpn/index
    core/index
    bonafide/index
    keymanager/index

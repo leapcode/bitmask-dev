@@ -18,7 +18,7 @@
 """
 Gateway Selection
 """
-
+import copy
 import logging
 import os
 import re
@@ -27,24 +27,49 @@ import time
 from leap.common.config import get_path_prefix
 
 
+def _normalized(label):
+    return label.lower().replace(',', '_').replace(' ', '_')
+
+
 class GatewaySelector(object):
 
     # http://www.timeanddate.com/time/map/
     equivalent_timezones = {13: -11, 14: -10}
 
-    def __init__(self, gateways=None, locations=None, tz_offset=None):
+    def __init__(self, gateways=None, locations=None, tz_offset=None, preferred=None):
         '''
         Constructor for GatewaySelector.
 
+        By default, we will use a Time Zone Heuristic to choose the closest
+        gateway to the user.
+
+        If the user specified something in the 'vpn_prefs' section of
+        bitmaskd.cfg, we will passed a dictionary here with entries for
+        'countries' and 'locations', in the form of a list. The 'locations'
+        entry has preference over the 'countries' one.
+
+        :param gateways: an unordered list of all the available gateways, read
+                         from the eip-config file.
+        :type gateways: list
+        :param locations: a dictionary with the locations, as read from the
+                          eip-config file
+        :type locations: dict
         :param tz_offset: use this offset as a local distance to GMT.
         :type tz_offset: int
+        :param preferred: a dictionary containing the country code (cc) and the
+                          locations (locations) manually preferred by the user.
+        :type preferred: dict
         '''
         if gateways is None:
             gateways = []
         if locations is None:
             locations = {}
+        if preferred is None:
+            preferred = {}
         self.gateways = gateways
         self.locations = locations
+        self.preferred = preferred
+
         self._local_offset = tz_offset
         if tz_offset is None:
             tz_offset = self._get_local_offset()
@@ -90,7 +115,35 @@ class GatewaySelector(object):
         result = []
         for ip, distance, label, country in gateways_timezones:
             result.append((label, ip, country))
-        return result
+
+        filtered = self.apply_user_preferences(result)
+        return filtered 
+
+    def apply_user_preferences(self, options):
+        """
+        We re-sort the pre-sorted list of gateway options, according with the
+        user's preferences.
+
+        Location has preference over the Country Code indication.
+        """
+        applied = []
+        presorted = copy.copy(options)
+        for location in self.preferred.get('loc', []):
+            for index, data in enumerate(presorted):
+                label, ip, country = data
+                if _normalized(label) == _normalized(location):
+                    applied.append((label, ip, country))
+                    presorted.pop(index)
+
+        for cc in self.preferred.get('cc', []):
+            for index, data in enumerate(presorted):
+                label, ip, country = data
+                if _normalized(country) == _normalized(cc):
+                    applied.append((label, ip, country))
+                    presorted.pop(index)
+        if presorted:
+            applied += presorted 
+        return applied
 
     def get_gateways_country_code(self):
         country_codes = {}

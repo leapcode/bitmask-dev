@@ -126,3 +126,41 @@ class GatewaySelectorTestCase(unittest.TestCase):
             14)
         gateways = selector.select_gateways()
         assert gateways == [ips[4], ips[2], ips[3], ips[1]]
+
+    def test_apply_user_preferences(self):
+        preferred = {
+            'loc': ['anarres', 'paris__fr', 'montevideo'],
+            'cc': ['BR', 'AR', 'UY'],
+        }
+        selector = GatewaySelector(preferred=preferred)
+        pre = [
+            ('Seattle', '1.1.1.1', 'US'),
+            ('Rio de Janeiro', '1.1.1.1', 'BR'),
+            ('Montevideo', '1.1.1.1', 'UY'),
+            ('Cordoba', '1.1.1.1', 'AR')]
+        ordered = selector.apply_user_preferences(pre)
+        locations = [x[0] for x in ordered]
+        # first the preferred location, then order by country
+        assert locations == ['Montevideo', 'Rio de Janeiro', 'Cordoba', 'Seattle']
+
+        pre = [
+            ('Seattle', '', ''),
+            ('Montevideo', '', ''),
+            ('Paris, FR', '', ''),
+            ('AnaRreS', '', '')]
+        ordered = selector.apply_user_preferences(pre)
+        locations = [x[0] for x in ordered]
+        # first the preferred location, then order by country (test normalization)
+        assert locations == ['AnaRreS', 'Paris, FR', 'Montevideo', 'Seattle']
+
+        pre = [
+            ('Rio De Janeiro', '', 'BR'),
+            ('Tacuarembo', '', 'UY'),
+            ('Sao Paulo', '', 'BR'),
+            ('Cordoba', '', 'AR')]
+        ordered = selector.apply_user_preferences(pre)
+        locations = [x[0] for x in ordered]
+        # no matching location, order by country
+        assert locations == ['Rio De Janeiro', 'Sao Paulo', 'Cordoba', 'Tacuarembo']
+
+

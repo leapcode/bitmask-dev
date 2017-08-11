@@ -19,7 +19,7 @@
 """
 VPN service declaration.
 """
-
+import json
 import os
 
 from time import strftime
@@ -133,6 +133,7 @@ class VPNService(HookableService):
         return {'result': 'vpn stopped'}
 
     def do_status(self):
+        # TODO - add the current gateway and CC to the status
         childrenStatus = {
             'vpn': {'status': 'off', 'error': None},
             'firewall': {'status': 'off', 'error': None},
@@ -220,10 +221,21 @@ class VPNService(HookableService):
         bonafide = self.parent.getServiceNamed('bonafide')
         config = yield bonafide.do_provider_read(provider, 'eip')
 
-        sorted_gateways = GatewaySelector(
-            config.gateways, config.locations).select_gateways()
+        try:
+            _cco = self.parent.get_config('vpn_prefs', 'countries', "")
+            pref_cco = json.loads(_cco)
+        except ValueError:
+            pref_cco = []
+        try:
+            _loc = self.parent.get_config('vpn_prefs', 'locations', "")
+            pref_loc = json.loads(_loc)
+        except ValueError:
+            pref_loc = []
 
-        # TODO - add manual gateway selection ability.
+        sorted_gateways = GatewaySelector(
+            config.gateways, config.locations,
+            preferred={'cc': pref_cco, 'loc': pref_loc}
+            ).select_gateways()
 
         extra_flags = config.openvpn_configuration
 

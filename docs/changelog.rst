@@ -5,6 +5,7 @@ Changelog
 
 Features
 ~~~~~~~~
+- Initial cli port of the legacy vpn code
 - `#8112 <https://0xacab.org/leap/bitmask-dev/issues/8112>`_: Check validity of key signature
 - `#8755 <https://0xacab.org/leap/bitmask-dev/issues/8755>`_: Add account based keymanagement API
 - `#8770 <https://0xacab.org/leap/bitmask-dev/issues/8770>`_: Simplify mail status in the cli
@@ -16,7 +17,7 @@ Features
 - `#8049 <https://0xacab.org/leap/bitmask-dev/issues/8049>`_: Restart the VPN automatically
 - `#8852 <https://0xacab.org/leap/bitmask-dev/issues/8852>`_: Stop the vpn (and all services) when application is shut down
 - `#8804 <https://0xacab.org/leap/bitmask-dev/issues/8804>`_: Automatic selection of gateways, based on user timezone
-- Initial cli port of the legacy vpn code
+- `#8855 <https://0xacab.org/leap/bitmask-dev/issues/8855>`_: Manual override for the vpn gateway selection
 - Add VPN API to bitmask.js
 - Add vpn get_cert command
 - Indicate a successful/failure OpenPGP header import

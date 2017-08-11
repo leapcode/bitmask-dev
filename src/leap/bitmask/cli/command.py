@@ -54,7 +54,7 @@ def default_dict_printer(result):
 
     for key, value in result.items():
         if isinstance(value, list):
-            if isinstance(value[0], list):
+            if value and isinstance(value[0], list):
                 value = map(lambda l: ' '.join(l), value)
                 for item in value:
                     pprint('\t' + item)
