@@ -39,16 +39,30 @@ def _print_result(result):
 
 
 def default_dict_printer(result):
-    if not result:
-        return
-    for key, value in result.items():
-        if value is not str:
+
+    def pprint(value):
+        if not isinstance(value, str):
             value = str(value)
         if value in ('OFF', 'OFFLINE', 'ABORTED', 'False'):
             color = Fore.RED
         else:
             color = Fore.GREEN
         print(Fore.RESET + key.ljust(10) + color + value + Fore.RESET)
+
+    if not result:
+        return
+
+    for key, value in result.items():
+        if isinstance(value, list):
+            if isinstance(value[0], list):
+                value = map(lambda l: ' '.join(l), value)
+                for item in value:
+                    pprint('\t' + item)
+            else:
+                value = ' '.join(value)
+                pprint(value)
+        else:
+            pprint(value)
 
 
 def print_status(status, depth=0):

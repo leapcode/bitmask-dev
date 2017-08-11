@@ -190,14 +190,35 @@ class VPNService(HookableService):
         return {'uninstall': 'ok'}
 
     @defer.inlineCallbacks
+    def do_list(self):
+        bonafide = self.parent.getServiceNamed("bonafide")
+        _providers = yield bonafide.do_provider_list()
+        providers = [p['domain'] for p in _providers]
+        provider_dict = {} 
+        for provider in providers:
+            try:
+                config = yield bonafide.do_provider_read(provider, 'eip')
+            except ValueError:
+                continue
+            locations = config.locations
+            info = tuple([
+                ('[%s]' % locations[loc]['country_code'],
+                 locations[loc]['name'],
+                 '(UTC%s)' % locations[loc]['timezone'])
+                for loc in locations])
+            provider_dict[provider] = info
+        defer.returnValue(provider_dict)
+
+
+    @defer.inlineCallbacks
     def _setup(self, provider):
         """Set up TunnelManager for a specified provider.
 
         :param provider: the provider to use, e.g. 'demo.bitmask.net'
         :type provider: str"""
 
-        bonafide = self.parent.getServiceNamed("bonafide")
-        config = yield bonafide.do_provider_read(provider, "eip")
+        bonafide = self.parent.getServiceNamed('bonafide')
+        config = yield bonafide.do_provider_read(provider, 'eip')
 
         sorted_gateways = GatewaySelector(
             config.gateways, config.locations).select_gateways()

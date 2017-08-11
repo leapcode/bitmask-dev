@@ -108,8 +108,7 @@ class UserCmd(SubCommand):
 
     label = 'bonafide.user'
 
-    @register_method("{'srp_token': unicode, 'uuid': unicode "
-                     "'lcl_token': unicode}")
+    @register_method("{'srp_token': unicode, 'uuid': unicode}")
     def do_AUTHENTICATE(self, bonafide, *parts):
         try:
             user, password = parts[2], parts[3]
@@ -122,15 +121,8 @@ class UserCmd(SubCommand):
             if parts[4] == 'True':
                 autoconf = True
 
-        # FIXME We still SHOULD pass a local token
-        # even if the SRP authentication times out!!!
-        def add_local_token(result):
-            result['lcl_token'] = bonafide.local_tokens.get(user)
-            return result
-
         d = defer.maybeDeferred(
             bonafide.do_authenticate, user, password, autoconf)
-        d.addCallback(add_local_token)
         return d
 
     @register_method("{'signup': 'ok', 'user': str}")
@@ -238,6 +230,11 @@ class VPNCmd(SubCommand):
     @register_method('dict')
     def do_UNINSTALL(self, vpn, *parts):
         d = vpn.do_uninstall()
+        return d
+
+    @register_method('dict')
+    def do_LIST(self, vpn, *parts):
+        d = vpn.do_list()
         return d
 
 

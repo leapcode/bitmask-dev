@@ -37,6 +37,7 @@ SUBCOMMANDS:
    stop       Stop VPN
    status     Display status about the VPN
    check      Check whether VPN service is properly configured
+   list       List the configured gateways
    get_cert   Get VPN Certificate from provider
    install    Install helpers (needs root)
    uninstall  Uninstall helpers (needs root)
@@ -92,6 +93,10 @@ SUBCOMMANDS:
 
         self.data += ['check', provider]
 
+        return self._send(command.default_dict_printer)
+
+    def list(self, raw_args):
+        self.data += ['list']
         return self._send(command.default_dict_printer)
 
     def get_cert(self, raw_args):
