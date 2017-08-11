@@ -407,13 +407,16 @@ class Provider(object):
             self._load_provider_configs()
             return True
 
-        def workaround_for_config_fetch(failure):
+        def workaround_for_failed_config_fetch(failure):
             # FIXME --- configs.json raises 500, see #7914.
             # This is a workaround until that's fixed.
             self.log.debug(
                 'COULD NOT VERIFY CONFIGS.JSON, WORKAROUND: DIRECT DOWNLOAD')
 
-            if 'mx' in self._provider_config.services:
+            deferreds = []
+            services = self._provider_config.services
+
+            if 'mx' in services:
                 soledad_uri = '/1/config/soledad-service.json'
                 smtp_uri = '/1/config/smtp-service.json'
                 base = self._disco.netloc
@@ -425,9 +428,30 @@ class Provider(object):
                     'https://' + str(base + soledad_uri), get_path('soledad'))
                 d2 = fetch(
                     'https://' + str(base + smtp_uri), get_path('smtp'))
-                d = defer.gatherResults([d1, d2])
-                d.addCallback(lambda _: finish_stuck_after_workaround())
-                return d
+                deferreds += [d1, d2]
+
+            if 'openvpn' in services:
+                openvpn_uri = '/1/config/eip-service.json'
+                base = self._disco.netloc
+
+                fetch = self._fetch_provider_configs_unauthenticated
+                get_path = self._get_service_config_path
+
+                d3 = fetch(
+                    'https://' + str(base + openvpn_uri), get_path('eip'))
+                deferreds += [d3]
+
+            d = defer.gatherResults(deferreds)
+            d.addCallback(lambda _: finish_stuck_after_workaround())
+            return d
+
+        def check_if_invalid_config_fetch(ignored):
+            # For some old versions of the webapp, it returns a 200 but downloads
+            # a non-valid file. See #9004
+            try:
+                json.loads(open(self.get_configs_path()).read())
+            except ValueError:
+                workaround_for_failed_config_fetch(None)
 
         def finish_stuck_after_workaround():
             stuck = self.stuck_bootstrap.get(self._domain, None)
@@ -447,7 +471,8 @@ class Provider(object):
             d = session.fetch_provider_configs(uri, path)
             d.addCallback(verify_provider_configs)
             d.addCallback(complete_bootstrapping)
-            d.addErrback(workaround_for_config_fetch)
+            d.addCallback(check_if_invalid_config_fetch)
+            d.addErrback(workaround_for_failed_config_fetch)
             return d
         else:
             d = defer.succeed('already downloaded')
