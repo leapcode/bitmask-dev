@@ -38,21 +38,21 @@ from leap.common.config import get_path_prefix
 if platform.system() == 'Windows':
     from multiprocessing import freeze_support
     from PySide import QtCore, QtGui
-    #from PySide import QtWebKit
     from PySide.QtGui import QDialog
     from PySide.QtGui import QApplication
     from PySide.QtWebKit import QWebView, QGraphicsWebView
     from PySide.QtCore import QSize
 else:
     from PyQt5 import QtCore, QtGui
-    #from PyQt5 import QtWebEngine
     from PyQt5.QtCore import QSize
     from PyQt5.QtCore import QObject, pyqtSlot
     from PyQt5.QtWidgets import QApplication
-    #from PyQt5.QtWebKitWidgets import QWebView
-    #from PyQt5.QtWebKit import QWebSettings
-    from PyQt5.QtWebEngineWidgets import QWebEngineView as QWebView
-    from PyQt5.QtWebEngineWidgets import QWebEngineSettings as QWebSettings
+    try:
+        from PyQt5.QtWebKitWidgets import QWebView
+        from PyQt5.QtWebKit import QWebSettings
+    except ImportError:
+        from PyQt5.QtWebEngineWidgets import QWebEngineView as QWebView
+        from PyQt5.QtWebEngineWidgets import QWebEngineSettings as QWebSettings
 
 
 IS_WIN = platform.system() == "Windows"
