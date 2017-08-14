@@ -9,17 +9,11 @@ Setting up a development environment in OSX™
 
 * Use ``brew`` to install ``OpenSSL``.
 
-* **Problem**: pyqt5 in homebrew stopped shipping qtwebkit. I found the following
-workaround in an issue in qutebrowser's repo, works fine for me for now::
+In OSX, we're using ``pywebview`` for the GUI launcher, that depends on ``pyobjc``. You can install that with::
 
-  cd $(brew --prefix)/Library/Formula
-  curl -OO
-  https://raw.githubusercontent.com/Homebrew/homebrew/f802822b0fa35ad362aebd0101ccf83a638bed37/Library/Formula/{py,}qt5.rb
-  brew install qt5 pyqt5
+  pip install -r pkg/requirements-osx.pip
 
-.. note: copy that into a makefile target
-
-After those fixes, you should be able to build the bundle::
+After installing that, you should be able to build the bundle::
 
   make bundle_osx
 
@@ -28,8 +22,6 @@ Privileged helper
 =================
 
 The OSX privileged helper is in ``src/leap/bitmask/vpn/helpers/osx/``.
-
-.. note: move it to vpn/helpers/osx
 
 It is a python daemon that runs as root.
 It should be installed by the Bitmask installer.
