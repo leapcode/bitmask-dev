@@ -91,9 +91,9 @@ class VPNControl(object):
         # generic watchers
 
         poll_list = [
-                     LoopingCall(vpnproc.pollStatus),
-                     LoopingCall(vpnproc.pollState),
-                     LoopingCall(vpnproc.pollLog)]
+            LoopingCall(vpnproc.pollStatus),
+            LoopingCall(vpnproc.pollState),
+            LoopingCall(vpnproc.pollLog)]
         self._pollers.extend(poll_list)
         self._start_pollers()
         return True

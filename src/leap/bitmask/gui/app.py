@@ -106,8 +106,8 @@ class BrowserWindow(QWebView):
         self.loadPage(self.url)
 
         self.proxy = AppProxy(self) if first else None
-        #self.frame.addToJavaScriptWindowObject(
-        #    "bitmaskApp", self.proxy)
+        self.frame.addToJavaScriptWindowObject(
+            "bitmaskApp", self.proxy)
 
         icon = QtGui.QIcon()
         icon.addPixmap(
@@ -132,9 +132,9 @@ class BrowserWindow(QWebView):
 
         url = QtCore.QUrl(web_page)
         # TODO -- port this to QWebEngine
-        #self.frame = self.page().mainFrame()
-        #self.frame.addToJavaScriptWindowObject(
-        #    "bitmaskBrowser", self.bitmask_browser)
+        self.frame = self.page().mainFrame()
+        self.frame.addToJavaScriptWindowObject(
+            "bitmaskBrowser", self.bitmask_browser)
         self.load(url)
 
     def shutdown(self, *args):

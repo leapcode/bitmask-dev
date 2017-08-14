@@ -17,8 +17,8 @@
 
 """
 Main entrypoint for the Bitmask Qt GUI.
-It just launches a webview browser that runs the local web-ui served by bitmaskd
-when the web service is running.
+It just launches a webview browser that runs the local web-ui served by
+bitmaskd when the web service is running.
 """
 
 import os
@@ -36,7 +36,6 @@ import psutil
 
 from leap.bitmask.core.launcher import run_bitmaskd, pid
 from leap.common.config import get_path_prefix
-#from leap.bitmask.gui import app_rc
 
 
 DEBUG = os.environ.get("DEBUG", False)
@@ -83,7 +82,6 @@ class BrowserWindow(object):
 
         webview.create_window('Bitmask', self.url)
 
-
     def loadPage(self, web_page):
         self.load(url)
 
@@ -99,7 +97,6 @@ class BrowserWindow(object):
             print('[bitmask] terminating bitmaskd...')
             os.kill(pidno, signal.SIGTERM)
         print('[bitmask] shutting down gui...')
-
 
 
 def launch_gui():
