@@ -47,6 +47,9 @@ build_ui:
     - cd ui && make dev-build
   tags:
     - linux
+  cache:
+    paths:
+    - ui/node_modules/
 
 e2e_tests:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
