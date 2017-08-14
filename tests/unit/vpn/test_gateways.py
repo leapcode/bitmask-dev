@@ -141,7 +141,11 @@ class GatewaySelectorTestCase(unittest.TestCase):
         ordered = selector.apply_user_preferences(pre)
         locations = [x[0] for x in ordered]
         # first the preferred location, then order by country
-        assert locations == ['Montevideo', 'Rio de Janeiro', 'Cordoba', 'Seattle']
+        assert locations == [
+            'Montevideo',
+            'Rio de Janeiro',
+            'Cordoba',
+            'Seattle']
 
         pre = [
             ('Seattle', '', ''),
@@ -150,8 +154,13 @@ class GatewaySelectorTestCase(unittest.TestCase):
             ('AnaRreS', '', '')]
         ordered = selector.apply_user_preferences(pre)
         locations = [x[0] for x in ordered]
-        # first the preferred location, then order by country (test normalization)
-        assert locations == ['AnaRreS', 'Paris, FR', 'Montevideo', 'Seattle']
+        # first the preferred location, then order by country
+        # (test normalization)
+        assert locations == [
+            'AnaRreS',
+            'Paris, FR',
+            'Montevideo',
+            'Seattle']
 
         pre = [
             ('Rio De Janeiro', '', 'BR'),
@@ -161,6 +170,8 @@ class GatewaySelectorTestCase(unittest.TestCase):
         ordered = selector.apply_user_preferences(pre)
         locations = [x[0] for x in ordered]
         # no matching location, order by country
-        assert locations == ['Rio De Janeiro', 'Sao Paulo', 'Cordoba', 'Tacuarembo']
-
-
+        assert locations == [
+            'Rio De Janeiro',
+            'Sao Paulo',
+            'Cordoba',
+            'Tacuarembo']
