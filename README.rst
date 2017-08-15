@@ -113,6 +113,15 @@ debian-based system, you can try::
 
   make dev-bootstrap
 
+To upgrade regularly the python dependencies installed inside your virtualenv,
+you can run::
+
+  make upgrade-all
+
+inside your virtualenv, and it will install any new version of your
+dependencies that is found in pypi.
+
+
 Run headless backend in development mode
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

@@ -8,24 +8,28 @@ dev-bootstrap:
 	pkg/tools/bitmask-bootstrap.sh
 
 dev-mail:
-	pip install -e '.[mail]'
+	pip install -U -e '.[mail]'
 
 dev-gui: install_pixelated
-	pip install -e '.[gui]'
-dev-backend:
-	pip install -e '.[backend]'
+	pip install -U -e '.[gui]'
 
-dev-latest-backend: dev-backend
-	pip install -e 'git+https://0xacab.org/leap/leap_pycommon@master#egg=leap.common'
-	pip install -e 'git+https://0xacab.org/leap/soledad@master#egg=leap.soledad'
+dev-backend:
+	pip install -U -e '.[backend]'
 
 dev-all: install_pixelated
 	pip install -I --install-option="--bundled" pysqlcipher
-	pip install -e '.[all]'
+	pip install -U -e '.[all]'
 
-dev-latest-all: dev-all
-	pip install -e 'git+https://0xacab.org/leap/leap_pycommon@master#egg=leap.common'
-	pip install -e 'git+https://0xacab.org/leap/soledad@master#egg=leap.soledad'
+dev-latest-leap:
+	pip install -U -e 'git+https://0xacab.org/leap/leap_pycommon@master#egg=leap.common'
+	pip install -U -e 'git+https://0xacab.org/leap/soledad@master#egg=leap.soledad'
+
+dev-latest-backend: dev-backend dev-latest-leap
+
+dev-latest-all: dev-all dev-latest-leap
+
+upgrade-all:
+	python pkg/tools/upgrade_all.py
 
 uninstall:
 	pip uninstall leap.bitmask
@@ -38,7 +42,7 @@ test_e2e:
 	tests/e2e/e2e-test-vpn.sh
 
 test_functional_setup:
-	pip install behave selenium
+	pip install -U behave selenium
 
 test_functional:
 	xvfb-run --server-args="-screen 0 1280x1024x24" behave --tags ~@wip --tags @smoke tests/functional/features -k -D host=localhost
