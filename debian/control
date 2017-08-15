@@ -82,6 +82,15 @@ Description: Desktop client to access LEAP Services.
  .
  This package provides the Bitmask Mail components.
 
+Package: bitmask-chromium
+Architecture: all
+Depends: bitmask-core,
+Provides: leap.bitmask.chrome
+Description: Desktop client to access LEAP Services.
+ The LEAP project aims to secure everyday communication.
+ .
+ This package provides a chromium launcher.
+
 Package: bitmask-mua
 Architecture: all
 Build-Depends: pyqt5-dev-tools, 
