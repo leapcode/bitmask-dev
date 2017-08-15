@@ -124,9 +124,7 @@ class VPNService(HookableService):
                 self.log.error("Firewall: error stopping")
 
         if not self._tunnel:
-            # XXX this avoids to shutdown anything that was in process.
-            # or self._tunnel.status['status'] is not 'on':
-            raise Exception('VPN was not running')
+            return {'result': 'VPN was not running'}
 
         vpn_ok = self._tunnel.stop()
         if not vpn_ok:

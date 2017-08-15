@@ -119,11 +119,13 @@ class VPNControl(object):
         # We assume that the only valid stops are initiated
         # by an user action, not hard restarts
         self._user_stopped = not restart
-        self._vpnproc.restarting = restart
+        if self._vpnproc is not None:
+            self._vpnproc.restarting = restart
 
         self._stop_pollers()
         try:
-            self._vpnproc.preDown()
+            if self._vpnproc is not None:
+                self._vpnproc.preDown()
         except Exception as e:
             self.log.error('Error on vpn pre-down {0!r}'.format(e))
             raise
