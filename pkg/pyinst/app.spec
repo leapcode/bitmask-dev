@@ -40,16 +40,15 @@ if IS_WIN:
 	'packaging.requirements',
 	'python-gnupg'])
     excludes = ['PyQt5']
-    QT5PATH = ['']
 elif IS_MAC:
     hiddenimports.extend(['pywebview', 'pyobjc'])
     excludes = ['PyQt5', 'IPython', 'PySide']
-    QT5PATH = ['']
 else:
     hiddenimports.extend(
         ['PyQt5.QtCore', 'PyQt5.QtGui', 'PyQt5.QtWebEngine',
          'leap.bitmask.gui.icons_rc'])
     excludes = ['PySide']
+
 
 VENV = os.environ.get('VIRTUAL_ENV', '')
 
@@ -61,7 +60,7 @@ else:
 
 a = Analysis(ENTRYPOINT,
              pathex=[
-	         '/usr/lib/python2.7/dist-packages/'] + QT5PATH,
+	         '/usr/lib/python2.7/dist-packages/'],
              binaries=None,
              datas=None,
              hiddenimports=hiddenimports,
