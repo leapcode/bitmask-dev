@@ -41,8 +41,8 @@ function clone_repo()
 
 function install_deps()
 {
-  cd ~/leap/bitmask-dev && pew in bitmask pip install -r pkg/requirements-dev.pip
-  cd ~/leap/bitmask-dev && pew in bitmask pip install -r pkg/requirements-testing.pip
+  cd ~/leap/bitmask-dev && pew in bitmask pip install -U -r pkg/requirements-dev.pip
+  cd ~/leap/bitmask-dev && pew in bitmask pip install -U -r pkg/requirements-testing.pip
   cd ~/leap/bitmask-dev && pew in bitmask make dev-all
 }
 
