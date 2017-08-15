@@ -26,6 +26,7 @@ import re
 from StringIO import StringIO
 from copy import deepcopy
 from email.parser import Parser
+from email.encoders import encode_7or8bit
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -385,7 +386,7 @@ class OutgoingMail(object):
         def create_encrypted_message(res):
             newmsg, encstr = res
             encmsg = MIMEApplication(
-                encstr, _subtype='octet-stream', _encoder=lambda x: x)
+                encstr, _subtype='octet-stream', _encoder=encode_7or8bit)
             encmsg.add_header('content-disposition', 'attachment',
                               filename='msg.asc')
             # create meta message

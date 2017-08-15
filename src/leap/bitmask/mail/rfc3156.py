@@ -24,6 +24,7 @@ from StringIO import StringIO
 
 from twisted.logger import Logger
 
+from email.encoders import encode_7or8bit
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email import errors
@@ -361,7 +362,8 @@ class PGPEncrypted(MIMEApplication):
 
     def __init__(self, version=1):
         data = "Version: %d" % version
-        MIMEApplication.__init__(self, data, 'pgp-encrypted')
+        MIMEApplication.__init__(self, data, 'pgp-encrypted',
+                                 _encoder=encode_7or8bit)
 
 
 class PGPSignature(MIMEApplication):
@@ -375,7 +377,7 @@ class PGPSignature(MIMEApplication):
     """
     def __init__(self, _data, name='signature.asc'):
         MIMEApplication.__init__(self, _data, 'pgp-signature',
-                                 _encoder=lambda x: x, name=name)
+                                 _encoder=encode_7or8bit, name=name)
         self.add_header('Content-Description', 'OpenPGP Digital Signature')
 
 
@@ -390,4 +392,5 @@ class PGPKeys(MIMEApplication):
     """
 
     def __init__(self, _data):
-        MIMEApplication.__init__(self, _data, 'pgp-keys')
+        MIMEApplication.__init__(self, _data, 'pgp-keys',
+                                 _encoder=encode_7or8bit)
