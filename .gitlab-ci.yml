@@ -3,6 +3,7 @@ stages:
   - test
   - e2e
   - bundle
+  - test_bundle
   - build_ui
   - package
 
@@ -42,17 +43,6 @@ bitmask_latest_bundle:
   tags:
     - linux
 
-build_ui:
-  image: 0xacab.org:4567/leap/bitmask-dev:latest
-  stage: build_ui
-  script:
-    - cd ui && make dev-build
-  tags:
-    - linux
-  cache:
-    paths:
-    - ui/node_modules/
-
 e2e_tests:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
   stage: e2e
@@ -85,6 +75,33 @@ functional_tests:
     expire_in: 1 month
   tags:
     - linux
+
+functional_test_bundle:
+  image: 0xacab.org:4567/leap/bitmask-dev:latest
+  stage: test_bundle
+  dependencies:
+    - bitmask_latest_bundle
+  script:
+    - TEST_MODE='bundle_ci' make test_functional
+  artifacts:
+    when: on_failure
+    paths:
+      - failures
+    name: "Bitmask_linux64_${CI_BUILD_REF}_e2e_screenshots"
+    expire_in: 1 month
+  tags:
+    - linux
+
+build_ui:
+  image: 0xacab.org:4567/leap/bitmask-dev:latest
+  stage: build_ui
+  script:
+    - cd ui && make dev-build
+  tags:
+    - linux
+  cache:
+    paths:
+    - ui/node_modules/
 
 build_docker_image:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
