@@ -61,9 +61,11 @@ def _helper_installer(action):
             cmd = "%s %s" % (binary_path, cmd)
         if os.getuid() != 0:
             cmd = 'pkexec ' + cmd
-        retcode, _ = commands.getstatusoutput(cmd)
+        retcode, output = commands.getstatusoutput(cmd)
         if retcode != 0:
-            raise Exception('Could not uninstall helpers')
+            log.error('Error installing/uninstalling helpers: %s' % output)
+            log.error('Command was: %s' % cmd)
+            raise Exception('Could not install/install helpers')
     else:
         raise Exception('No install mechanism for this platform')
 
