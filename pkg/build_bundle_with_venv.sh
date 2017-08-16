@@ -49,9 +49,7 @@ $VIRTUAL_ENV/bin/python setup.py sdist bdist_wheel --universal
 echo "[+] Installing Bitmask from latest wheel..."
 $VIRTUAL_ENV/bin/pip install `ls -ltr dist/*.whl | tail -n 1 | cut -d' ' -f 9`
 
-
 # Get the bundled libzmq
-$VIRTUAL_ENV/bin/pip uninstall --yes pyzmq
-$VIRTUAL_ENV/bin/pip install pyzmq --install-option="--zmq=bundled"
+$VIRTUAL_ENV/bin/pip install -I pyzmq --install-option="--zmq=bundled"
 
 make bundle_linux

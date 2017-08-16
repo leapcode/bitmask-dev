@@ -12,9 +12,27 @@ from leap.common.config import get_path_prefix
 DEFAULT_IMPLICIT_WAIT_TIMEOUT_IN_S = 10
 HOME_PATH = os.path.abspath('./tmp/bitmask-test')
 
+VIRTUALENV = 'virtualenv'
+BUNDLE = 'bundle'
+BUNDLE_CI = 'bundle-ci'
+
+MODE = VIRTUALENV
+
+
+def set_mode(mode):
+    global MODE
+    if mode not in (VIRTUALENV, BUNDLE, BUNDLE_CI):
+        raise ValueError('Unknown test mode: %s' % mode)
+    MODE = mode
+    return mode
+
 
 def before_all(context):
     os.environ['HOME'] = HOME_PATH
+    mode = os.environ.get('TEST_MODE', 'virtualenv')
+    set_mode(mode)
+    context.mode = mode
+
     _setup_webdriver(context)
     userdata = context.config.userdata
     context.host = userdata.get('host', 'http://localhost')
@@ -29,6 +47,16 @@ def before_all(context):
     except KeyError:
         print('TEST_USERNAME or TEST_PASSWORD not set')
         sys.exit(0)
+
+    if MODE == BUNDLE:
+        next_version = open('pkg/next-version').read().strip()
+        context.bundle_path = os.path.abspath(
+            os.path.join('dist', 'bitmask-' + next_version))
+    elif MODE == BUNDLE_CI:
+        # TODO set path to artifact XXX ---
+        context.bundle_path = None
+    else:
+        context.bundle_path = None
 
 
 def _setup_webdriver(context):
@@ -45,7 +73,8 @@ def _setup_webdriver(context):
 
 def after_all(context):
     context.browser.quit()
-    commands.getoutput('bitmaskctl stop')
+    if MODE == VIRTUALENV:
+        commands.getoutput('bitmaskctl stop')
 
 
 def after_step(context, step):
