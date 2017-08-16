@@ -237,18 +237,6 @@ class _VPNProcess(protocol.ProcessProtocol):
         self.log.debug("{0}".format(" ".join(command)))
         return command
 
-    def getGateways(self):
-        """
-        Get the gateways from the appropiate launcher.
-
-        :rtype: list
-        """
-        gateways_ports = self._launcher.get_gateways(
-            self._vpnconfig, self._providerconfig)
-
-        # filter out ports since we don't need that info
-        return [gateway for gateway, port in gateways_ports]
-
     def get_openvpn_process(self):
         return self._management.get_openvpn_process()
 

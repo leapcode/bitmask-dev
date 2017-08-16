@@ -67,6 +67,9 @@ class VPNStatus(object):
         return status
 
     def set_status(self, status, errcode):
+        if not status:
+            return
+
         if status in self._STARTING:
             status = "starting"
         elif status in self._STOPPING:
