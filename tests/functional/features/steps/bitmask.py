@@ -9,13 +9,13 @@ from behave import given
 
 @given('I start bitmask for the first time')
 def initial_run(context):
-    if context.MODE == 'virtualenv':
+    if context.mode == 'virtualenv':
         commands.getoutput('bitmaskctl stop')
         # TODO: fix bitmaskctl to only exit once bitmaskd has stopped
         time.sleep(2)
         _initialize_home_path()
         commands.getoutput('bitmaskctl start')
-    elif context.MODE == 'bundle':
+    elif context.mode in ('bundle', 'bundle-ci'):
         commands.getoutput(context.bundle_path)
         time.sleep(2)
     tokenpath = os.path.join(get_path_prefix(), 'leap', 'authtoken')

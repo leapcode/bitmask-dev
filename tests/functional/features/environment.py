@@ -55,6 +55,8 @@ def before_all(context):
     elif MODE == BUNDLE_CI:
         # TODO set path to artifact XXX ---
         context.bundle_path = None
+    else:
+        context.bundle_path = None
 
 
 def _setup_webdriver(context):
