@@ -1,0 +1,38 @@
+>INFO:OpenVPN Management Interface Version 1 -- type 'help' for more info
+SUCCESS: real-time log notification set to ON
+OpenVPN Version: OpenVPN 2.4.0 x86_64-pc-linux-gnu [SSL (OpenSSL)] [LZO] [LZ4] [EPOLL] [PKCS11] [MH/PKTINFO] [AEAD] built on Jun 22 2017
+Management Version: 1
+END
+SUCCESS: pid=30641
+SUCCESS: real-time state notification set to ON
+SUCCESS: bytecount interval changed
+>BYTECOUNT:26,14
+>STATE:1503079741,AUTH,,,,,,
+>BYTECOUNT:5168,3078
+>LOG:1503079746,I,[otter.demo.bitmask.net] Peer Connection Initiated with [AF_INET]46.165.242.169:443
+>STATE:1503079747,GET_CONFIG,,,,,,
+>LOG:1503079748,W,Note: option tun-ipv6 is ignored because modern operating systems do not need special IPv6 tun handling anymore.
+>LOG:1503079748,I,TUN/TAP device tun0 opened
+>LOG:1503079748,D,do_ifconfig, tt->did_ifconfig_ipv6_setup=1
+>STATE:1503079748,ASSIGN_IP,,10.42.0.12,,,,,2001:db8:123::100a
+>LOG:1503079748,I,/sbin/ip link set dev tun0 up mtu 1500
+>LOG:1503079748,I,/sbin/ip addr add dev tun0 10.42.0.12/21 broadcast 10.42.7.255
+>LOG:1503079748,I,/sbin/ip -6 addr add 2001:db8:123::100a/64 dev tun0
+>LOG:1503079748,W,ERROR: Linux route add command failed: external program exited with error status: 2
+>LOG:1503079748,I,add_route_ipv6(2000::/3 -> 2001:db8:123::1 metric -1) dev tun0
+>LOG:1503079748,I,GID set to nogroup
+>LOG:1503079748,I,UID set to nobody
+>LOG:1503079748,I,Initialization Sequence Completed
+>STATE:1503079748,CONNECTED,SUCCESS,10.42.0.12,46.165.242.169,443,,,2001:db8:123::100a
+SUCCESS: signal SIGTERM thrown
+>LOG:1503079751,W,ERROR: Linux route delete command failed: external program exited with error status: 2
+>LOG:1503079751,W,ERROR: Linux route delete command failed: external program exited with error status: 2
+>LOG:1503079751,W,ERROR: Linux route delete command failed: external program exited with error status: 2
+>LOG:1503079751,I,delete_route_ipv6(2000::/3)
+>LOG:1503079751,W,ERROR: Linux route -6/-A inet6 del command failed: external program exited with error status: 2
+>LOG:1503079751,I,/sbin/ip addr del dev tun0 10.42.0.12/21
+>LOG:1503079751,W,Linux ip addr del failed: external program exited with error status: 2
+>LOG:1503079751,I,/sbin/ip -6 addr del 2001:db8:123::100a/64 dev tun0
+>LOG:1503079751,W,Linux ip -6 addr del failed: external program exited with error status: 2
+>LOG:1503079751,I,SIGTERM[hard,] received, process exiting
+>STATE:1503079751,EXITING,SIGTERM,,,,,

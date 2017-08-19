@@ -1,0 +1,34 @@
+>INFO:OpenVPN Management Interface Version 1 -- type 'help' for more info
+SUCCESS: real-time log notification set to ON
+OpenVPN Version: OpenVPN 2.4.0 x86_64-pc-linux-gnu [SSL (OpenSSL)] [LZO] [LZ4] [EPOLL] [PKCS11] [MH/PKTINFO] [AEAD] built on Jun 22 2017
+Management Version: 1
+END
+SUCCESS: pid=23783
+SUCCESS: real-time state notification set to ON
+SUCCESS: bytecount interval changed
+>BYTECOUNT:26,14
+>STATE:1503010298,AUTH,,,,,,
+>LOG:1503010302,I,[otter.demo.bitmask.net] Peer Connection Initiated with [AF_INET]46.165.242.169:443
+>STATE:1503010303,GET_CONFIG,,,,,,
+>BYTECOUNT:5573,3716
+>LOG:1503010303,W,Note: option tun-ipv6 is ignored because modern operating systems do not need special IPv6 tun handling anymore.
+>LOG:1503010303,I,TUN/TAP device tun0 opened
+>LOG:1503010303,D,do_ifconfig, tt->did_ifconfig_ipv6_setup=1
+>STATE:1503010303,ASSIGN_IP,,10.42.0.18,,,,,2001:db8:123::1010
+>LOG:1503010303,I,/sbin/ip link set dev tun0 up mtu 1500
+>LOG:1503010303,I,/sbin/ip addr add dev tun0 10.42.0.18/21 broadcast 10.42.7.255
+>LOG:1503010303,I,/sbin/ip -6 addr add 2001:db8:123::1010/64 dev tun0
+>LOG:1503010303,W,ERROR: Linux route add command failed: external program exited with error status: 2
+>LOG:1503010304,I,add_route_ipv6(2000::/3 -> 2001:db8:123::1 metric -1) dev tun0
+>LOG:1503010304,I,GID set to nogroup
+>LOG:1503010304,I,UID set to nobody
+>LOG:1503010304,I,Initialization Sequence Completed
+>STATE:1503010304,CONNECTED,SUCCESS,10.42.0.18,46.165.242.169,443,,,2001:db8:123::1010
+>BYTECOUNT:6279,4102
+>BYTECOUNT:6577,4400
+>BYTECOUNT:6923,4847
+>BYTECOUNT:7237,4996
+>BYTECOUNT:7732,5443
+>BYTECOUNT:10355,6055
+>BYTECOUNT:17168,7657
+
