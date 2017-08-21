@@ -7,7 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-TIMEOUT_IN_S = 20
+TIMEOUT_IN_S = 30
 
 DEFAULT_IMPLICIT_WAIT_TIMEOUT_IN_S = 10
 

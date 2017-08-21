@@ -9,7 +9,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from leap.common.config import get_path_prefix
 
-DEFAULT_IMPLICIT_WAIT_TIMEOUT_IN_S = 10
+DEFAULT_IMPLICIT_WAIT_TIMEOUT_IN_S = 30
 HOME_PATH = os.path.abspath('./tmp/bitmask-test')
 
 VIRTUALENV = 'virtualenv'
