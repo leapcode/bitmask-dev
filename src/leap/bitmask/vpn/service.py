@@ -30,10 +30,9 @@ from leap.bitmask.hooks import HookableService
 from leap.bitmask.util import merge_status
 from leap.bitmask.vpn.gateways import GatewaySelector
 from leap.bitmask.vpn.fw.firewall import FirewallManager
-from leap.bitmask.vpn.tunnel import TunnelManager
+from leap.bitmask.vpn.tunnel import ConfiguredTunnel
 from leap.bitmask.vpn._checks import is_service_ready, get_vpn_cert_path
 from leap.bitmask.vpn import privilege, helpers
-from leap.bitmask.vpn.privilege import NoPolkitAuthAgentAvailable
 from leap.common.config import get_path_prefix
 from leap.common.files import check_and_fix_urw_only
 from leap.common.certs import get_cert_time_boundaries
@@ -101,7 +100,7 @@ class VPNService(HookableService):
             raise Exception('Could not start firewall')
 
         try:
-            vpn_ok = self._tunnel.start()
+            self._tunnel.start()
         except Exception as exc:
             self._firewall.stop()
             # TODO get message from exception
@@ -206,7 +205,7 @@ class VPNService(HookableService):
 
     @defer.inlineCallbacks
     def _setup(self, provider):
-        """Set up TunnelManager for a specified provider.
+        """Set up ConfiguredTunnel for a specified provider.
 
         :param provider: the provider to use, e.g. 'demo.bitmask.net'
         :type provider: str"""
@@ -247,7 +246,7 @@ class VPNService(HookableService):
 
         # TODO add remote ports, according to preferred sequence
         remotes = tuple([(ip, '443') for ip in sorted_gateways])
-        self._tunnel = TunnelManager(
+        self._tunnel = ConfiguredTunnel(
             provider, remotes, cert_path, key_path, ca_path, extra_flags)
         self._firewall = FirewallManager(remotes)
 
