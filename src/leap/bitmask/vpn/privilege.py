@@ -23,11 +23,8 @@ are operative under this client run.
 import commands
 import os
 import subprocess
-import platform
 import psutil
 import time
-
-from abc import ABCMeta, abstractmethod
 
 from twisted.logger import Logger
 from twisted.python.procutils import which
@@ -79,46 +76,7 @@ class NoPkexecAvailable(Exception):
     message = 'Could not find pkexec in the system'
 
 
-# TODO rename to privileged_runner or something like that
-def is_missing_policy_permissions():
-    """
-    Returns True if we do not have implemented a policy checker for this
-    platform, or if the policy checker exists but it cannot find the
-    appropriate policy mechanisms in place.
-
-    :rtype: bool
-    """
-    _system = platform.system()
-    platform_checker = _system + "PolicyChecker"
-    policy_checker = globals().get(platform_checker, None)
-    if not policy_checker:
-        # it is true that we miss permission to escalate
-        # privileges without asking for password each time.
-        log.debug('we could not find a policy checker implementation '
-                  'for %s' % (_system,))
-        return True
-    return policy_checker().is_missing_policy_permissions()
-
-
-class PolicyChecker:
-    """
-    Abstract PolicyChecker class
-    """
-
-    __metaclass__ = ABCMeta
-
-    @abstractmethod
-    def is_missing_policy_permissions(self):
-        """
-        Returns True if we could not find any policy mechanisms that
-        are defined to be in used for this particular platform.
-
-        :rtype: bool
-        """
-        return True
-
-
-class LinuxPolicyChecker(PolicyChecker):
+class LinuxPolicyChecker(object):
     """
     PolicyChecker for Linux
     """
@@ -137,18 +95,6 @@ class LinuxPolicyChecker(PolicyChecker):
         """
         return (self.LINUX_POLKIT_FILE_BUNDLE if STANDALONE
                 else self.LINUX_POLKIT_FILE)
-
-    def is_missing_policy_permissions(self):
-        # FIXME this name is quite confusing, it does not have anything to do
-        # with file permissions.
-        """
-        Returns True if we could not find the appropriate policykit file
-        in place
-
-        :rtype: bool
-        """
-        path = self.get_polkit_path()
-        return not os.path.isfile(path)
 
     @classmethod
     def maybe_pkexec(self):
