@@ -19,12 +19,7 @@
 Gateway Selection
 """
 import copy
-import logging
-import os
-import re
 import time
-
-from leap.common.config import get_path_prefix
 
 
 def _normalized(label):

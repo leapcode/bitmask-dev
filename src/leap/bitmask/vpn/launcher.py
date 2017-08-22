@@ -20,16 +20,14 @@ Platform-independent VPN launcher interface.
 """
 
 import getpass
-import hashlib
 import os
 import stat
 
 from twisted.logger import Logger
 
 from abc import ABCMeta, abstractmethod
-from functools import partial
 
-from leap.bitmask.vpn.constants import IS_LINUX, IS_MAC
+from leap.bitmask.vpn.constants import IS_MAC
 from leap.bitmask.vpn.utils import force_eval
 
 

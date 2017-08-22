@@ -80,9 +80,7 @@ class ConfiguredTunnel(object):
         host, port = _get_management_location()
         self._host = host
         self._port = port
-
         self._vpnproc = None
-        self._user_stopped = False
 
     def start(self):
         return self._start_vpn()
@@ -106,9 +104,6 @@ class ConfiguredTunnel(object):
 
     def _start_vpn(self):
         self.log.debug('VPN: start')
-
-        self._user_stopped = False
-
         args = [self._vpnconfig, self._providerconfig, self._host,
                 self._port]
         kwargs = {'openvpn_verb': 4, 'remotes': self._remotes,
@@ -161,9 +156,6 @@ class ConfiguredTunnel(object):
         # TODO how to return False if this fails
         # XXX maybe return a deferred
 
-        # We assume that the only valid stops are initiated
-        # by an user action, not hard restarts
-        self._user_stopped = not restart
         if self._vpnproc is not None:
             self._vpnproc.restarting = restart
 
