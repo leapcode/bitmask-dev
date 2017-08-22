@@ -21,6 +21,7 @@ Daemonizes polkit authentication agent.
 
 import os
 import subprocess
+import sys
 
 import daemon
 
@@ -74,6 +75,7 @@ def launch():
 
 
 if __name__ == "__main__":
-    # TODO pass a --nodaemon flag so that we can launch this in the foreground
-    # and debug this module, getting errors to stderr.
-    launch()
+    if '--nodaemon' in sys.argv:
+        _launch_agent()
+    else:
+        launch()
