@@ -24,6 +24,7 @@ import commands
 import os
 import subprocess
 import platform
+import psutil
 import time
 
 from abc import ABCMeta, abstractmethod
@@ -209,20 +210,24 @@ class LinuxPolicyChecker(PolicyChecker):
         # polkit-agent, it uses a polkit-agent within its own process so we
         # can't ps-grep a polkit process, we can ps-grep gnome-shell itself.
 
-        # the square brackets are to avoid grep match itself
-        polkit_options = [
-            'ps aux | grep "polkit-[g]nome-authentication-agent-1"',
-            'ps aux | grep "polkit-[k]de-authentication-agent-1"',
-            'ps aux | grep "polkit-[m]ate-authentication-agent-1"',
-            'ps aux | grep "[l]xpolkit"',
-            'ps aux | grep "[l]xsession"',
-            'ps aux | grep "[g]nome-shell"',
-            'ps aux | grep "[f]ingerprint-polkit-agent"',
-            'ps aux | grep "[x]fce-polkit"',
-        ]
-        is_running = [commands.getoutput(cmd) for cmd in polkit_options]
+        polkit_options = (
+            'polkit-gnome-authentication-agent-1',
+            'polkit-kde-authentication-agent-1',
+            'polkit-mate-authentication-agent-1',
+            'lxpolkit',
+            'lxsession',
+            'gnome-shell',
+            'fingerprint-polkit-agent',
+            'xfce-polkit',
+        )
 
-        return any(is_running)
+        is_running = False
+        for proc in psutil.process_iter():
+            if any((polkit in proc.name() for polkit in polkit_options)):
+                is_running = True
+                break
+
+        return is_running
 
     @classmethod
     def _is_pkexec_in_system(self):
