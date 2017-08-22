@@ -40,9 +40,6 @@ def _get_polkit_agent():
 
     :rtype: str or None
     """
-    # TODO: in caso of having more than one polkit agent we may want to
-    # stablish priorities. E.g.: lxpolkit over gnome-polkit for minimalistic
-    # desktops.
     for polkit in POLKIT_PATHS:
         if os.path.isfile(polkit):
             return polkit
