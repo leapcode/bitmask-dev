@@ -22,22 +22,24 @@ A custom processProtocol launches the VPNProcess and connects to its management
 interface.
 """
 
+import shutil
 import sys
 
-from twisted.internet import protocol, reactor
+import psutil
+
+from twisted.internet import protocol, reactor, defer
 from twisted.internet import error as internet_error
+from twisted.internet.endpoints import clientFromString, connectProtocol
 from twisted.logger import Logger
 
 from leap.bitmask.vpn.utils import get_vpn_launcher
-from leap.bitmask.vpn._status import VPNStatus
-from leap.bitmask.vpn._management import VPNManagement
+from leap.bitmask.vpn.management import ManagementProtocol
 
 from leap.bitmask.vpn.launchers import darwin
 from leap.bitmask.vpn.constants import IS_MAC, IS_LINUX
 
 
-# OpenVPN verbosity level - from flags.py
-OPENVPN_VERBOSITY = 1
+OPENVPN_VERBOSITY = 4
 
 
 class _VPNProcess(protocol.ProcessProtocol):
@@ -71,75 +73,53 @@ class _VPNProcess(protocol.ProcessProtocol):
         :param socket_port: either string "unix" if it's a unix
                             socket, or port otherwise
         :type socket_port: str
-
-        :param openvpn_verb: the desired level of verbosity in the
-                             openvpn invocation
-        :type openvpn_verb: int
         """
-        self._management = VPNManagement()
-        self._management.set_connection(socket_host, socket_port)
         self._host = socket_host
         self._port = socket_port
 
+        if socket_port == 'unix':
+            self._management_endpoint = clientFromString(
+                reactor, b"unix:path=%s" % socket_host)
+        else:
+            raise ValueError('tcp endpoint not configured')
         self._vpnconfig = vpnconfig
         self._providerconfig = providerconfig
         self._launcher = get_vpn_launcher()
-
-        self._alive = False
-
-        # XXX use flags, maybe, instead of passing
-        # the parameter around.
-        self._openvpn_verb = openvpn_verb
         self._restartfun = restartfun
 
-        self._status = VPNStatus()
-        self._management.set_watcher(self._status)
-
         self.restarting = True
+        self.proto = None
         self._remotes = remotes
-
-    @property
-    def status(self):
-        status = self._status.status
-        if status['status'] == 'off' and self.restarting:
-            status['status'] = 'starting'
-        return status
-
-    @property
-    def traffic_status(self):
-        return self._status.get_traffic_status()
 
     # processProtocol methods
 
+    @defer.inlineCallbacks
+    def _got_management_protocol(self, proto):
+        self.proto = proto
+        try:
+            yield proto.logOn()
+            yield proto.getVersion()
+            yield proto.getPid()
+            yield proto.stateOn()
+            yield proto.byteCount(2)
+        except Exception as exc:
+            print('[!] Error: %s' % exc)
+
+    def _connect_to_management(self):
+        # TODO -- add retries, twisted style, to this.
+        # this sometimes raises 'file not found' error
+        self._d = connectProtocol(
+            self._management_endpoint,
+            ManagementProtocol(verbose=True))
+        self._d.addCallback(self._got_management_protocol)
+        self._d.addErrback(self.log.error)
+
     def connectionMade(self):
-        """
-        Called when the connection is made.
-        """
-        self._alive = True
         self.aborted = False
-        self._management.connect_retry(max_retries=10)
-
-    def outReceived(self, data):
-        """
-        Called when new data is available on stdout.
-        We only use this to drive the status state machine in linux, OSX uses
-        the management interface.
-
-        :param data: the data read on stdout
-        """
-        # TODO deprecate, use log through management  interface too.
-
-        if IS_LINUX:
-            # truncate the newline
-            line = data[:-1]
-            # TODO -- internalize this into _status!!! so that it can be shared
-            if 'SIGTERM[soft,ping-restart]' in line:
-                self.restarting = True
+        # TODO cut this wait time when retries are done
+        reactor.callLater(0.5, self._connect_to_management)
 
     def processExited(self, failure):
-        """
-        Called when the child process exits.
-        """
         err = failure.trap(
             internet_error.ProcessDone, internet_error.ProcessTerminated)
 
@@ -151,13 +131,9 @@ class _VPNProcess(protocol.ProcessProtocol):
                 self.log.debug('Process Exited, status %d' % (errmsg,))
             else:
                 self.log.warn('%r' % failure.value)
-
         if IS_MAC:
             # TODO: need to exit properly!
             status, errmsg = 'off', None
-
-        self._status.set_status(status, errmsg)
-        self._alive = False
 
     def processEnded(self, reason):
         """
@@ -169,43 +145,46 @@ class _VPNProcess(protocol.ProcessProtocol):
             self.log.debug('processEnded, status %d' % (exit_code,))
             if self.restarting:
                 self.log.debug('Restarting VPN process')
+                self._cleanup()
                 self._restartfun()
 
-    # polling
+    def _cleanup(self):
+        """
+        Remove all temporal files we might have left behind.
 
-    def pollStatus(self):
+        Iif self.port is 'unix', we have created a temporal socket path that,
+        under normal circumstances, we should be able to delete.
         """
-        Polls connection status.
-        """
-        if self._alive:
-            try:
-                up, down = self._management.get_traffic_status()
-                self._status.set_traffic_status(up, down)
-            except Exception:
-                self.log.debug('Could not parse traffic status')
+        if self._port == "unix":
+            tempfolder = os.path.split(self._host)[0]
+            if tempfolder and os.path.isdir(tempfolder):
+                try:
+                    shutil.rmtree(tempfolder)
+                except OSError:
+                    self.log.error(
+                        'Could not delete VPN temp folder %s' % tempfolder)
 
-    def pollState(self):
-        """
-        Polls connection state.
-        """
-        if self._alive:
-            try:
-                state = self._management.get_state()
-                self._status.set_status(state, None)
-            except Exception:
-                self.log.debug('Could not parse connection state')
+    # status handling
 
-    def pollLog(self):
-        if self._alive:
-            try:
-                self._management.process_log()
-            except Exception:
-                self.log.debug('Could not parse log')
+    @property
+    def status(self):
+        if not self.proto:
+            status = {'status': 'off', 'error': None}
+            return status
+        status = {'status': self.proto.state.simple.lower(),
+                  'error': None}
+        if self.proto.traffic:
+            down, up = self.proto.traffic.get_rate()
+            status['up'] = up
+            status['down'] = down
+        if status['status'] == 'off' and self.restarting:
+            status['status'] = 'starting'
+        return status
 
     # launcher
 
     def preUp(self):
-        pass
+        self._launcher.kill_previous_openvpn()
 
     def preDown(self):
         pass
@@ -225,7 +204,6 @@ class _VPNProcess(protocol.ProcessProtocol):
             providerconfig=self._providerconfig,
             socket_host=self._host,
             socket_port=self._port,
-            openvpn_verb=self._openvpn_verb,
             remotes=self._remotes)
 
         encoding = sys.getfilesystemencoding()
@@ -237,21 +215,12 @@ class _VPNProcess(protocol.ProcessProtocol):
         self.log.debug("{0}".format(" ".join(command)))
         return command
 
-    def get_openvpn_process(self):
-        return self._management.get_openvpn_process()
-
     # shutdown
 
-    def stop_if_already_running(self):
-        return self._management.stop_if_already_running()
+    def terminate(self):
+        self.proto.signal('SIGTERM')
 
-    def terminate(self, shutdown=False):
-        self._management.terminate(shutdown)
-
-    def killProcess(self):
-        """
-        Sends the KILL signal to the running process.
-        """
+    def kill(self):
         try:
             self.transport.signalProcess('KILL')
         except internet_error.ProcessExitedAlready:

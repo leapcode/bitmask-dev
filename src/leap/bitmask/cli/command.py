@@ -78,7 +78,7 @@ def print_status(status, depth=0):
         elif v['status'] == 'failure':
             line += Fore.RED
         line += v['status']
-        if v['error']:
+        if v.get('error'):
             line += Fore.RED + " (%s)" % v['error']
         line += Fore.RESET
         print(line)

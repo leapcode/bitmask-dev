@@ -19,18 +19,55 @@
 Linux VPN launcher implementation.
 """
 
-import commands
 import os
 
+import psutil
+
+from twisted.internet import defer, reactor
+from twisted.internet.endpoints import clientFromString, connectProtocol
 from twisted.logger import Logger
 
 from leap.bitmask.util import STANDALONE
 from leap.bitmask.vpn.utils import first, force_eval
 from leap.bitmask.vpn.privilege import LinuxPolicyChecker
+from leap.bitmask.vpn.management import ManagementProtocol
 from leap.bitmask.vpn.launcher import VPNLauncher
 
-logger = Logger()
-COM = commands
+log = Logger()
+
+
+class OpenVPNAlreadyRunning(Exception):
+    message = ("Another openvpn instance is already running, and could "
+               "not be stopped.")
+
+
+class AlienOpenVPNAlreadyRunning(Exception):
+    message = ("Another openvpn instance is already running, and could "
+               "not be stopped because it was not launched by LEAP.")
+
+
+def _maybe_get_running_openvpn():
+    """
+    Looks for previously running openvpn instances.
+
+    :rtype: psutil Process
+    """
+    openvpn = None
+    for p in psutil.process_iter():
+        try:
+            # This needs more work, see #3268, but for the moment
+            # we need to be able to filter out arguments in the form
+            # --openvpn-foo, since otherwise we are shooting ourselves
+            # in the feet.
+
+            cmdline = p.cmdline()
+            if any(map(lambda s: s.find(
+                    "LEAPOPENVPN") != -1, cmdline)):
+                openvpn = p
+                break
+        except psutil.AccessDenied:
+            pass
+    return openvpn
 
 
 class LinuxVPNLauncher(VPNLauncher):
@@ -106,3 +143,80 @@ class LinuxVPNLauncher(VPNLauncher):
                 command.insert(0, first(pkexec))
 
         return command
+
+    def kill_previous_openvpn(kls):
+        """
+        Checks if VPN is already running and tries to stop it.
+
+        Might raise OpenVPNAlreadyRunning.
+
+        :return: a deferred, that fires with True if stopped.
+        """
+        @defer.inlineCallbacks
+        def gotProtocol(proto):
+            return proto.signal('SIGTERM')
+
+        def connect_to_management(path):
+            # XXX this has a problem with connections to different
+            # remotes. So the reconnection will only work when we are
+            # terminating instances left running for the same provider.
+            # If we are killing an openvpn instance configured for another
+            # provider, we will get:
+            # TLS Error: local/remote TLS keys are out of sync
+            # However, that should be a rare case right now.
+            endpoint = clientFromString(reactor, path)
+            d = connectProtocol(endpoint, ManagementProtocol(verbose=False))
+            d.addCallback(gotProtocol)
+            return d
+
+        def verify_termination(ignored):
+            openvpn = _maybe_get_running_openvpn()
+            if openvpn is None:
+                log.debug('Successfully finished already running '
+                          'openvpn process.')
+                return True
+            else:
+                log.warn('Unable to terminate OpenVPN')
+                raise OpenVPNAlreadyRunning
+
+        openvpn = _maybe_get_running_openvpn()
+        if not openvpn:
+            log.debug('Could not find openvpn process while '
+                      'trying to stop it.')
+            return False
+
+        log.debug('OpenVPN is already running, trying to stop it...')
+        cmdline = openvpn.cmdline
+        management = "--management"
+
+        if isinstance(cmdline, list) and management in cmdline:
+            # we know that our invocation has this distinctive fragment, so
+            # we use this fingerprint to tell other invocations apart.
+            # this might break if we change the configuration path in the
+            # launchers
+
+            def smellslikeleap(s):
+                return "leap" in s and "providers" in s
+
+            if not any(map(smellslikeleap, cmdline)):
+                log.debug("We cannot stop this instance since we do not "
+                          "recognise it as a leap invocation.")
+                raise AlienOpenVPNAlreadyRunning
+
+            try:
+                index = cmdline.index(management)
+                host = cmdline[index + 1]
+                port = cmdline[index + 2]
+                log.debug("Trying to connect to %s:%s"
+                          % (host, port))
+
+                if port == 'unix':
+                    path = b"unix:path=%s" % host
+                d = connect_to_management(path)
+                d.addCallback(verify_termination)
+                return d
+
+            except (Exception, AssertionError):
+                log.failure('Problem trying to terminate OpenVPN')
+        else:
+            log.debug('Could not find the expected openvpn command line.')

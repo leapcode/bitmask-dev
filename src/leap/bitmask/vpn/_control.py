@@ -1,16 +1,25 @@
 import os
 
-from twisted.internet.task import LoopingCall
 from twisted.internet import reactor, defer
 from twisted.logger import Logger
 
 from .process import VPNProcess
 from .constants import IS_LINUX
 
-POLL_TIME = 1
+
+# TODO
+# TODO merge these classes with service.
+# [ ] register change state listener
+# emit_async(catalog.VPN_STATUS_CHANGED)
+# [ ] catch ping-restart
+# 'NETWORK_UNREACHABLE': (
+#    'Network is unreachable (code=101)',),
+# 'PROCESS_RESTART_TLS': (
+#    "SIGTERM[soft,tls-error]",),
 
 
 class VPNControl(object):
+
     """
     This is the high-level object that the service knows about.
     It exposes the start and terminate methods.
@@ -19,24 +28,17 @@ class VPNControl(object):
     suited for the running platform and connect to the management interface
     opened by the openvpn process, executing commands over that interface on
     demand.
-
-    This class also has knowledge of the reactor, since it controlls the
-    pollers that write and read to the management interface.
     """
+
     TERMINATE_MAXTRIES = 10
     TERMINATE_WAIT = 1  # secs
     RESTART_WAIT = 2  # secs
-
-    OPENVPN_VERB = "openvpn_verb"
 
     log = Logger()
 
     def __init__(self, remotes, vpnconfig,
                  providerconfig, socket_host, socket_port):
         self._vpnproc = None
-        self._pollers = []
-
-        self._openvpn_verb = None
         self._user_stopped = False
 
         self._remotes = remotes
@@ -49,7 +51,6 @@ class VPNControl(object):
         self.log.debug('VPN: start')
 
         self._user_stopped = False
-        self._stop_pollers()
 
         args = [self._vpnconfig, self._providerconfig, self._host,
                 self._port]
@@ -57,22 +58,24 @@ class VPNControl(object):
                   'restartfun': self.restart}
 
         vpnproc = VPNProcess(*args, **kwargs)
-        if vpnproc.get_openvpn_process():
-            self.log.info(
-                'Another vpn process is running. Will try to stop it.')
-            vpnproc.stop_if_already_running()
+
+        # TODO -- restore
+        # if get_openvpn_process():
+        #    self.log.info(
+        #        'Another vpn process is running. Will try to stop it.')
+        #    vpnproc.stop_if_already_running()
 
         try:
             vpnproc.preUp()
         except Exception as e:
             self.log.error('Error on vpn pre-up {0!r}'.format(e))
-            return False
+            raise
         try:
             cmd = vpnproc.getCommand()
         except Exception as e:
             self.log.error(
                 'Error while getting vpn command... {0!r}'.format(e))
-            return False
+            raise
 
         env = os.environ
 
@@ -80,22 +83,13 @@ class VPNControl(object):
             runningproc = reactor.spawnProcess(vpnproc, cmd[0], cmd, env)
         except Exception as e:
             self.log.error(
-                'Error while spwanning vpn process... {0!r}'.format(e))
+                'Error while spawning vpn process... {0!r}'.format(e))
             return False
 
+        # TODO get pid from management instead
         vpnproc.pid = runningproc.pid
         self._vpnproc = vpnproc
 
-        # add pollers for status and state
-        # this could be extended to a collection of
-        # generic watchers
-
-        poll_list = [
-            LoopingCall(vpnproc.pollStatus),
-            LoopingCall(vpnproc.pollState),
-            LoopingCall(vpnproc.pollLog)]
-        self._pollers.extend(poll_list)
-        self._start_pollers()
         return True
 
     @defer.inlineCallbacks
@@ -122,7 +116,6 @@ class VPNControl(object):
         if self._vpnproc is not None:
             self._vpnproc.restarting = restart
 
-        self._stop_pollers()
         try:
             if self._vpnproc is not None:
                 self._vpnproc.preDown()
@@ -136,16 +129,16 @@ class VPNControl(object):
             # First we try to be polite and send a SIGTERM...
             if self._vpnproc is not None:
                 self._sentterm = True
-                self._vpnproc.terminate(shutdown=shutdown)
+                self._vpnproc.terminate()
 
                 # we trigger a countdown to be unpolite
                 # if strictly needed.
                 d = defer.Deferred()
                 reactor.callLater(
                     self.TERMINATE_WAIT, self._kill_if_left_alive, d)
-                self._vpnproc.traffic_status = (0, 0)
         return d
 
+    # TODO -- remove indirection
     @property
     def status(self):
         if not self._vpnproc:
@@ -157,15 +150,11 @@ class VPNControl(object):
         return self._vpnproc.traffic_status
 
     def _killit(self):
-        """
-        Sends a kill signal to the process.
-        """
-        self._stop_pollers()
         if self._vpnproc is None:
             self.log.debug("There's no vpn process running to kill.")
         else:
             self._vpnproc.aborted = True
-            self._vpnproc.killProcess()
+            self._vpnproc.kill()
 
     def _kill_if_left_alive(self, deferred, tries=0):
         """
@@ -194,21 +183,3 @@ class VPNControl(object):
         except OSError:
             self.log.error('Could not kill process!')
         deferred.callback(True)
-
-    def _start_pollers(self):
-        """
-        Iterate through the registered observers
-        and start the looping call for them.
-        """
-        for poller in self._pollers:
-            poller.start(POLL_TIME)
-
-    def _stop_pollers(self):
-        """
-        Iterate through the registered observers
-        and stop the looping calls if they are running.
-        """
-        for poller in self._pollers:
-            if poller.running:
-                poller.stop()
-        self._pollers = []

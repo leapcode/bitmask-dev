@@ -93,7 +93,7 @@ class ManagementTestCase(unittest.TestCase):
         proto = ManagementProtocol()
         proto.transport = StringIO.StringIO()
         assert proto.pid == None
-        proto.get_pid()
+        proto.getPid()
         pid_lines = ['SUCCESS: pid=99999']
         feed_the_protocol(proto, pid_lines)
         assert proto.pid == 99999

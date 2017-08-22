@@ -79,7 +79,7 @@ class TunnelManager(object):
 
     def stop(self):
         """
-        Bring openvpn down using the privileged wrapper.
+        Bring openvpn down.
 
         :returns: True if succeeded, False otherwise.
         :rtype: bool

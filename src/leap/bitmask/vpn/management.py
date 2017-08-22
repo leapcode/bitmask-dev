@@ -23,7 +23,6 @@ Handles an OpenVPN process through its Management Interface.
 import time
 from collections import OrderedDict
 
-from twisted.internet import defer
 from twisted.protocols.basic import LineReceiver
 from twisted.internet.defer import Deferred
 from twisted.python import log
@@ -68,6 +67,9 @@ class ManagementProtocol(LineReceiver):
 
     def lineReceived(self, line):
         if self.verbose:
+            # TODO get an integer parameter instead
+            # TODO if very verbose, print everything
+            # if less verbose, print (log) only the "DEBUG" lines.
             print line
 
         if line[0] == '>':
@@ -191,7 +193,7 @@ class ManagementProtocol(LineReceiver):
     def _parsePid(self, result):
         self.pid = int(result.split('=')[1])
 
-    def get_pid(self):
+    def getPid(self):
         d = self._pushdef()
         self.sendLine('pid')
         d.addCallback(self._parsePid)

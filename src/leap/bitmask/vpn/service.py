@@ -96,22 +96,16 @@ class VPNService(HookableService):
 
         yield self._setup(domain)
 
+        fw_ok = self._firewall.start()
+        if not fw_ok:
+            raise Exception('Could not start firewall')
+
         try:
-            fw_ok = self._firewall.start()
-            if not fw_ok:
-                raise Exception('Could not start firewall')
-
             vpn_ok = self._tunnel.start()
-            if not vpn_ok:
-                self._firewall.stop()
-                raise Exception('Could not start VPN')
-
-        # XXX capture it inside start method
-        # here I'd like to get (status, message)
-        except NoPolkitAuthAgentAvailable as e:
-            e.expected = True
-            raise e
-        # --------------------------------------
+        except Exception as exc:
+            self._firewall.stop()
+            # TODO get message from exception
+            raise Exception('Could not start VPN (reason: %r)' % exc)
 
         self._domain = domain
         self._write_last(domain)

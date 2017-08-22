@@ -88,3 +88,6 @@ class DarwinVPNLauncher(VPNLauncher):
     else:
         # let's try with the homebrew path
         OPENVPN_BIN_PATH = '/usr/local/sbin/openvpn'
+
+    def kill_previous_openvpn():
+        pass
