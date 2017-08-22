@@ -614,6 +614,14 @@ class IncomingMail(Service):
         return buf.getvalue()
 
     def _extract_signature(self, msg):
+        """
+        Extract and return the signature from msg.
+
+        Remove the signature part from msg. For that we modify the content type
+        from multipart/signed to multipart/mixed. Even for single part messages
+        we do multipart/signed, other options will require modifying the part
+        to extract it's MIME headers and promote them into the main headers.
+        """
         body = msg.get_payload(0).get_payload()
 
         if isinstance(body, str):
@@ -621,6 +629,7 @@ class IncomingMail(Service):
 
         detached_sig = msg.get_payload(1).get_payload()
         msg.set_payload(body)
+        msg.set_type('multipart/mixed')
         return detached_sig
 
     def _decryption_error(self, failure, msg):

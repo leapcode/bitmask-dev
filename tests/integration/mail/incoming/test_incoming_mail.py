@@ -29,12 +29,11 @@ import uuid
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.parser import Parser
-from mock import Mock, patch, MagicMock, ANY
+from mock import Mock, patch
 
 from twisted.internet import defer
 from twisted.python import log
 from twisted.logger import Logger
-from twisted.python.failure import Failure
 
 from leap.bitmask.keymanager.errors import KeyAddressMismatch
 from leap.bitmask.mail.adaptors import soledad_indexes as fields
@@ -45,7 +44,12 @@ from leap.bitmask.mail.mailbox_indexer import MailboxIndexer
 from leap.bitmask.mail import utils
 
 from leap.bitmask.mail.incoming.service import IncomingMail
-from leap.bitmask.mail.rfc3156 import MultipartEncrypted, PGPEncrypted
+from leap.bitmask.mail.rfc3156 import (
+    MultipartEncrypted,
+    PGPEncrypted,
+    MultipartSigned,
+    PGPSignature
+)
 from leap.bitmask.mail.testing import KeyManagerWithSoledadTestCase
 from leap.bitmask.mail.testing import ADDRESS, ADDRESS_2
 from leap.soledad.common.document import SoledadDocument
@@ -321,6 +325,42 @@ subject: independence of cyberspace
             self._do_fetch(message.as_string()))
         d.addCallback(decryption_error_not_called)
         d.addCallback(add_decrypted_header_called)
+        return d
+
+    def testVerifyEmail(self):
+
+        self.fetcher._add_message_locally = Mock()
+        self.fetcher._add_verified_signature_header = Mock()
+
+        def create_signed_message(sigstr):
+            message = Parser().parsestr(self.EMAIL)
+            newmsg = MultipartSigned('application/pgp-signature', 'pgp-sha512')
+            for hkey, hval in message.items():
+                newmsg.add_header(hkey, hval)
+
+            sigmsg = PGPSignature(sigstr)
+            newmsg.attach(message)
+            newmsg.attach(sigmsg)
+            return newmsg
+
+        def add_verified_signature_header_called(_):
+            self.assertTrue(self.fetcher._add_verified_signature_header.called,
+                            "There were some errors with verification")
+
+        def message_added(_):
+            self.assertTrue(self.fetcher._add_message_locally.called,
+                            "The message was not added to soledad")
+            _, data = self.fetcher._add_message_locally.call_args[0][0]
+            msg = Parser().parsestr(data)
+            self.assertEqual(msg.get_content_type(), 'multipart/mixed')
+
+        d = self.km.sign(self.EMAIL, ADDRESS_2)
+        d.addCallback(create_signed_message)
+        d.addCallback(
+            lambda message:
+            self._do_fetch(message.as_string()))
+        d.addCallback(add_verified_signature_header_called)
+        d.addCallback(message_added)
         return d
 
     def testLogErrorIfDecryptFails(self):
