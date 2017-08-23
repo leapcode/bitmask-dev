@@ -90,6 +90,7 @@ class _VPNProcess(protocol.ProcessProtocol):
 
         self.restarting = True
         self.failed = False
+        self.errmsg = None
         self.proto = None
         self._remotes = remotes
 
@@ -129,6 +130,7 @@ class _VPNProcess(protocol.ProcessProtocol):
             lambda f: retry(retries))
 
     def connectionMade(self):
+        self.failed = False
         reactor.callLater(0.1, self._connect_to_management)
 
     def processExited(self, failure):
@@ -136,19 +138,19 @@ class _VPNProcess(protocol.ProcessProtocol):
             internet_error.ProcessDone, internet_error.ProcessTerminated)
 
         if err == internet_error.ProcessDone:
-            status, errmsg = 'off', None
+            pass
+
         elif err == internet_error.ProcessTerminated:
-            status, errmsg = 'failure', failure.value.exitCode
-            if errmsg:
-                self.log.debug('Process Exited, status %d' % (errmsg,))
+            self.failed = True
+            self.errmsg = failure.value.exitCode
+            if self.errmsg:
+                self.log.debug('Process Exited, status %d' % (self.errmsg,))
             else:
                 self.log.warn('%r' % failure.value)
         if IS_MAC:
             # TODO: need to exit properly!
-            status, errmsg = 'off', None
-
-        # TODO ---- propagate this status upwards!!
-        # XXX do something with status
+            self.errmsg = None
+        self.proto = None
 
     def processEnded(self, reason):
         """
@@ -185,13 +187,17 @@ class _VPNProcess(protocol.ProcessProtocol):
 
     @property
     def status(self):
+        if self.failed:
+            return {'status': 'failed', 'error': self.errmsg}
         if not self.proto:
-            status = {'status': 'off', 'error': None}
-            return status
+            return {'status': 'off', 'error': None}
 
         status = {'status': self.proto.state.simple.lower(),
                   'error': None}
         if self.proto.traffic:
+            remote = self.proto.remote
+            rport = self.proto.rport
+            status['remote'] = '%s:%s' % (remote, rport)
             down, up = self.proto.traffic.get_rate()
             status['up'] = up
             status['down'] = down
