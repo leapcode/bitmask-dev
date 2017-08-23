@@ -33,12 +33,19 @@ from twisted.logger import Logger
 
 from leap.bitmask.vpn.utils import get_vpn_launcher
 from leap.bitmask.vpn.management import ManagementProtocol
-
 from leap.bitmask.vpn.launchers import darwin
 from leap.bitmask.vpn.constants import IS_MAC, IS_LINUX
 
+from leap.common.events import catalog, emit_async
+
 
 OPENVPN_VERBOSITY = 4
+
+
+class VPNStateListener(object):
+
+    def change_state(self, state):
+        emit_async(catalog.VPN_STATUS_CHANGED)
 
 
 class _VPNProcess(protocol.ProcessProtocol):
@@ -99,6 +106,9 @@ class _VPNProcess(protocol.ProcessProtocol):
     @defer.inlineCallbacks
     def _got_management_protocol(self, proto):
         self.proto = proto
+        listener = VPNStateListener()
+        proto.addStateListener(listener)
+
         try:
             yield proto.logOn()
             yield proto.getVersion()

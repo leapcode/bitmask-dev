@@ -62,13 +62,16 @@ class ManagementProtocol(LineReceiver):
         """
         self._state_listeners.add(listener)
 
+    # TODO -- this needs to be exposed by the API
+    # The UI needs this feature.
+
     def getStateHistory(self):
         return self._statelog
 
     def lineReceived(self, line):
         if self.verbose:
             if int(self.verbose) > 1:
-                print line 
+                print line
             elif line.startswith('>LOG'):
                 print line
 
@@ -152,7 +155,6 @@ class ManagementProtocol(LineReceiver):
             elif len(data) == 8:
                 ts, state = data[:2]
         except Exception as exc:
-            print "ERROR", exc
             log.error('Failure parsing data: %s' % exc)
 
         if state != self.state:
