@@ -1,0 +1,4 @@
+VPN
+---------
+[ ] status when killed (fail-close)
+[ ] kill previously running vpn when launching one

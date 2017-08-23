@@ -76,11 +76,15 @@ class ConfiguredTunnel(object):
         self._port = port
         self._vpnproc = None
 
+    @defer.inlineCallbacks
     def start(self):
-        return self._start_vpn()
+        started = yield self._start_vpn()
+        defer.returnValue(started)
 
+    @defer.inlineCallbacks
     def stop(self):
-        return self._stop_vpn(restart=False)
+        stopped = yield self._stop_vpn(restart=False)
+        defer.returnValue(stopped)
 
     #  status
 
@@ -96,6 +100,7 @@ class ConfiguredTunnel(object):
 
     # VPN Control
 
+    @defer.inlineCallbacks
     def _start_vpn(self):
         self.log.debug('VPN: start')
         args = [self._vpnconfig, self._providerconfig, self._host,
@@ -105,15 +110,15 @@ class ConfiguredTunnel(object):
         vpnproc = VPNProcess(*args, **kwargs)
         self._vpnproc = vpnproc
 
-        self._start_pre_up(vpnproc)
+        self.__start_pre_up(vpnproc)
         cmd = self.__start_get_cmd(vpnproc)
-        # XXX this should be a deferred
-        running = self.__start_spawn_proc(vpnproc, cmd)
+
+        running = yield self.__start_spawn_proc(vpnproc, cmd)
         if running:
             vpnproc.pid = running.pid
-            return True
+            defer.returnValue(True)
         else:
-            return False
+            defer.returnValue(False)
 
     def __start_pre_up(self, proc):
         try:
@@ -147,6 +152,7 @@ class ConfiguredTunnel(object):
         reactor.callLater(
             self.RESTART_WAIT, self.start)
 
+    @defer.inlineCallbacks
     def _stop_vpn(self, restart=False):
         """
         Stops the openvpn subprocess.
@@ -162,11 +168,12 @@ class ConfiguredTunnel(object):
 
         if self._vpnproc is None:
             self.log.debug('Tried to stop VPN but no process found')
-            return
+            defer.returnValue(False)
 
         self._vpnproc.restarting = restart
         self.__stop_pre_down(self._vpnproc)
-        self._vpnproc.terminate_or_kill()
+        stopped = yield self._vpnproc.terminate_or_kill()
+        defer.returnValue(stopped)
 
     def __stop_pre_down(self, proc):
         try:

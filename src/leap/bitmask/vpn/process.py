@@ -89,6 +89,7 @@ class _VPNProcess(protocol.ProcessProtocol):
         self._restartfun = restartfun
 
         self.restarting = True
+        self.failed = False
         self.proto = None
         self._remotes = remotes
 
@@ -106,18 +107,28 @@ class _VPNProcess(protocol.ProcessProtocol):
         except Exception as exc:
             print('[!] Error: %s' % exc)
 
-    def _connect_to_management(self):
-        # TODO -- add retries, twisted style, to this.
-        # this sometimes raises 'file not found' error
+    def _connect_to_management(self, retries=30):
+        if retries == 0:
+            self.log.error('Timeout whilte connecting to management')
+            self.failed = True
+            return
+
+        def retry(retries):
+            ctr = retries - 1
+            self.log.warn(
+                'Error connecting to management, retrying. Retries left:  %s' % ctr)
+            reactor.callLater(
+                0.1, self._connect_to_management, ctr)
+
         self._d = connectProtocol(
             self._management_endpoint,
             ManagementProtocol(verbose=True))
-        self._d.addCallback(self._got_management_protocol)
-        self._d.addErrback(self.log.error)
+        self._d.addCallbacks(
+            self._got_management_protocol,
+            lambda f: retry(retries))
 
     def connectionMade(self):
-        # TODO cut this wait time when retries are done
-        reactor.callLater(0.5, self._connect_to_management)
+        reactor.callLater(0.1, self._connect_to_management)
 
     def processExited(self, failure):
         err = failure.trap(
@@ -143,7 +154,9 @@ class _VPNProcess(protocol.ProcessProtocol):
         Called when the child process exits and all file descriptors associated
         with it have been closed.
         """
+        self.proto = None
         exit_code = reason.value.exitCode
+
         if isinstance(exit_code, int):
             self.log.debug('processEnded, status %d' % (exit_code,))
             if self.restarting:
@@ -174,6 +187,7 @@ class _VPNProcess(protocol.ProcessProtocol):
         if not self.proto:
             status = {'status': 'off', 'error': None}
             return status
+
         status = {'status': self.proto.state.simple.lower(),
                   'error': None}
         if self.proto.traffic:
@@ -230,7 +244,6 @@ class _VPNProcess(protocol.ProcessProtocol):
             self.log.debug('Process Exited Already')
 
     def terminate_or_kill(self):
-        # XXX this returns a deferred
         return self._launcher.terminate_or_kill(
             self.terminate, self.kill, self)
 
