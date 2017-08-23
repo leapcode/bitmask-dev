@@ -116,7 +116,8 @@ class _VPNProcess(protocol.ProcessProtocol):
         def retry(retries):
             ctr = retries - 1
             self.log.warn(
-                'Error connecting to management, retrying. Retries left:  %s' % ctr)
+                'Error connecting to management, retrying. '
+                'Retries left:  %s' % ctr)
             reactor.callLater(
                 0.1, self._connect_to_management, ctr)
 

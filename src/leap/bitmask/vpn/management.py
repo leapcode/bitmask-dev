@@ -67,10 +67,10 @@ class ManagementProtocol(LineReceiver):
 
     def lineReceived(self, line):
         if self.verbose:
-            # TODO get an integer parameter instead
-            # TODO if very verbose, print everything
-            # if less verbose, print (log) only the "DEBUG" lines.
-            print line
+            if int(self.verbose) > 1:
+                print line 
+            elif line.startswith('>LOG'):
+                print line
 
         if line[0] == '>':
             try:
