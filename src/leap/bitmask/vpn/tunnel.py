@@ -26,11 +26,8 @@ from twisted.internet import reactor, defer
 from twisted.logger import Logger
 
 from ._config import _TempVPNConfig, _TempProviderConfig
-from .constants import IS_WIN, IS_LINUX
+from .constants import IS_WIN
 from .process import VPNProcess
-
-
-# TODO gateway selection should be done in this class.
 
 
 # TODO ----------------- refactor --------------------
@@ -41,6 +38,7 @@ from .process import VPNProcess
 #    'Network is unreachable (code=101)',),
 # 'PROCESS_RESTART_TLS': (
 #    "SIGTERM[soft,tls-error]",),
+# TODO ----------------- refactor --------------------
 
 
 class ConfiguredTunnel(object):
@@ -57,10 +55,6 @@ class ConfiguredTunnel(object):
     opened by the openvpn process, executing commands over that interface on
     demand.
     """
-
-    TERMINATE_MAXTRIES = 10
-    TERMINATE_WAIT = 1  # secs
-    RESTART_WAIT = 2  # secs
 
     log = Logger()
 
@@ -86,7 +80,7 @@ class ConfiguredTunnel(object):
         return self._start_vpn()
 
     def stop(self):
-        return self._stop_vpn(shutdown=False, restart=False)
+        return self._stop_vpn(restart=False)
 
     #  status
 
@@ -107,115 +101,79 @@ class ConfiguredTunnel(object):
         args = [self._vpnconfig, self._providerconfig, self._host,
                 self._port]
         kwargs = {'openvpn_verb': 4, 'remotes': self._remotes,
-                  'restartfun': self.restart}
+                  'restartfun': self._restart_vpn}
         vpnproc = VPNProcess(*args, **kwargs)
+        self._vpnproc = vpnproc
 
+        self._start_pre_up(vpnproc)
+        cmd = self.__start_get_cmd(vpnproc)
+        # XXX this should be a deferred
+        running = self.__start_spawn_proc(vpnproc, cmd)
+        if running:
+            vpnproc.pid = running.pid
+            return True
+        else:
+            return False
+
+    def __start_pre_up(self, proc):
         try:
-            vpnproc.preUp()
-        except Exception as e:
-            self.log.error('Error on vpn pre-up {0!r}'.format(e))
+            proc.preUp()
+        except Exception as exc:
+            self.log.error('Error on vpn pre-up {0!r}'.format(exc))
             raise
+
+    def __start_get_cmd(self, proc):
         try:
-            cmd = vpnproc.getCommand()
-        except Exception as e:
+            cmd = proc.getCommand()
+        except Exception as exc:
             self.log.error(
-                'Error while getting vpn command... {0!r}'.format(e))
+                'Error while getting vpn command... {0!r}'.format(exc))
             raise
+        return cmd
 
+    def __start_spawn_proc(self, proc, cmd):
         env = os.environ
         try:
-            runningproc = reactor.spawnProcess(vpnproc, cmd[0], cmd, env)
+            running_p = reactor.spawnProcess(proc, cmd[0], cmd, env)
         except Exception as e:
             self.log.error(
                 'Error while spawning vpn process... {0!r}'.format(e))
             return False
-
-        # TODO get pid from management instead
-        vpnproc.pid = runningproc.pid
-        self._vpnproc = vpnproc
-        return True
+        return running_p
 
     @defer.inlineCallbacks
     def _restart_vpn(self):
-        yield self.stop(shutdown=False, restart=True)
+        yield self.stop(restart=True)
         reactor.callLater(
             self.RESTART_WAIT, self.start)
 
-    def _stop_vpn(self, shutdown=False, restart=False):
+    def _stop_vpn(self, restart=False):
         """
         Stops the openvpn subprocess.
 
         Attempts to send a SIGTERM first, and after a timeout
         it sends a SIGKILL.
 
-        :param shutdown: whether this is the final shutdown
-        :type shutdown: bool
         :param restart: whether this stop is part of a hard restart.
         :type restart: bool
         """
         # TODO how to return False if this fails
         # XXX maybe return a deferred
 
-        if self._vpnproc is not None:
-            self._vpnproc.restarting = restart
+        if self._vpnproc is None:
+            self.log.debug('Tried to stop VPN but no process found')
+            return
 
+        self._vpnproc.restarting = restart
+        self.__stop_pre_down(self._vpnproc)
+        self._vpnproc.terminate_or_kill()
+
+    def __stop_pre_down(self, proc):
         try:
-            if self._vpnproc is not None:
-                self._vpnproc.preDown()
+            proc.preDown()
         except Exception as e:
             self.log.error('Error on vpn pre-down {0!r}'.format(e))
             raise
-
-        d = defer.succeed(True)
-        if IS_LINUX:
-            # TODO factor this out to a linux-only launcher mechanism.
-            # First we try to be polite and send a SIGTERM...
-            if self._vpnproc is not None:
-                self._sentterm = True
-                self._vpnproc.terminate()
-
-                # we trigger a countdown to be unpolite
-                # if strictly needed.
-                d = defer.Deferred()
-                reactor.callLater(
-                    self.TERMINATE_WAIT, self._kill_if_left_alive, d)
-        return d
-
-    def _wait_and_kill(self, deferred, tries=0):
-        """
-        Check if the process is still alive, and send a
-        SIGKILL after a waiting several times during a timeout period.
-
-        :param tries: counter of tries, used in recursion
-        :type tries: int
-        """
-        if tries < self.TERMINATE_MAXTRIES:
-            if self._vpnproc.transport.pid is None:
-                deferred.callback(True)
-                return
-            else:
-                self.log.debug('Process did not die, waiting...')
-
-            tries += 1
-            reactor.callLater(
-                self.TERMINATE_WAIT,
-                self._wait_and_kill, deferred, tries)
-            return
-
-        # after running out of patience, we try a killProcess
-        self._kill(deferred)
-
-    def _kill(self, d):
-        self.log.debug('Process did not die. Sending a SIGKILL.')
-        try:
-            if self._vpnproc is None:
-                self.log.debug("There's no vpn process running to kill.")
-            else:
-                self._vpnproc.aborted = True
-                self._vpnproc.kill()
-        except OSError:
-            self.log.error('Could not kill process!')
-        d.callback(True)
 
 
 # utils

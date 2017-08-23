@@ -33,6 +33,11 @@ from leap.bitmask.vpn.privilege import LinuxPolicyChecker
 from leap.bitmask.vpn.management import ManagementProtocol
 from leap.bitmask.vpn.launcher import VPNLauncher
 
+
+TERMINATE_MAXTRIES = 10
+TERMINATE_WAIT = 1  # secs
+RESTART_WAIT = 2  # secs
+
 log = Logger()
 
 
@@ -143,6 +148,42 @@ class LinuxVPNLauncher(VPNLauncher):
                 command.insert(0, first(pkexec))
 
         return command
+
+    def terminate_or_kill(self, terminatefun, killfun, proc):
+        terminatefun()
+
+        # we trigger a countdown to be unpolite
+        # if strictly needed.
+        d = defer.Deferred()
+        reactor.callLater(
+            TERMINATE_WAIT, self._wait_and_kill, killfun, proc, d)
+        return d
+
+    def _wait_and_kill(self, killfun, proc, deferred, tries=0):
+        """
+        Check if the process is still alive, and call the killfun
+        after waiting several times during a timeout period.
+
+        :param tries: counter of tries, used in recursion
+        :type tries: int
+        """
+        if tries < TERMINATE_MAXTRIES:
+            if proc.transport.pid is None:
+                deferred.callback(True)
+                return
+            else:
+                self.log.debug('Process did not die, waiting...')
+
+            tries += 1
+            reactor.callLater(
+                TERMINATE_WAIT,
+                self._wait_and_kill, killfun, proc, deferred, tries)
+            return
+
+        # after running out of patience, we try a killProcess
+        d = killfun()
+        d.addCallback(lambda _: deferred.callback(True))
+        return d
 
     def kill_previous_openvpn(kls):
         """

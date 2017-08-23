@@ -22,10 +22,9 @@ A custom processProtocol launches the VPNProcess and connects to its management
 interface.
 """
 
+import os
 import shutil
 import sys
-
-import psutil
 
 from twisted.internet import protocol, reactor, defer
 from twisted.internet import error as internet_error
@@ -53,7 +52,8 @@ class _VPNProcess(protocol.ProcessProtocol):
     log = Logger()
 
     # HACK - reactor is expected to set this up when the process is spawned.
-    # should try to get it from within this class.
+    # should try to get it from the management protocol instead.
+    # XXX or, at least, we can check if they match.
     pid = None
 
     # TODO do we really need the vpnconfig/providerconfig objects in here???
@@ -82,6 +82,7 @@ class _VPNProcess(protocol.ProcessProtocol):
                 reactor, b"unix:path=%s" % socket_host)
         else:
             raise ValueError('tcp endpoint not configured')
+
         self._vpnconfig = vpnconfig
         self._providerconfig = providerconfig
         self._launcher = get_vpn_launcher()
@@ -115,7 +116,6 @@ class _VPNProcess(protocol.ProcessProtocol):
         self._d.addErrback(self.log.error)
 
     def connectionMade(self):
-        self.aborted = False
         # TODO cut this wait time when retries are done
         reactor.callLater(0.5, self._connect_to_management)
 
@@ -134,6 +134,9 @@ class _VPNProcess(protocol.ProcessProtocol):
         if IS_MAC:
             # TODO: need to exit properly!
             status, errmsg = 'off', None
+
+        # TODO ---- propagate this status upwards!!
+        # XXX do something with status
 
     def processEnded(self, reason):
         """
@@ -225,6 +228,11 @@ class _VPNProcess(protocol.ProcessProtocol):
             self.transport.signalProcess('KILL')
         except internet_error.ProcessExitedAlready:
             self.log.debug('Process Exited Already')
+
+    def terminate_or_kill(self):
+        # XXX this returns a deferred
+        return self._launcher.terminate_or_kill(
+            self.terminate, self.kill, self)
 
 
 if IS_LINUX:
