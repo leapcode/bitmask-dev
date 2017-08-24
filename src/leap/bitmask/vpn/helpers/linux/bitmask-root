@@ -352,7 +352,9 @@ def parse_openvpn_flags(args):
                 result.append(flag_name)
                 required_params = ALLOWED_FLAGS[flag_name]
                 if required_params:
-                    flag_params = flag[1:]
+                    # flatten if separated by spaces
+                    flag_params = [i for sublist in map(
+                        lambda s: s.split(), flag[1:]) for i in sublist]
                     if len(flag_params) != len(required_params):
                         log("%s: ERROR: not enough params for %s" %
                             (SCRIPT, flag_name))
@@ -937,7 +939,8 @@ def main():
 
         elif command == "firewall_isup":
             if ipv4_chain_exists(BITMASK_CHAIN):
-                log("%s: INFO: bitmask firewall is up" % (SCRIPT,))
+                # too verbose since bitmask polls this
+                pass
             else:
                 bail("INFO: bitmask firewall is down")
 
@@ -970,5 +973,4 @@ def main():
 if __name__ == "__main__":
     debug(" ".join(sys.argv))
     main()
-    log("done")
     exit(0)
