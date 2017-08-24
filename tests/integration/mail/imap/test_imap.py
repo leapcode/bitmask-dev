@@ -460,7 +460,8 @@ class LEAPIMAP4ServerTestCase(IMAP4HelperMixin):
         self.assertTrue(self.selectedArgs is not None)
 
         self.assertEqual(self.selectedArgs, {
-            'EXISTS': 0, 'RECENT': 0, 'UIDVALIDITY': 42,
+            'EXISTS': 0, 'RECENT': 0, 'UIDNEXT': 1,
+            'UIDVALIDITY': 42,
             'FLAGS': ('\\Seen', '\\Answered', '\\Flagged',
                       '\\Deleted', '\\Draft', '\\Recent', 'List'),
             'READ-WRITE': True
@@ -668,7 +669,8 @@ class LEAPIMAP4ServerTestCase(IMAP4HelperMixin):
 
     def _cbTestExamine(self, ignored):
         self.assertEqual(self.examinedArgs, {
-            'EXISTS': 0, 'RECENT': 0, 'UIDVALIDITY': 42,
+            'EXISTS': 0, 'RECENT': 0, 'UIDNEXT': 1,
+            'UIDVALIDITY': 42,
             'FLAGS': ('\\Seen', '\\Answered', '\\Flagged',
                       '\\Deleted', '\\Draft', '\\Recent', 'List'),
             'READ-WRITE': False})

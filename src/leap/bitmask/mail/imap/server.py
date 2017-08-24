@@ -246,10 +246,12 @@ class LEAPIMAPServer(imap4.IMAP4Server):
 
         d1 = defer.maybeDeferred(mbox.getMessageCount)
         d2 = defer.maybeDeferred(mbox.getRecentCount)
-        return defer.gatherResults([d1, d2]).addCallback(
+        d3 = defer.maybeDeferred(mbox.getUIDNext)
+        return defer.gatherResults([d1, d2, d3]).addCallback(
             self.__cbSelectWork, mbox, cmdName, tag)
 
-    def __cbSelectWork(self, ((msg_count, recent_count)), mbox, cmdName, tag):
+    def __cbSelectWork(self, ((msg_count, recent_count, uid_next)),
+                       mbox, cmdName, tag):
         flags = mbox.getFlags()
         self.sendUntaggedResponse('FLAGS (%s)' % ' '.join(flags))
 
@@ -264,6 +266,10 @@ class LEAPIMAPServer(imap4.IMAP4Server):
         # "UIDs valid" here.
         self.sendPositiveResponse(
             None, '[UIDVALIDITY %d] UIDs valid' % mbox.getUIDValidity())
+        # ----------------------------------------------------------------
+        # Patched ---------------------------------------------------------
+        # send UIDNEXT too
+        self.sendPositiveResponse(None, '[UIDNEXT %d]' % uid_next)
         # ----------------------------------------------------------------
 
         s = mbox.isWriteable() and 'READ-WRITE' or 'READ-ONLY'

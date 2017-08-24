@@ -46,8 +46,7 @@ class ConfigurableService(service.MultiService):
         return self.cfg.get_section(section)
 
 
-DEFAULT_CONFIG = """
-[services]
+DEFAULT_CONFIG = """[services]
 mail = True
 vpn = True
 zmq = True
