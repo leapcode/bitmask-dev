@@ -73,7 +73,7 @@ def get_no_group_name():
             return None
 
 
-VERSION = "6"
+VERSION = "7"
 SCRIPT = "bitmask-root"
 NAMESERVER = "10.42.0.1"
 BITMASK_CHAIN = "bitmask"
@@ -105,7 +105,8 @@ FIXED_FLAGS = [
     "--management-signal",
     "--script-security", "1",
     "--user", "nobody",
-    "--remap-usr1", "SIGTERM",
+    "--persist-key",
+    "--persist-tun",
 ]
 
 if OPENVPN_GROUP is not None:
@@ -121,7 +122,8 @@ ALLOWED_FLAGS = {
     "--cert": ["FILE"],
     "--key": ["FILE"],
     "--ca": ["FILE"],
-    "--fragment": ["NUMBER"]
+    "--fragment": ["NUMBER"],
+    "--keepalive": ["NUMBER", "NUMBER"],
 }
 
 PARAM_FORMATS = {
@@ -963,6 +965,7 @@ def main():
             bail("ERROR: No such command")
     else:
         bail("ERROR: No such command")
+
 
 if __name__ == "__main__":
     debug(" ".join(sys.argv))

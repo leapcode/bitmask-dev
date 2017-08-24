@@ -252,7 +252,8 @@ class _VPNProcess(protocol.ProcessProtocol):
     # shutdown
 
     def terminate(self):
-        self.proto.signal('SIGTERM')
+        if self.proto:
+            self.proto.signal('SIGTERM')
 
     def kill(self):
         try:

@@ -31,14 +31,14 @@ from .process import VPNProcess
 
 
 # TODO ----------------- refactor --------------------
-# [ ] register change state listener
-# emit_async(catalog.VPN_STATUS_CHANGED)
 # [ ] catch ping-restart
 # 'NETWORK_UNREACHABLE': (
 #    'Network is unreachable (code=101)',),
 # 'PROCESS_RESTART_TLS': (
 #    "SIGTERM[soft,tls-error]",),
 # TODO ----------------- refactor --------------------
+
+RESTART_WAIT = 2  # in secs
 
 
 class ConfiguredTunnel(object):
@@ -82,8 +82,8 @@ class ConfiguredTunnel(object):
         defer.returnValue(started)
 
     @defer.inlineCallbacks
-    def stop(self):
-        stopped = yield self._stop_vpn(restart=False)
+    def stop(self, restart=False):
+        stopped = yield self._stop_vpn(restart=restart)
         defer.returnValue(stopped)
 
     #  status
@@ -110,14 +110,14 @@ class ConfiguredTunnel(object):
         vpnproc = VPNProcess(*args, **kwargs)
         self._vpnproc = vpnproc
 
-        self.__start_pre_up(vpnproc)
-        cmd = self.__start_get_cmd(vpnproc)
-
-        running = yield self.__start_spawn_proc(vpnproc, cmd)
-        if running:
+        try:
+            self.__start_pre_up(vpnproc)
+            cmd = self.__start_get_cmd(vpnproc)
+            running = yield self.__start_spawn_proc(vpnproc, cmd)
             vpnproc.pid = running.pid
             defer.returnValue(True)
-        else:
+        except Exception:
+            # TODO need to propagate the error message properly.
             defer.returnValue(False)
 
     def __start_pre_up(self, proc):
@@ -150,7 +150,7 @@ class ConfiguredTunnel(object):
     def _restart_vpn(self):
         yield self.stop(restart=True)
         reactor.callLater(
-            self.RESTART_WAIT, self.start)
+            RESTART_WAIT, self.start)
 
     @defer.inlineCallbacks
     def _stop_vpn(self, restart=False):
