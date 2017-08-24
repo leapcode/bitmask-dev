@@ -19,14 +19,20 @@
 Tests for the VPN Management Interface
 """
 
+import os
 import StringIO
 
 from twisted.trial import unittest
 from leap.bitmask.vpn.management import ManagementProtocol
 
 
-session1 = open('session1.data').readlines()
-session2 = open('session2.data').readlines()
+def get_data(name):
+    return os.path.join(
+        os.path.abspath(os.path.split(__file__)[0]), '%s.data' % name)
+
+
+session1 = open(get_data('session1')).readlines()
+session2 = open(get_data('session2')).readlines()
 
 
 def feed_the_protocol(protocol, data):
@@ -92,7 +98,7 @@ class ManagementTestCase(unittest.TestCase):
     def test_get_pid(self):
         proto = ManagementProtocol()
         proto.transport = StringIO.StringIO()
-        assert proto.pid == None
+        assert proto.pid is None
         proto.getPid()
         pid_lines = ['SUCCESS: pid=99999']
         feed_the_protocol(proto, pid_lines)
@@ -126,4 +132,4 @@ class ManagementTestCase(unittest.TestCase):
         assert info['state_simple'] == 'ON'
         assert info['state_legend'] == 'Initialization Sequence Completed'
         assert info['openvpn_version'].startswith('OpenVPN 2.4.0')
-        assert info['pid'] == 23783 
+        assert info['pid'] == 23783
