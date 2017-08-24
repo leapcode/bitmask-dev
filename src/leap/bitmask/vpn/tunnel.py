@@ -30,13 +30,10 @@ from .constants import IS_WIN
 from .process import VPNProcess
 
 
-# TODO ----------------- refactor --------------------
-# [ ] catch ping-restart
-# 'NETWORK_UNREACHABLE': (
-#    'Network is unreachable (code=101)',),
-# 'PROCESS_RESTART_TLS': (
-#    "SIGTERM[soft,tls-error]",),
-# TODO ----------------- refactor --------------------
+# The restarts are not really needed, since we're configuring 
+# openvpn to restart itself after a period of inactivity. However, if the
+# openvpn process is killed by whatever reason, # we'll automatically try to
+# restart the process.
 
 RESTART_WAIT = 2  # in secs
 
