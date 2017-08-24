@@ -103,6 +103,11 @@ class _VPNProcess(protocol.ProcessProtocol):
 
     # processProtocol methods
 
+    def outReceived(self, data):
+        # use this to debug failed invocations.
+        # print data
+        pass
+
     @defer.inlineCallbacks
     def _got_management_protocol(self, proto):
         self.proto = proto

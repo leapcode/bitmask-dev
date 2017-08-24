@@ -30,7 +30,7 @@ from .constants import IS_WIN
 from .process import VPNProcess
 
 
-# The restarts are not really needed, since we're configuring 
+# The restarts are not really needed, since we're configuring
 # openvpn to restart itself after a period of inactivity. However, if the
 # openvpn process is killed by whatever reason, # we'll automatically try to
 # restart the process.
