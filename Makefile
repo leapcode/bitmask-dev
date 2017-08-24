@@ -51,8 +51,8 @@ test_functional_graphical:
 	behave --tags ~@wip --tags @smoke tests/functional/features -k -D host=localhost
 
 install_helpers:
-	cp src/leap/bitmask/vpn/helpers/linux/bitmask-root /usr/local/sbin/
-	cp src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.policy /usr/share/polkit-1/actions/
+	sudo cp src/leap/bitmask/vpn/helpers/linux/bitmask-root /usr/local/sbin/
+	sudo cp src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.policy /usr/share/polkit-1/actions/
 
 install_pixelated:
 	pip install leap.pixelated leap.pixelated-www
