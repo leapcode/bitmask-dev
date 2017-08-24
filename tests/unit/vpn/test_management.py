@@ -121,7 +121,7 @@ class ManagementTestCase(unittest.TestCase):
         feed_the_protocol(proto, session1[2:4])
         proto.getVersion()
         feed_the_protocol(proto, ['END'])
-        proto.get_pid()
+        proto.getPid()
         pid_lines = ['SUCCESS: pid=23783']
         feed_the_protocol(proto, pid_lines)
 
