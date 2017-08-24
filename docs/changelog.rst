@@ -1,7 +1,9 @@
 Changelog
 =====================
-0.10 - la rosa de foc
-----------------------
+0.10.0 - la rosa de foc - `master`_
+------------------------------------
+
+.. note:: This version is not yet released and is under active development.
 
 Features
 ~~~~~~~~
@@ -18,6 +20,7 @@ Features
 - `#8852 <https://0xacab.org/leap/bitmask-dev/issues/8852>`_: Stop the vpn (and all services) when application is shut down
 - `#8804 <https://0xacab.org/leap/bitmask-dev/issues/8804>`_: Automatic selection of gateways, based on user timezone
 - `#8855 <https://0xacab.org/leap/bitmask-dev/issues/8855>`_: Manual override for the vpn gateway selection
+- `#8835 <https://0xacab.org/leap/bitmask-dev/issues/8835>`_: On bitmaskclt vpn start use the last vpn if no provider is provided
 - Add VPN API to bitmask.js
 - Add vpn get_cert command
 - Indicate a successful/failure OpenPGP header import
@@ -26,17 +29,19 @@ Features
 - Port Pixelated UA integration from legacy bitmask
 - Add Pixelated Button to the UI
 - Add ability to ssh into the bitmask daemon for debug
+- Add a call to inject messages into a mailbox using the cli.
 - New ``bitmask_chromium`` gui: launches Bitmask UI as a standalone chromium app if chromium is installed in your system
 
 Bugfixes
 ~~~~~~~~
-- Repeat decryption if signed with attached key
 - `#8783 <https://0xacab.org/leap/bitmask-dev/issues/8783>`_: use username instead of provider in the vpn calls
 - `#8868 <https://0xacab.org/leap/bitmask-dev/issues/8868>`_: can't upload generated key with bitmask
 - `#8832 <https://0xacab.org/leap/bitmask-dev/issues/8832>`_: don't allow putting non-private keys for the keyring address
 - `#8901 <https://0xacab.org/leap/bitmask-dev/issues/8901>`_: use gpg1 binary if present
 - `#8971 <https://0xacab.org/leap/bitmask-dev/issues/8971>`_: handle 502 replies from nicknym
 - `#8957 <https://0xacab.org/leap/bitmask-dev/issues/8957>`_: alot doesn't automatically decrypt messages sent from Bitmask
+- Repeat decryption if signed with attached key
+-  Log error in case JSON parsing fails for decrypted doc
 
 Misc
 ~~~~
@@ -65,3 +70,4 @@ Bugfixes
 ~~~~~~~~
 - `#8498 <https://leap.se/code/issues/8498>`_: In case of wrong url don't leave files in the config folder.
 
+.. _`master`: https://0xacab.org/leap/bitmask-dev
