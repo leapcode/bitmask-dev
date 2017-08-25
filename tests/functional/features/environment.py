@@ -1,12 +1,14 @@
+import commands
 import os
+import sys
 import shutil
 import re
-import time
+
 from urlparse import urlparse
-import commands
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+
 from leap.common.config import get_path_prefix
 
 DEFAULT_IMPLICIT_WAIT_TIMEOUT_IN_S = 10
@@ -102,7 +104,10 @@ def _save_screenshot(context, step):
 
 def _save_config(context, step):
     filepath = _artifact_path(step, 'config')
-    shutil.copytree(get_path_prefix(), filepath)
+    try:
+        shutil.copytree(get_path_prefix(), filepath)
+    except OSError:
+        pass
     print('copied config to:    file://%s' % filepath)
 
 

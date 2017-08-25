@@ -15,12 +15,16 @@ def record_ip(context):
 
 
 def _current_ip():
-    url = 'https://wtfismyip.com/json'
+    url = 'https://ipapi.co/json'
 
     r = requests.get(url)
-    data = r.json()
+    try:
+        data = r.json()
+    except Exception:
+        print("ERROR: data received was %s" % r.content)
+        raise
 
-    current_ip = data['YourFuckingIPAddress']
+    current_ip = data.get('ip')
     print("Current IP: %s\n\n" % current_ip)
     return current_ip
 
