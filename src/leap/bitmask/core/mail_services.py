@@ -282,7 +282,7 @@ class KeymanagerContainer(Container):
         def _log_key_error(failure):
             self.log.failure('Error while generating key!')
             error = "Error generating key: %s" % failure.getErrorMessage()
-            self._set_status(userid, "failure", error=error)
+            self._set_status(userid, "failed", error=error)
             return failure
 
         self.log.info('Looking up private key for %s' % userid)
@@ -831,8 +831,8 @@ class IncomingMailService(service.MultiService):
         return d
 
     def _errback(self, failure, userid):
-        self._set_status(userid, "failure", error=str(failure))
-        self.log.failure('failure!')
+        self._set_status(userid, "failed", error=str(failure))
+        self.log.failure('failed!')
 
 # --------------------------------------------------------------------
 #

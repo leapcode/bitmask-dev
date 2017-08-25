@@ -54,7 +54,7 @@ def merge_status(children):
             "off": 1,
             "starting": 10,
             "stopping": 11,
-            "failure": 100
+            "failed": 100
         }
         return level.get(status["status"], -1)
 

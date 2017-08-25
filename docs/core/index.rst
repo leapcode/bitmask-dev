@@ -419,7 +419,7 @@ JSON-encoded data to the POST.
        * ``off``
        * ``starting``
        * ``stopping``
-       * ``failure``
+       * ``failed``
 
   The possible values for the ``keys`` field are:
         * ``null`` - nothing is known about the private key status.

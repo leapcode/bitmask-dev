@@ -75,7 +75,7 @@ def print_status(status, depth=0):
         line = Fore.RESET + name.ljust(12)
         if v['status'] in ('on', 'starting'):
             line += Fore.GREEN
-        elif v['status'] == 'failure':
+        elif v['status'] == 'failed':
             line += Fore.RED
         line += v['status']
         if v.get('error'):
