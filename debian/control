@@ -6,7 +6,8 @@ Uploaders: LEAP automated build <sysdev@leap.se>
 Homepage: https://bitmask.net
 Standards-Version: 3.9.8
 Build-Depends: debhelper (>= 9.0.0), dh-python, python, python-setuptools, pep8,
-               pyqt5-dev-tools, python-docutils
+               pyqt5-dev-tools, python-docutils, docutils-common,
+               nodejs
 # XXX we're not installing sphinx docs now. in zesty we'll need universe,
 # sphinx has been moved there.
 # python-sphinx
@@ -25,9 +26,6 @@ Depends:
   python-zope.proxy,
   python-twisted-core (>= 14.0.2),
   python-leap-common,
-# This is a workaround to broken python-srp in wily.
-# We should remove libssl-dev when #7566 is solved
-#  libssl-dev
 Description: Provides the desktop client for LEAP
  The LEAP project aims to secure everyday communication.
  .
@@ -47,12 +45,21 @@ Description: Provides the desktop client for LEAP
  .
  This package provides the core daemon.
 
+Package: bitmask-js
+Architecture: all
+# Provides: leap.bitmask_js 
+# this "provides" seems it's not parsed correctly
+Description: Desktop client to access LEAP Services.
+ The LEAP project aims to secure everyday communications.
+ .
+ This package provides the bitmask_js javascript library.
+
 Package: bitmask-qt
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends},
          python-pyqt5,
          python-pyqt5.qtwebkit,
-# XXX this depends also on leap-bitmask-js
+         bitmask-js
 Provides: leap.bitmask.gui
 Description: Desktop client to access LEAP Services.
  The LEAP project aims to secure everyday communications.

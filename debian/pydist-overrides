@@ -1,3 +1,4 @@
 leap.soledad soledad-client; PEP386
 leap.common python-leap-common ; PEP386
 python-leap.bitmask bitmask
+leap.bitmask_js bitmask-js

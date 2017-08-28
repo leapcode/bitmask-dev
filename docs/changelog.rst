@@ -31,6 +31,8 @@ Features
 - Add ability to ssh into the bitmask daemon for debug
 - Add a call to inject messages into a mailbox using the cli.
 - New ``bitmask_chromium`` gui: launches Bitmask UI as a standalone chromium app if chromium is installed in your system
+- Add new debianization split, with separated bitmask components.
+- `#9029 <https://0xacab.org/leap/bitmask-dev/issues/9029>`_: add a package for the bitmask javascript UI.
 
 Bugfixes
 ~~~~~~~~

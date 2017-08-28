@@ -39,7 +39,7 @@ timestamp = time.strftime('%Y%m%d%H%M', now.timetuple())
 
 setup(
     name='leap.bitmask_js',
-    version='0.1.%s' % timestamp,
+    version='0.2.%s' % timestamp,
     description='Bitmask UI',
     long_description=long_description,
     author='LEAP Encrypted Access Project',
@@ -47,6 +47,7 @@ setup(
     namespace_packages=['leap'],
     url='http://leap.se',
     packages=['leap.bitmask_js'],
+    zip_safe=False,
     package_data={
         '': ['public/*',
              'public/css/*',
@@ -54,5 +55,5 @@ setup(
              'public/img/*',
              'public/js/*',
              ]
-    }
+    },
 )

@@ -38,8 +38,8 @@ python-package-local: clean pydist-build
 
 
 pydist-build: make-init
-	npm install
-	npm run build:production
+	http_proxy= /usr/bin/npm install
+	http_proxy= /usr/bin/npm run build:production
 	cd pydist && python setup.py bdist_wheel
 
 pydist-upload:

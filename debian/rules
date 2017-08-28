@@ -14,6 +14,7 @@ package=bitmask
 PYTHON2=$(shell pyversions -vr)
 
 # Prevent setuptools/distribute from accessing the internet.
+# but careful! node needs to unset this to get random crap from the intertubes.
 export http_proxy = http://127.0.0.1:9
 
 %:
@@ -28,10 +29,12 @@ override_dh_prep:
 	# this will re-generate the resource files and locales.
 	make -f ./Makefile qt-resources
 
+	# build the ui package
+	cd ui && make clean && make pydist-build
+
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 
 # run tests!
-#
 
 #test-python%:
 #	xvfb-run ./run_tests.sh -x -N
