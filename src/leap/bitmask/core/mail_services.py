@@ -48,6 +48,7 @@ try:
     from leap.bitmask.mail.smtp import service as smtp_service
     from leap.bitmask.mail.incoming.service import IncomingMail
     from leap.bitmask.mail.incoming.service import INCOMING_CHECK_PERIOD
+    from leap.soledad.client.api import Soledad
     HAS_MAIL = True
 except ImportError:
     HAS_MAIL = False
@@ -57,8 +58,6 @@ try:
     HAS_MUA = True
 except ImportError:
     HAS_MUA = False
-
-from leap.soledad.client.api import Soledad
 
 from leap.bitmask.core.uuid_map import UserMap
 from leap.bitmask.core.configurable import DEFAULT_BASEDIR
