@@ -1,5 +1,5 @@
 /usr/bin/bitmask
-src/leap/bitmask/gui /usr/lib/python2.7/dist-packages/leap/bitmask/gui
+src/leap/bitmask/gui /usr/lib/python2.7/dist-packages/leap/bitmask/
 debian/bitmask-qt.xpm usr/share/pixmaps
 debian/bitmask-qt.desktop usr/share/applications
 debian/icons/hicolor usr/share/icons
