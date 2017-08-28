@@ -1,8 +1,10 @@
+---
 stages:
   - test
   - e2e
   - bundle
   - build_ui
+  - package
 
 variables:
   DOCKER_DRIVER: overlay
@@ -106,3 +108,43 @@ build_docker_image:
         docker build -t ${CI_REGISTRY_IMAGE}:latest tests/docker
         docker push ${CI_REGISTRY_IMAGE}:latest
       fi
+
+.job_template: &job_definition
+  stage: package
+  image: "0xacab.org:4567/leap/gitlab-buildpackage:build_${DIST}_${ARCH}"
+  script:
+    - "pwd; git describe"
+    - build-build-package
+    # Test the package with lintian
+    - build-test-lintian
+    - upload-package
+    # sleep 1h to allow debugging of running container
+    #- sleep 3600
+  artifacts:
+    expire_in: 1w
+    paths:
+    - '*_*.xz'
+    - '*_*.dsc'
+    - '*_amd64.changes'
+    - '*.deb'
+    - 'results/*'
+
+package:amd64_stretch:
+  variables:
+    ARCH: "amd64"
+    DIST: "stretch"
+    REPONAMES: "platform,client"
+    # Default is to fail on warnings, we disable it here
+    # unless a manpage is included (see #8895)
+    LINTIAN_OPTS: "-X filename-length"
+  <<: *job_definition
+
+package:amd64_zesty:
+  variables:
+    ARCH: "amd64"
+    DIST: "zesty"
+    REPONAMES: "client"
+    # Default is to fail on warnings, we disable it here
+    # unless a manpage is included (see #8895)
+    LINTIAN_OPTS: "-X filename-length"
+  <<: *job_definition
