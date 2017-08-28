@@ -20,6 +20,8 @@ Bitmask Command Line interface: vpn module
 import argparse
 import sys
 
+from colorama import Fore
+
 from leap.bitmask.cli import command
 
 
@@ -97,7 +99,7 @@ SUBCOMMANDS:
 
     def list(self, raw_args):
         self.data += ['list']
-        return self._send(command.default_dict_printer)
+        return self._send(location_printer)
 
     def get_cert(self, raw_args):
         parser = argparse.ArgumentParser(
@@ -115,3 +117,18 @@ SUBCOMMANDS:
         self.data += ['get_cert', uid]
 
         return self._send(command.default_dict_printer)
+
+
+def location_printer(result):
+    def pprint(key, value):
+        print(Fore.RESET + key.ljust(20) + Fore.GREEN +
+              value + Fore.RESET)
+
+    for provider, locations in result.items():
+        for loc in locations.values():
+            location_str = ("[%(country_code)s] %(name)s "
+                            "(UTC%(timezone)s %(hemisphere)s)" % loc)
+            pprint(provider, location_str)
+
+        if not locations.values():
+            pprint(provider, "---")

@@ -194,13 +194,7 @@ class VPNService(HookableService):
                 config = yield bonafide.do_provider_read(provider, 'eip')
             except ValueError:
                 continue
-            locations = config.locations
-            info = tuple([
-                ('[%s]' % locations[loc]['country_code'],
-                 locations[loc]['name'],
-                 '(UTC%s)' % locations[loc]['timezone'])
-                for loc in locations])
-            provider_dict[provider] = info
+            provider_dict[provider] = config.locations
         defer.returnValue(provider_dict)
 
     @defer.inlineCallbacks
