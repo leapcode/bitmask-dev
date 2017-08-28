@@ -53,10 +53,14 @@ set +x
 sleep 5
 "$BCTL" vpn status --json
 
-# XXX gateway does not get added to resolv.conf
-# If we are running as root, as in the CI, we can do this directly
-# echo "nameserver 10.42.0.1" > /etc/resolv.conf
-# cat /etc/resolv.conf
+if [[ $EUID > 0 ]]
+  then echo "Not running as root, no dns workaround needed...";
+else
+  echo "no-iptables workaround on CI: adding gateway dns...";
+  echo "nameserver 10.42.0.1" > /etc/resolv.conf
+  # cat /etc/resolv.conf
+fi
+
 sleep 5
 
 ip link show
@@ -68,8 +72,12 @@ tests/e2e/check_ip vpn_on
 "$BCTL" vpn stop
 sleep 5
 
-# XXX debug do this only if no other entry in resolv.conf
-# echo "nameserver 77.109.148.136" > /etc/resolv.conf
+if [[ $EUID > 0 ]]
+  then echo "Not running as root, no dns workaround needed...";
+else
+  echo "no-iptables workaround on CI: restoring dns...";
+  echo "nameserver 77.109.148.136" > /etc/resolv.conf
+fi
 
 
 # TEST that we're NOT going through the provider's VPN
