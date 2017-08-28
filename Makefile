@@ -44,7 +44,7 @@ test_e2e:
 test_functional_setup:
 	pip install -U behave selenium
 
-test_functional:
+test_functional: install_helpers
 	xvfb-run --server-args="-screen 0 1280x1024x24" behave --tags ~@wip --tags @smoke tests/functional/features -k --no-capture -D host=localhost
 
 test_functional_graphical:

@@ -41,7 +41,7 @@ RESTART_WAIT = 2  # in secs
 class ConfiguredTunnel(object):
 
     """
-    A ConfiguredTunne holds the configuration for a VPN connection, and allows
+    A ConfiguredTunnel holds the configuration for a VPN connection, and allows
     to control that connection.
 
     This is the high-level object that the service knows about.

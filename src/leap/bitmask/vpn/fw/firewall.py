@@ -114,6 +114,7 @@ class _LinuxFirewallManager(object):
         if restart:
             cmd.append("restart")
 
+        print "LAUNCHING FIREWALL..."
         result = '<did not run>'
         try:
             retcode, result = commands.getstatusoutput(
@@ -122,6 +123,7 @@ class _LinuxFirewallManager(object):
             log.failure('Error launching the firewall')
         finally:
             log.debug(result)
+        print "LAUNCHED FIREWALL"
         emit_async(catalog.VPN_STATUS_CHANGED)
         return True
 

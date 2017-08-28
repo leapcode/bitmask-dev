@@ -35,9 +35,6 @@ pw="$(head -c 10 < /dev/urandom | base64)"
 
 [ -d "$LEAP_HOME" ] && rm -rf "$LEAP_HOME"
 
-"$BCTL" start
-
-
 # Register a new user
 # Disable xtrace
 set +x
@@ -53,11 +50,12 @@ set +x
 
 # Start VPN, wait a bit
 "$BCTL" vpn start --json
-sleep 3
+sleep 5
 "$BCTL" vpn status --json
 
 # XXX gateway does not get added to resolv.conf
-echo "nameserver 10.42.0.1" > /etc/resolv.conf
+# If we are running as root, as in the CI, we can do this directly
+# echo "nameserver 10.42.0.1" > /etc/resolv.conf
 # cat /etc/resolv.conf
 sleep 5
 
@@ -67,10 +65,10 @@ sleep 5
 tests/e2e/check_ip vpn_on
 
 "$BCTL" vpn stop
-sleep 3
+sleep 5
 
 # XXX debug do this only if no other entry in resolv.conf
-echo "nameserver 77.109.148.136" > /etc/resolv.conf
+# echo "nameserver 77.109.148.136" > /etc/resolv.conf
 
 
 # TEST that we're NOT going through the provider's VPN

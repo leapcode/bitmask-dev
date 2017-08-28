@@ -4,7 +4,7 @@ import urllib.request
 import json
 import sys
 
-DEMO_ISPS = ('Riseup Networks', '')
+DEMO_ISPS = ('Riseup Networks',)
 
 url = 'https://wtfismyip.com/json'
 
@@ -26,9 +26,9 @@ try:
     cmd = sys.argv[1]
 
     if cmd == 'vpn_on':
-        assert isp == DEMO_ISP
+        assert isp in DEMO_ISPS
     elif cmd == 'vpn_off':
-        assert isp != DEMO_ISP
+        assert isp not in DEMO_ISPS
     else:
         raise BadCmd()
 
@@ -36,8 +36,9 @@ except BadCmd:
     print("Cannot parse that command. Valid commands: vpn_on, vpn_off")
     sys.exit(1)
 
-except Exception:
+except Exception as exc:
     print("IP *NOT* as expected")
+    print("%r" % exc)
     sys.exit(1)
 
 else:
