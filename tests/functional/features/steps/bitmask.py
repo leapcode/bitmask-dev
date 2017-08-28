@@ -10,11 +10,14 @@ from behave import given
 @given('I start bitmask for the first time')
 def initial_run(context):
     if context.mode == 'virtualenv':
+        cmd = commands.getoutput('which bitmaskctl')
+        # print("CMD PATH", cmd)
         commands.getoutput('bitmaskctl stop')
         # TODO: fix bitmaskctl to only exit once bitmaskd has stopped
         time.sleep(2)
         _initialize_home_path()
         commands.getoutput('bitmaskctl start')
+        time.sleep(1)
     elif context.mode in ('bundle', 'bundle-ci'):
         commands.getoutput(context.bundle_path)
         time.sleep(2)

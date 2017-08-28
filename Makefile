@@ -1,6 +1,11 @@
 DIST=dist/bitmask
 NEXT_VERSION = $(shell cat pkg/next-version)
 DIST_VERSION = dist/bitmask-$(NEXT_VERSION)/
+
+BITMASK_ROOT = src/leap/bitmask/vpn/helpers/linux/bitmask-root
+POLKIT_POLICY = src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.policy
+SUDO = /usr/bin/sudo
+
 include pkg/bundles/build.mk
 include pkg/thirdparty/openvpn/build.mk
 
@@ -45,6 +50,7 @@ test_functional_setup:
 	pip install -U behave selenium
 
 test_functional: install_helpers
+	test -f /usr/bin/lxpolkit && lkpolkit &
 	xvfb-run --server-args="-screen 0 1280x1024x24" behave --tags ~@wip --tags @smoke tests/functional/features -k --no-capture -D host=localhost
 
 test_functional_graphical:
@@ -54,8 +60,9 @@ test_functional_graphical_wip:
 	behave --tags @wip tests/functional/features -k --no-capture -D host=localhost
 
 install_helpers:
-	sudo cp src/leap/bitmask/vpn/helpers/linux/bitmask-root /usr/local/sbin/
-	sudo cp src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.policy /usr/share/polkit-1/actions/
+	# if there's no sudo, assumming this is running as root by the CI
+	test -f $(SUDO) && sudo cp $(BITMASK_ROOT) /usr/local/sbin/ || cp $(BITMASK_ROOT) /usr/local/sbin/
+	test -f $(SUDO) && sudo cp $(POLKIT_POLICY) /usr/share/polkit-1/actions/se.bitmask.bundle.policy || cp $(POLKIT_POLICY) /usr/share/polkit-1/actions/se.bitmask.bundle.policy
 
 install_pixelated:
 	pip install leap.pixelated leap.pixelated-www

@@ -12,6 +12,7 @@ if IS_LINUX:
 
     helper_to = '/usr/local/sbin/bitmask-root'
     polkit_to = '/usr/share/polkit-1/actions/se.bitmask.bundle.policy'
+    deb_polkit_to = '/usr/share/polkit-1/actions/se.bitmask.policy'
     openvpn_to = '/usr/local/sbin/leap-openvpn'
 
     def install():
@@ -34,7 +35,9 @@ if IS_LINUX:
 
     def check():
         helper = os.path.exists(helper_to)
-        polkit = os.path.exists(polkit_to)
+        polkit = (
+            os.path.exists(polkit_to) or
+            os.path.exists(deb_polkit_to))
         return helper and polkit
 
 if IS_MAC:
