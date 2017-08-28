@@ -110,7 +110,7 @@ class _VPNProcess(protocol.ProcessProtocol):
 
     def outReceived(self, data):
         # use this to debug failed invocations.
-        # print data
+        print("DEBUG VPN: %s" % data)
         pass
 
     @defer.inlineCallbacks

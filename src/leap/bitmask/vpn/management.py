@@ -156,6 +156,7 @@ class ManagementProtocol(LineReceiver):
                 ts, state = data[:2]
         except Exception as exc:
             log.error('Failure parsing data: %s' % exc)
+            return
 
         if state != self.state:
             now = time.time()

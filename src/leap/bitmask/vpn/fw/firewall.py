@@ -123,7 +123,7 @@ class _LinuxFirewallManager(object):
             log.failure('Error launching the firewall')
         finally:
             log.debug(result)
-        print "LAUNCHED FIREWALL"
+        print "LAUNCHED FIREWALL", result
         emit_async(catalog.VPN_STATUS_CHANGED)
         return True
 
