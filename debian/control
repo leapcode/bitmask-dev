@@ -1,13 +1,16 @@
 Source: bitmask
 Section: misc
 Priority: extra
-Maintainer: Ben Carrillo <ben@futeisha.org>
+Maintainer: Kali Kaneko <kali@leap.se>
+Uploaders: LEAP automated build <sysdev@leap.se>
+Homepage: https://bitmask.net
 Standards-Version: 3.9.8
-Uploaders: Micah Anderson <micah@debian.org>
-Homepage: https://leap.se
-Build-Depends: debhelper (>= 9.0.0), dh-python, python, python-setuptools,
-               pep8, python-sphinx, docutils-common, 
-X-Python-Version: >= 2.7 
+Build-Depends: debhelper (>= 9.0.0), dh-python, python, python-setuptools, pep8,
+               pyqt5-dev-tools, python-docutils
+# XXX we're not installing sphinx docs now. in zesty we'll need universe,
+# sphinx has been moved there.
+# python-sphinx
+X-Python-Version: >= 2.7
 
 Package: bitmask-core
 Architecture: all
@@ -25,7 +28,7 @@ Depends:
 # This is a workaround to broken python-srp in wily.
 # We should remove libssl-dev when #7566 is solved
 #  libssl-dev
-Description: Provides the desktop client for LEAP 
+Description: Provides the desktop client for LEAP
  The LEAP project aims to secure everyday communication.
  .
  This client is necessary for users to run on their local machines for:
@@ -46,9 +49,9 @@ Description: Provides the desktop client for LEAP
 
 Package: bitmask-qt
 Architecture: all
-Build-Depends: pyqt5-dev-tools, 
-Depends: python-pyqt5,
-  	 python-pyqt5.qtwebkit,
+Depends: ${misc:Depends}, ${python:Depends},
+         python-pyqt5,
+         python-pyqt5.qtwebkit,
 # XXX this depends also on leap-bitmask-js
 Provides: leap.bitmask.gui
 Description: Desktop client to access LEAP Services.
@@ -58,8 +61,9 @@ Description: Desktop client to access LEAP Services.
 
 Package: bitmask-vpn
 Architecture: all
-Build-Depends: 
-Depends: bitmask-core, openvpn
+Depends: ${misc:Depends}, ${python:Depends},
+         bitmask-core,
+         openvpn
 Suggests: policykit-1-gnome
 Enhances: openvpn
 Provides: leap.bitmask.vpn
@@ -70,7 +74,6 @@ Description: Desktop client to access LEAP Services.
 
 Package: bitmask-mail
 Architecture: all
-Build-Depends: 
 Depends: bitmask-core, gnupg1,
          soledad-client,
 Recommends: xul-ext-bitmask
@@ -93,7 +96,6 @@ Description: Desktop client to access LEAP Services.
 
 Package: bitmask-mua
 Architecture: all
-Build-Depends: pyqt5-dev-tools, 
 Depends: bitmask-mail,
          python-whoosh, python-requests, python-chardet
 # XXX this depends on leap-pixelated, leap-pixelated-www
