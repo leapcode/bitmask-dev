@@ -1,3 +1,3 @@
-src/leap/bitmask/vpn /usr/lib/python2.7/dist-packages/leap/bitmask/vpn
+src/leap/bitmask/vpn /usr/lib/python2.7/dist-packages/leap/bitmask/
 src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.policy usr/share/polkit-1/actions/
 src/leap/bitmask/vpn/helpers/linux/bitmask-root usr/sbin/
