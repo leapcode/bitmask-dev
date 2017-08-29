@@ -30,9 +30,10 @@ from twisted.internet import protocol, reactor, defer
 from twisted.internet import error as internet_error
 from twisted.internet.endpoints import clientFromString, connectProtocol
 from twisted.logger import Logger
+from zope.interface import implementer
 
 from leap.bitmask.vpn.utils import get_vpn_launcher
-from leap.bitmask.vpn.management import ManagementProtocol
+from leap.bitmask.vpn.management import ManagementProtocol, IStateListener
 from leap.bitmask.vpn.launchers import darwin
 from leap.bitmask.vpn.constants import IS_MAC, IS_LINUX
 
@@ -42,7 +43,11 @@ from leap.common.events import catalog, emit_async
 OPENVPN_VERBOSITY = 4
 
 
+@implementer(IStateListener)
 class VPNStateListener(object):
+
+    # TODO we should move the state history to this class
+    # and make VPNProcess the implementer itself - or the service.
 
     def change_state(self, state):
         emit_async(catalog.VPN_STATUS_CHANGED)
