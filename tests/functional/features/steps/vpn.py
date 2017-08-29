@@ -21,14 +21,17 @@ def apply_dns_workaround():
         global resolv
         resolv = commands.getoutput('cat /etc/resolv.conf')
         print("original resolv.conf: %s" % resolv)
-        commands.getoutput('echo nameserver 10.42.0.1 > /etc/ressolv.conf')
+        result = commands.getoutput(
+            'echo "nameserver 10.42.0.1" > /etc/resolv.conf')
         resolv2 = commands.getoutput('cat /etc/resolv.conf')
         print("changed resolv.conf: %s" % resolv2)
+        print("Workaround OK")
 
 
 def deapply_dns_workaround():
     if os.getuid() == 0:
-        commands.getoutput('echo nameserver 85.214.20.141 > /etc/resolv.conf')
+        commands.getoutput(
+            'echo "nameserver 85.214.20.141" > /etc/resolv.conf')
 
 
 @given('An initial network configuration')
