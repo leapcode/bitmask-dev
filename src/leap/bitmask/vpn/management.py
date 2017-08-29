@@ -25,7 +25,7 @@ from collections import OrderedDict
 
 from twisted.protocols.basic import LineReceiver
 from twisted.internet.defer import Deferred
-from twisted.python import log
+from twisted.logger import Logger
 
 from zope.interface import Interface
 
@@ -39,6 +39,8 @@ class IStateListener(Interface):
 
 
 class ManagementProtocol(LineReceiver):
+
+    log = Logger()
 
     def __init__(self, verbose=False):
 
@@ -117,8 +119,9 @@ class ManagementProtocol(LineReceiver):
                 self._linebuf.append(line)
 
     def _handle_unknown(self, infotype, data):
-        log.msg('Received unhandled infotype %s with data %s' %
-                (infotype, data))
+        self.log.msg(
+            'Received unhandled infotype %s with data %s' %
+            (infotype, data))
 
     def _handle_BYTECOUNT(self, data):
         down, up = data.split(',')
@@ -160,7 +163,7 @@ class ManagementProtocol(LineReceiver):
                 raise ValueError(
                     'Cannot parse state data! %s' % data)
         except Exception as exc:
-            log.error('Failure parsing data: %s' % exc)
+            self.log.error('Failure parsing data: %s' % exc)
             return
 
         if state != self.state:
