@@ -4,7 +4,8 @@ import urllib.request
 import json
 import sys
 
-DEMO_ISPS = ('Riseup Networks',)
+DEMO_ISPS = ('Riseup Networks',
+             'Leaseweb Deutschland GmbH')
 
 url = 'https://ipapi.co/json'
 
@@ -26,8 +27,10 @@ try:
     cmd = sys.argv[1]
 
     if cmd == 'vpn_on':
+        print('checking VPN ON...')
         assert isp in DEMO_ISPS
     elif cmd == 'vpn_off':
+        print('checking VPN OFF...')
         assert isp not in DEMO_ISPS
     else:
         raise BadCmd()
