@@ -2,7 +2,6 @@ from behave import given, when, then
 from common import (
     click_button,
     wait_until_button_is_visible,
-    find_element_containing_text
 )
 from selenium.common.exceptions import TimeoutException
 # For checking IP
@@ -47,7 +46,7 @@ def assert_vpn(context):
 @when('I deactivate VPN')
 def deactivate_vpn(context):
     click_button(context, 'Turn OFF')
-    wait_until_button_is_visible(context, 'Turn ON')
+    wait_until_button_is_visible(context, 'Turn ON', timeout=60)
 
 
 @then('My network should be configured as before')
