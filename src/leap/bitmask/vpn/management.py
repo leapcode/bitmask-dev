@@ -159,6 +159,8 @@ class ManagementProtocol(LineReceiver):
                  remote, rport, laddr, lport, ip6) = data
             elif len(data) == 8:
                 ts, state = data[:2]
+            elif len(data) == 5:
+                ts, state, verbose, localtun, remote = data
             else:
                 raise ValueError(
                     'Cannot parse state data! %s' % data)
