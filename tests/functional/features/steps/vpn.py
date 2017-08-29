@@ -1,3 +1,6 @@
+import commands
+import os
+
 from behave import given, when, then
 from common import (
     click_button,
@@ -6,6 +9,26 @@ from common import (
 from selenium.common.exceptions import TimeoutException
 # For checking IP
 import requests
+
+resolv = None
+
+
+def apply_dns_workaround():
+    # we need this until we can get proper iptables execution
+    # because of the dns rewrite hacks in the firewall
+    print("CURRENT UID %s" % os.getuid())
+    if os.getuid() == 0:
+        global resolv
+        resolv = commands.getoutput('cat /etc/resolv.conf')
+        print("original resolv.conf: %s" % resolv)
+        commands.getoutput('echo nameserver 10.42.0.1 > /etc/ressolv.conf')
+        resolv2 = commands.getoutput('cat /etc/resolv.conf')
+        print("changed resolv.conf: %s" % resolv2)
+
+
+def deapply_dns_workaround():
+    if os.getuid() == 0:
+        commands.getoutput('echo nameserver 85.214.20.141 > /etc/resolv.conf')
 
 
 @given('An initial network configuration')
@@ -40,6 +63,7 @@ def activate_vpn(context):
 @then('I should have my ass covered')
 def assert_vpn(context):
     wait_until_button_is_visible(context, 'Turn OFF')
+    apply_dns_workaround()
     assert _current_ip() != context.initial_ip
 
 
@@ -51,5 +75,6 @@ def deactivate_vpn(context):
 
 @then('My network should be configured as before')
 def network_as_before(context):
+    deapply_dns_workaround()
     ip = _current_ip()
     assert ip == context.initial_ip
