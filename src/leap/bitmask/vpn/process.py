@@ -91,7 +91,8 @@ class _VPNProcess(protocol.ProcessProtocol):
 
         if socket_port == 'unix':
             folder = os.path.split(self._host)[0]
-            assert os.path.isfile(folder)
+            if not os.path.isdir(folder):
+                os.makedirs(folder)
             self._management_endpoint = clientFromString(
                 reactor, b"unix:path=%s" % socket_host)
         else:

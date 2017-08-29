@@ -50,7 +50,7 @@ class ConfiguredTunnel(object):
     On start, it spawns a VPNProcess instance that will use a vpnlauncher
     suited for the running platform and connect to the management interface
     opened by the openvpn process, executing commands over that interface on
-    demand.
+    demand
     """
 
     log = Logger()
@@ -100,8 +100,8 @@ class ConfiguredTunnel(object):
     @defer.inlineCallbacks
     def _start_vpn(self):
         self.log.debug('VPN: start')
-        args = [self._vpnconfig, self._providerconfig, self._host,
-                self._port]
+        args = [self._vpnconfig, self._providerconfig,
+                self._host, self._port]
         kwargs = {'openvpn_verb': 4, 'remotes': self._remotes,
                   'restartfun': self._restart_vpn}
         vpnproc = VPNProcess(*args, **kwargs)

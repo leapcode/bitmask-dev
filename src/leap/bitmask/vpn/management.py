@@ -148,6 +148,7 @@ class ManagementProtocol(LineReceiver):
     def _handle_STATE(self, data):
         data = data.strip().split(',')
         remote = rport = None
+        state = ''
         try:
             if len(data) == 9:
                 (ts, state, verbose, localtun,

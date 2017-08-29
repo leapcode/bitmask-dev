@@ -50,7 +50,7 @@ test_functional_setup:
 	pip install -U behave selenium
 
 test_functional: install_helpers
-	test -f /usr/bin/lxpolkit && lkpolkit &
+	test -f /usr/bin/lxpolkit && lxpolkit &
 	xvfb-run --server-args="-screen 0 1280x1024x24" behave --tags ~@wip --tags @smoke tests/functional/features -k --no-capture -D host=localhost
 
 test_functional_graphical:
