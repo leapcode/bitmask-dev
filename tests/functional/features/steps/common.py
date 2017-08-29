@@ -7,9 +7,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-TIMEOUT_IN_S = 20
-
-DEFAULT_IMPLICIT_WAIT_TIMEOUT_IN_S = 10
+TIMEOUT_IN_S = 30
+DEFAULT_IMPLICIT_WAIT_TIMEOUT_IN_S = 20
 
 
 def wait_until_element_is_invisible_by_locator(context, locator_tuple,

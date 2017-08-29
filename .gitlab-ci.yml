@@ -2,6 +2,7 @@
 stages:
   - test
   - e2e
+  - functional
   - bundle
   - test_bundle
   - build_ui
@@ -15,6 +16,11 @@ linux_test:
   stage: test
   script:
     - tox --recreate -e py27-dev
+  artifacts:
+    paths:
+      - .tox/py27-dev
+    name: "bitmask virtualenv ${CI_BUILD_REF}"
+    expire_in: 1 week
   tags:
     - linux
 
@@ -47,25 +53,34 @@ e2e_tests:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
   stage: e2e
   allow_failure: true
+  dependencies:
+      - linux_test
   script:
-    - virtualenv venv
-    - source venv/bin/activate
+    - source .tox/py27-dev/bin/activate
     - make dev-latest-backend
     - mkdir -p /root/.config/leap/
     - make install_helpers
     - make test_e2e
+  artifacts:
+    paths:
+      - .tox/py27-dev
+    name: "bitmask virtualenv ${CI_BUILD_REF} (e2e)"
+    expire_in: 1 week
   tags:
     - linux
 
 functional_tests:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
-  stage: e2e
+  stage: functional
+  dependencies:
+      - e2e_tests
   before_script:
-    - virtualenv venv
-    - source venv/bin/activate
+    - source .tox/py27-dev/bin/activate
     - make dev-latest-all
     - make test_functional_setup
   script:
+    - whoami
+    - ls -la /dev/net/tun
     - make test_functional
   artifacts:
     when: on_failure
