@@ -108,7 +108,7 @@ def _save_config(context, step):
         shutil.copytree(get_path_prefix(), filepath)
     except OSError:
         pass
-    print('copied config to:    file://%s' % filepath)
+    print('copied config folder to:    file://%s' % filepath)
 
 
 def _artifact_path(step, filename=''):
