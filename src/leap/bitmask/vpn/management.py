@@ -149,12 +149,16 @@ class ManagementProtocol(LineReceiver):
         data = data.strip().split(',')
         remote = rport = None
         state = ''
+        ts = None
         try:
             if len(data) == 9:
                 (ts, state, verbose, localtun,
                  remote, rport, laddr, lport, ip6) = data
             elif len(data) == 8:
                 ts, state = data[:2]
+            else:
+                raise ValueError(
+                    'Cannot parse state data! %s' % data)
         except Exception as exc:
             log.error('Failure parsing data: %s' % exc)
             return
