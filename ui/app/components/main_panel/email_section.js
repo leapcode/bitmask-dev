@@ -18,7 +18,7 @@ export default class EmailSection extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      status: 'unknown', // API produces: on, off, starting, stopping, failure
+      status: 'unknown', // API produces: on, off, starting, stopping, failed
       keys: null,        // API produces: null, sync, generating, found
       message: null,
       expanded: false

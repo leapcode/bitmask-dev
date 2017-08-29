@@ -12,7 +12,7 @@ export default class SectionLayout extends React.Component {
     icon: null,       // icon name
     buttons: null,    // button content
     status: null,     // must be one of: on, off, unknown, wait, disabled,
-                      // starting, stopping, failure
+                      // starting, stopping, failed
     header: null,     // the first line content
     body: null,       // expanded content
     message: null,    // alert content
@@ -39,7 +39,7 @@ export default class SectionLayout extends React.Component {
       status = "wait"
     } else if (status == "stopping") {
       status = "wait"
-    } else if (status == "failure") {
+    } else if (status == "failed") {
       status = "error"
     }
 
