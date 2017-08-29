@@ -6,13 +6,13 @@ import sys
 
 DEMO_ISPS = ('Riseup Networks',)
 
-url = 'https://wtfismyip.com/json'
+url = 'https://ipapi.co/json'
 
 with urllib.request.urlopen(url) as _url:
     data = json.loads(_url.read().decode())
 
-isp = data['YourFuckingISP']
-ip = data['YourFuckingIPAddress']
+isp = data['org']
+ip = data['ip']
 
 print('ISP >> %s' % isp)
 print('IP  >> %s' % ip)
