@@ -64,7 +64,7 @@ Architecture: all
 Depends: ${misc:Depends}, ${python:Depends},
          bitmask-core,
          openvpn
-Suggests: policykit-1-gnome
+Suggests: policykit-1-gnome | lxpolkit
 Enhances: openvpn
 Provides: leap.bitmask.vpn
 Description: Desktop client to access LEAP Services.
