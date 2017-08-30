@@ -4,7 +4,7 @@ stages:
   - e2e
   - functional
   - bundle
-  - test_bundle
+#  - test_bundle
   - build_ui
   - package
 
@@ -79,8 +79,6 @@ functional_tests:
     - make dev-latest-all
     - make test_functional_setup
   script:
-    - whoami
-    - ls -la /dev/net/tun
     - make test_functional
   artifacts:
     when: on_failure
@@ -91,21 +89,23 @@ functional_tests:
   tags:
     - linux
 
-functional_test_bundle:
-  image: 0xacab.org:4567/leap/bitmask-dev:latest
-  stage: test_bundle
-  dependencies:
-    - bitmask_latest_bundle
-  script:
-    - TEST_MODE='bundle_ci' make test_functional
-  artifacts:
-    when: on_failure
-    paths:
-      - failures
-    name: "Bitmask_linux64_${CI_BUILD_REF}_e2e_screenshots"
-    expire_in: 1 month
-  tags:
-    - linux
+# This is Work In Progress
+#functional_test_bundle:
+#  image: 0xacab.org:4567/leap/bitmask-dev:latest
+#  stage: test_bundle
+#  allow_failure: true
+#  dependencies:
+#    - bitmask_latest_bundle
+#  script:
+#    - TEST_MODE='bundle_ci' make test_functional
+#  artifacts:
+#    when: on_failure
+#    paths:
+#      - failures
+#    name: "Bitmask_linux64_${CI_BUILD_REF}_e2e_screenshots"
+#    expire_in: 1 month
+#  tags:
+#    - linux
 
 build_ui:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
