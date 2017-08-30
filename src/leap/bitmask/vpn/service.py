@@ -194,7 +194,8 @@ class VPNService(HookableService):
                 config = yield bonafide.do_provider_read(provider, 'eip')
             except ValueError:
                 continue
-            provider_dict[provider] = config.locations
+            gateways = self._gateways(config)
+            provider_dict[provider] = gateways.get_sorted_gateways()
         defer.returnValue(provider_dict)
 
     @defer.inlineCallbacks
@@ -207,21 +208,7 @@ class VPNService(HookableService):
         bonafide = self.parent.getServiceNamed('bonafide')
         config = yield bonafide.do_provider_read(provider, 'eip')
 
-        try:
-            _cco = self.parent.get_config('vpn_prefs', 'countries', "")
-            pref_cco = json.loads(_cco)
-        except ValueError:
-            pref_cco = []
-        try:
-            _loc = self.parent.get_config('vpn_prefs', 'locations', "")
-            pref_loc = json.loads(_loc)
-        except ValueError:
-            pref_loc = []
-
-        sorted_gateways = GatewaySelector(
-            config.gateways, config.locations,
-            preferred={'cc': pref_cco, 'loc': pref_loc}
-        ).select_gateways()
+        sorted_gateways = self._gateways(config).select_gateways()
 
         extra_flags = config.openvpn_configuration
 
@@ -243,6 +230,23 @@ class VPNService(HookableService):
         self._tunnel = ConfiguredTunnel(
             provider, remotes, cert_path, key_path, ca_path, extra_flags)
         self._firewall = FirewallManager(remotes)
+
+    def _gateways(self, config):
+        try:
+            _cco = self.parent.get_config('vpn_prefs', 'countries', "")
+            pref_cco = json.loads(_cco)
+        except ValueError:
+            pref_cco = []
+        try:
+            _loc = self.parent.get_config('vpn_prefs', 'locations', "")
+            pref_loc = json.loads(_loc)
+        except ValueError:
+            pref_loc = []
+
+        return GatewaySelector(
+            config.gateways, config.locations,
+            preferred={'cc': pref_cco, 'loc': pref_loc}
+        )
 
     def _cert_expires(self, provider):
         path = os.path.join(

@@ -77,7 +77,8 @@ class GatewaySelector(object):
         """
         Returns the IPs top 4 preferred gateways, in order.
         """
-        gateways = [gateway[1] for gateway in self.get_sorted_gateways()][:4]
+        gateways = [gateway['ip_address']
+                    for gateway in self.get_sorted_gateways()][:4]
         return gateways
 
     def get_sorted_gateways(self):
@@ -92,28 +93,21 @@ class GatewaySelector(object):
             distance = 99  # if hasn't location -> should go last
             location = locations.get(gateway.get('location'))
 
-            label = gateway.get('location', 'Unknown')
-            country = 'XX'
+            gateway = gateway.copy()
             if location is not None:
-                country = location.get('country_code', 'XX')
-                label = location.get('name', label)
+                gateway.update(location)
                 timezone = location.get('timezone')
                 if timezone is not None:
                     offset = int(timezone)
                     if offset in self.equivalent_timezones:
                         offset = self.equivalent_timezones[offset]
                     distance = self._get_timezone_distance(offset)
-            ip = self.gateways[idx].get('ip_address')
-            gateways_timezones.append((ip, distance, label, country))
+            gateway['distance'] = distance
+            gateways_timezones.append(gateway)
 
-        gateways_timezones = sorted(gateways_timezones, key=lambda gw: gw[1])
-
-        result = []
-        for ip, distance, label, country in gateways_timezones:
-            result.append((label, ip, country))
-
-        filtered = self.apply_user_preferences(result)
-        return filtered
+        gateways_timezones = sorted(gateways_timezones,
+                                    key=lambda gw: gw['distance'])
+        return self.apply_user_preferences(gateways_timezones)
 
     def apply_user_preferences(self, options):
         """
@@ -125,17 +119,17 @@ class GatewaySelector(object):
         applied = []
         presorted = copy.copy(options)
         for location in self.preferred.get('loc', []):
-            for index, data in enumerate(presorted):
-                label, ip, country = data
-                if _normalized(label) == _normalized(location):
-                    applied.append((label, ip, country))
+            for index, gw in enumerate(presorted):
+                if ('location' in gw and
+                        _normalized(gw['location']) == _normalized(location)):
+                    applied.append(gw)
                     presorted.pop(index)
 
         for cc in self.preferred.get('cc', []):
-            for index, data in enumerate(presorted):
-                label, ip, country = data
-                if _normalized(country) == _normalized(cc):
-                    applied.append((label, ip, country))
+            for index, gw in enumerate(presorted):
+                if ('country_code' in gw and
+                        _normalized(gw['country_code']) == _normalized(cc)):
+                    applied.append(gw)
                     presorted.pop(index)
         if presorted:
             applied += presorted

@@ -125,10 +125,10 @@ def location_printer(result):
               value + Fore.RESET)
 
     for provider, locations in result.items():
-        for loc in locations.values():
-            location_str = ("[%(country_code)s] %(name)s "
-                            "(UTC%(timezone)s %(hemisphere)s)" % loc)
-            pprint(provider, location_str)
-
-        if not locations.values():
-            pprint(provider, "---")
+        for loc in locations:
+            if 'name' not in loc:
+                pprint(provider, "---")
+            else:
+                location_str = ("[%(country_code)s] %(name)s "
+                                "(UTC%(timezone)s %(hemisphere)s)" % loc)
+                pprint(provider, location_str)

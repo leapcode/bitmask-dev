@@ -128,6 +128,11 @@ class GatewaySelectorTestCase(unittest.TestCase):
         assert gateways == [ips[4], ips[2], ips[3], ips[1]]
 
     def test_apply_user_preferences(self):
+        def to_gateways(gws):
+            return [{'location': x[0], 'ip_address': x[1],
+                     'country_code': x[2]}
+                    for x in gws]
+
         preferred = {
             'loc': ['anarres', 'paris__fr', 'montevideo'],
             'cc': ['BR', 'AR', 'UY'],
@@ -138,8 +143,8 @@ class GatewaySelectorTestCase(unittest.TestCase):
             ('Rio de Janeiro', '1.1.1.1', 'BR'),
             ('Montevideo', '1.1.1.1', 'UY'),
             ('Cordoba', '1.1.1.1', 'AR')]
-        ordered = selector.apply_user_preferences(pre)
-        locations = [x[0] for x in ordered]
+        ordered = selector.apply_user_preferences(to_gateways(pre))
+        locations = [x['location'] for x in ordered]
         # first the preferred location, then order by country
         assert locations == [
             'Montevideo',
@@ -152,8 +157,8 @@ class GatewaySelectorTestCase(unittest.TestCase):
             ('Montevideo', '', ''),
             ('Paris, FR', '', ''),
             ('AnaRreS', '', '')]
-        ordered = selector.apply_user_preferences(pre)
-        locations = [x[0] for x in ordered]
+        ordered = selector.apply_user_preferences(to_gateways(pre))
+        locations = [x['location'] for x in ordered]
         # first the preferred location, then order by country
         # (test normalization)
         assert locations == [
@@ -167,8 +172,8 @@ class GatewaySelectorTestCase(unittest.TestCase):
             ('Tacuarembo', '', 'UY'),
             ('Sao Paulo', '', 'BR'),
             ('Cordoba', '', 'AR')]
-        ordered = selector.apply_user_preferences(pre)
-        locations = [x[0] for x in ordered]
+        ordered = selector.apply_user_preferences(to_gateways(pre))
+        locations = [x['location'] for x in ordered]
         # no matching location, order by country
         assert locations == [
             'Rio De Janeiro',
