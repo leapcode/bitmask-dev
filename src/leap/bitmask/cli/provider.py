@@ -56,7 +56,7 @@ SUBCOMMANDS:
         subargs = parser.parse_args(raw_args)
 
         self.data += ['read', subargs.domain[0]]
-        return self._send(printer=command.default_dict_printer)
+        return self._send(printer=command.default_printer)
 
     def delete(self, raw_args):
         parser = argparse.ArgumentParser(

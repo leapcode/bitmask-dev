@@ -78,7 +78,7 @@ SUBCOMMANDS:
             passwd = self._getpass_twice()
         self.data += ['create', username, passwd,
                       subargs.invite, 'True']
-        return self._send(printer=command.default_dict_printer)
+        return self._send(printer=command.default_printer)
 
     def auth(self, raw_args):
         passwd = None
@@ -92,7 +92,7 @@ SUBCOMMANDS:
             passwd = getpass.getpass()
         self.data += ['authenticate', username, passwd, 'True']
         self.cfg.set('bonafide', 'active', username)
-        return self._send(printer=command.default_dict_printer)
+        return self._send(printer=command.default_printer)
 
     def logout(self, raw_args):
         username = self._username(raw_args)
@@ -101,7 +101,7 @@ SUBCOMMANDS:
         active = self.cfg.get('bonafide', 'active', default=None)
         if active == username:
             self.cfg.set('bonafide', 'active', "")
-        return self._send(printer=command.default_dict_printer)
+        return self._send(printer=command.default_printer)
 
     def list(self, raw_args):
         self.data += ['list']
@@ -112,7 +112,7 @@ SUBCOMMANDS:
         current_passwd = getpass.getpass('Current password: ')
         new_passwd = self._getpass_twice('New password: ')
         self.data += ['update', username, current_passwd, new_passwd]
-        return self._send(printer=command.default_dict_printer)
+        return self._send(printer=command.default_printer)
 
     def active(self, raw_args):
         username = self.cfg.get('bonafide', 'active', default='')

@@ -131,11 +131,11 @@ OPTIONAL ARGUMENTS:
     def stop(self, raw_args):
         self.data = ['core', 'stop']
         self.cfg.set('bonafide', 'active', "")
-        return self._send(printer=command.default_dict_printer)
+        return self._send(printer=command.default_printer)
 
     def stats(self, raw_args):
         self.data = ['core', 'stats']
-        return self._send(printer=command.default_dict_printer)
+        return self._send(printer=command.default_printer)
 
 
 @defer.inlineCallbacks
@@ -166,7 +166,7 @@ def execute():
         yield cli.execute(args)
         cmdline = ' '.join(sys.argv)
         if 'ctl start' in cmdline or 'ctl restart' in cmdline:
-            command.default_dict_printer({'start': 'ok'})
+            command.default_printer({'start': 'ok'})
     except Exception as e:
         print(Fore.RED + "ERROR: " + Fore.RESET +
               "%s" % str(e))

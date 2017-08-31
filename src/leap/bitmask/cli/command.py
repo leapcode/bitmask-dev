@@ -38,31 +38,34 @@ def _print_result(result):
     print Fore.GREEN + '%s' % result + Fore.RESET
 
 
-def default_dict_printer(result):
-
-    def pprint(value):
-        if not isinstance(value, str):
-            value = str(value)
-        if value in ('OFF', 'OFFLINE', 'ABORTED', 'False'):
+def default_printer(result, key=None):
+    if isinstance(result, (str, unicode)):
+        if result in ('OFF', 'OFFLINE', 'ABORTED', 'False'):
             color = Fore.RED
         else:
             color = Fore.GREEN
-        print(Fore.RESET + key.ljust(10) + color + value + Fore.RESET)
 
-    if not result:
-        return
+        print_str = ""
+        if key is not None:
+            print_str = Fore.RESET + key.ljust(10)
+        print_str += color + result + Fore.RESET
+        print(print_str)
 
-    for key, value in result.items():
-        if isinstance(value, list):
-            if value and isinstance(value[0], list):
-                value = map(lambda l: ' '.join(l), value)
-                for item in value:
-                    pprint('\t' + item)
-            else:
-                value = ' '.join(value)
-                pprint(value)
+    elif isinstance(result, list):
+        if result and isinstance(result[0], list):
+            result = map(lambda l: ' '.join(l), result)
+            for item in result:
+                default_printer('\t' + item, key)
         else:
-            pprint(value)
+            result = ' '.join(result)
+            default_printer(result, key)
+
+    elif isinstance(result, dict):
+        for key, value in result.items():
+            default_printer(value, key)
+
+    else:
+        default_printer(str(result), key)
 
 
 def print_status(status, depth=0):
@@ -129,7 +132,7 @@ class Command(object):
         # and use the default printer
         if args.command in self.commands:
             self.data += [args.command] + raw_args[1:]
-            return self._send(printer=default_dict_printer)
+            return self._send(printer=default_printer)
 
         elif (args.command == 'execute' or
                 args.command.startswith('_') or

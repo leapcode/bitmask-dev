@@ -73,7 +73,7 @@ SUBCOMMANDS:
             uid = self.cfg.get('bonafide', 'active', default=None)
         self.data += ['get_token', uid]
 
-        return self._send(command.default_dict_printer)
+        return self._send(command.default_printer)
 
     def add_msg(self, raw_args):
         parser = argparse.ArgumentParser(
@@ -101,7 +101,7 @@ SUBCOMMANDS:
 
         self.data += ['add_msg', userid, mailbox, rawmsg]
 
-        return self._send(command.default_dict_printer)
+        return self._send(command.default_printer)
 
     def mixnet_status(self, raw_args):
         parser = argparse.ArgumentParser(
@@ -120,4 +120,4 @@ SUBCOMMANDS:
             userid = self.cfg.get('bonafide', 'active', default=None)
         self.data += ['mixnet_status', userid, subargs.address[0]]
 
-        return self._send(command.default_dict_printer)
+        return self._send(command.default_printer)

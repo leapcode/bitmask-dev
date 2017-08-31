@@ -69,7 +69,7 @@ SUBCOMMANDS:
 
         self.data += ['start', provider]
 
-        return self._send(command.default_dict_printer)
+        return self._send(command.default_printer)
 
     def status(self, raw_args):
         self.data += ['status']
@@ -95,7 +95,7 @@ SUBCOMMANDS:
 
         self.data += ['check', provider]
 
-        return self._send(command.default_dict_printer)
+        return self._send(command.default_printer)
 
     def list(self, raw_args):
         self.data += ['list']
@@ -116,7 +116,7 @@ SUBCOMMANDS:
             uid = self.cfg.get('bonafide', 'active', default=None)
         self.data += ['get_cert', uid]
 
-        return self._send(command.default_dict_printer)
+        return self._send(command.default_printer)
 
 
 def location_printer(result):
