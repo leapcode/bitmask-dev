@@ -237,6 +237,20 @@ class VPNCmd(SubCommand):
         d = vpn.do_list()
         return d
 
+    @register_method('list')
+    def do_LOCATIONS(self, vpn, *parts):
+        if len(parts) > 2:
+            return vpn.do_set_locations(parts[2:])
+
+        return vpn.do_get_locations()
+
+    @register_method('list')
+    def do_COUNTRIES(self, vpn, *parts):
+        if len(parts) > 2:
+            return vpn.do_set_countries(parts[2:])
+
+        return vpn.do_get_countries()
+
 
 class MailCmd(SubCommand):
 

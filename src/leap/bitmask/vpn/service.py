@@ -50,7 +50,7 @@ class VPNService(HookableService):
     _last_vpn_path = os.path.join('leap', 'last_vpn')
     log = Logger()
 
-    def __init__(self, basepath=None):
+    def __init__(self, cfg, basepath=None):
         """
         Initialize VPN service. This launches both the firewall and the vpn.
         """
@@ -59,11 +59,23 @@ class VPNService(HookableService):
         self._tunnel = None
         self._firewall = FirewallManager([])
         self._domain = ''
+        self._cfg = cfg
 
         if basepath is None:
             self._basepath = get_path_prefix()
         else:
             self._basepath = basepath
+
+        try:
+            _cco = self._cfg.get('countries', "")
+            self._cco = json.loads(_cco)
+        except ValueError:
+            self._cco = []
+        try:
+            _loc = self._cfg.get('locations', "")
+            self._loc = json.loads(_loc)
+        except ValueError:
+            self._loc = []
 
         if helpers.check() and self._firewall.is_up():
             self._firewall.stop()
@@ -194,9 +206,28 @@ class VPNService(HookableService):
                 config = yield bonafide.do_provider_read(provider, 'eip')
             except ValueError:
                 continue
-            gateways = self._gateways(config)
+            gateways = GatewaySelector(
+                config.gateways, config.locations,
+                preferred={'cc': self._cco, 'loc': self._loc}
+            )
             provider_dict[provider] = gateways.get_sorted_gateways()
         defer.returnValue(provider_dict)
+
+    def do_set_locations(self, locations):
+        self._loc = locations
+        self._cfg.set('locations', json.dumps(locations))
+        return {'locations': 'ok'}
+
+    def do_get_locations(self):
+        return self._loc
+
+    def do_set_countries(self, countries):
+        self._cco = countries
+        self._cfg.set('countries', json.dumps(countries))
+        return {'countries': 'ok'}
+
+    def do_get_countries(self):
+        return self._cco
 
     @defer.inlineCallbacks
     def _setup(self, provider):
@@ -208,7 +239,10 @@ class VPNService(HookableService):
         bonafide = self.parent.getServiceNamed('bonafide')
         config = yield bonafide.do_provider_read(provider, 'eip')
 
-        sorted_gateways = self._gateways(config).select_gateways()
+        sorted_gateways = GatewaySelector(
+            config.gateways, config.locations,
+            preferred={'cc': self._cco, 'loc': self._loc}
+        ).select_gateways()
 
         extra_flags = config.openvpn_configuration
 
@@ -230,23 +264,6 @@ class VPNService(HookableService):
         self._tunnel = ConfiguredTunnel(
             provider, remotes, cert_path, key_path, ca_path, extra_flags)
         self._firewall = FirewallManager(remotes)
-
-    def _gateways(self, config):
-        try:
-            _cco = self.parent.get_config('vpn_prefs', 'countries', "")
-            pref_cco = json.loads(_cco)
-        except ValueError:
-            pref_cco = []
-        try:
-            _loc = self.parent.get_config('vpn_prefs', 'locations', "")
-            pref_loc = json.loads(_loc)
-        except ValueError:
-            pref_loc = []
-
-        return GatewaySelector(
-            config.gateways, config.locations,
-            preferred={'cc': pref_cco, 'loc': pref_loc}
-        )
 
     def _cert_expires(self, provider):
         path = os.path.join(

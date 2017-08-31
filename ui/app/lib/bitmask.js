@@ -289,6 +289,46 @@ var bitmask = function(){
             uninstall: function() {
                 return call(['vpn', 'uninstall'])
             }
+
+            /**
+             * List VPN gateways
+             *
+             * They will be sorted in the order that they will be used
+             *
+             * @return {Promise<{provider_name: [{'name': string,
+             *                                    'country_code': string,
+             *                                    'location': string,
+             *                                    ...}]}>
+             */
+            list: function() {
+                return call(['vpn', 'list'])
+            }
+
+            /**
+             * Get/set the location preference for the gateways
+             *
+             * @param {list<strings>} Order of preference of locations.
+             *                        If it's missing it will return the existing location list
+             */
+            locations: function(locations) {
+                if (typeof locations !== 'list') {
+                    locations = [];
+                }
+                return call(['vpn', 'locations'].concat(locations))
+            }
+
+            /**
+             * Get/set the country preference for the gateways
+             *
+             * @param {list<strings>} Order of preference of countries.
+             *                        If it's missing it will return the existing country list
+             */
+            countries: function(countries) {
+                if (typeof countries !== 'list') {
+                    countries = [];
+                }
+                return call(['vpn', 'countries'].concat(countries))
+            }
         },
 
         mail: {

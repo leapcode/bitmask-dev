@@ -208,7 +208,8 @@ class BitmaskBackend(configurable.ConfigurableService):
 
     def _init_vpn(self):
         if HAS_VPN:
-            self._maybe_init_service('vpn', VPNService)
+            cfg = self.get_config_section('vpn')
+            self._maybe_init_service('vpn', VPNService, cfg)
 
     def _init_zmq(self):
         zs = _zmq.ZMQServerService(self)

@@ -22,7 +22,7 @@ wants to manually override the selection, the only way to do this for the
 ``0.10`` version of Bitmask is to add a section to the ``bitmaskd.cfg``
 configuration file::
 
-  [vpn_prefs]
+  [vpn]
   locations = ["rio__br"]
   countries = ["BR", "AR", "UY"]
 

@@ -47,7 +47,7 @@ SUBCOMMANDS:
 '''.format(name=command.appname)
 
     commands = ['stop', 'install', 'uninstall',
-                'enable', 'disable']
+                'enable', 'disable', 'locations', 'countries']
 
     def start(self, raw_args):
         parser = argparse.ArgumentParser(
