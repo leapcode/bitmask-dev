@@ -67,6 +67,9 @@ class Configuration(object):
         self.read()
         assert self.config.get(section, option) == value
 
+    def get_section(self, section):
+        return _ConfigurationSection(self, section)
+
     def read(self):
         self.config = ConfigParser.SafeConfigParser()
         if not os.path.isfile(self.config_path):
@@ -82,3 +85,15 @@ class Configuration(object):
     def _create_default_config(self):
         with open(self.config_path, 'w') as outf:
             outf.write(self.default_config)
+
+
+class _ConfigurationSection(object):
+    def __init__(self, config, section):
+        self.config = config
+        self.section = section
+
+    def get(self, option, default=None, boolean=False):
+        return self.config.get(self.section, option, default, boolean)
+
+    def set(self, option, value):
+        return self.config.set(self.section, option, value)

@@ -42,6 +42,9 @@ class ConfigurableService(service.MultiService):
     def set_config(self, section, option, value):
         return self.cfg.set(section, option, value)
 
+    def get_config_section(self, section):
+        return self.cfg.get_section(section)
+
 
 DEFAULT_CONFIG = """
 [services]
