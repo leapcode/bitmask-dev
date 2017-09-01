@@ -35,12 +35,7 @@ the application.
 Package under development!
 -----------------------------------------------------------
 
-This is a unified repo that has merged the following packages, previously
-isolated, under the leap namespace:
-
-bonafide, mail, keymanager, bitmask.
-
-The previous client using PySide has been deprecated (bitmask version 0.9.2,
+The previous client using PySide has been deprecated (Bitmask version 0.9.2,
 still available at the http://github.com/leapcode/bitmask_client repo).
 
 
@@ -57,7 +52,7 @@ Bugs
 
 Please report any bugs `in our bug tracker`_.
 
-.. _`in our bug tracker`: https://leap.se/code/projects/report-issues
+.. _`in our bug tracker`: https://0xacab.org/leap/bitmask-dev/issues/
 
 Logs
 ----
