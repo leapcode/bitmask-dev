@@ -288,7 +288,7 @@ var bitmask = function(){
              */
             uninstall: function() {
                 return call(['vpn', 'uninstall'])
-            }
+            },
 
             /**
              * List VPN gateways
@@ -302,7 +302,7 @@ var bitmask = function(){
              */
             list: function() {
                 return call(['vpn', 'list'])
-            }
+            },
 
             /**
              * Get/set the location preference for the gateways
@@ -315,7 +315,7 @@ var bitmask = function(){
                     locations = [];
                 }
                 return call(['vpn', 'locations'].concat(locations))
-            }
+            },
 
             /**
              * Get/set the country preference for the gateways
