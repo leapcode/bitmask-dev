@@ -47,7 +47,7 @@ Description: Provides the desktop client for LEAP
 
 Package: bitmask-js
 Architecture: all
-# Provides: leap.bitmask_js 
+# Provides: leap.bitmask_js
 # this "provides" seems it's not parsed correctly
 Description: Desktop client to access LEAP Services.
  The LEAP project aims to secure everyday communications.
@@ -94,7 +94,8 @@ Description: Desktop client to access LEAP Services.
 
 Package: bitmask-chromium
 Architecture: all
-Depends: bitmask-core,
+Depends: ${misc:Depends}, ${python:Depends},
+         bitmask-core
 Provides: leap.bitmask.chrome
 Description: Desktop client to access LEAP Services.
  The LEAP project aims to secure everyday communication.
