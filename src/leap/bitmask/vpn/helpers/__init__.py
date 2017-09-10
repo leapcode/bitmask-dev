@@ -11,8 +11,8 @@ from leap.bitmask.util import STANDALONE
 if IS_LINUX:
 
     helper_to = '/usr/local/sbin/bitmask-root'
-    polkit_to = '/usr/share/polkit-1/actions/se.bitmask.bundle.policy'
-    deb_polkit_to = '/usr/share/polkit-1/actions/se.bitmask.policy'
+    polkit_to = '/usr/share/polkit-1/actions/se.leap.bitmask-bundle.policy'
+    deb_polkit_to = '/usr/share/polkit-1/actions/se.leap.bitmask.policy'
     openvpn_to = '/usr/local/sbin/leap-openvpn'
 
     def install():
