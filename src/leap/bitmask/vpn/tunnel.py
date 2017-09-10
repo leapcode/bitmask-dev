@@ -99,23 +99,23 @@ class ConfiguredTunnel(object):
 
     @defer.inlineCallbacks
     def _start_vpn(self):
-        self.log.debug('VPN: start')
-        args = [self._vpnconfig, self._providerconfig,
-                self._host, self._port]
-        kwargs = {'openvpn_verb': 4, 'remotes': self._remotes,
-                  'restartfun': self._restart_vpn}
-        vpnproc = VPNProcess(*args, **kwargs)
-        self._vpnproc = vpnproc
-
         try:
+            self.log.debug('VPN: start')
+            args = [self._vpnconfig, self._providerconfig,
+                    self._host, self._port]
+            kwargs = {'openvpn_verb': 4, 'remotes': self._remotes,
+                      'restartfun': self._restart_vpn}
+            vpnproc = VPNProcess(*args, **kwargs)
+            self._vpnproc = vpnproc
+
             self.__start_pre_up(vpnproc)
             cmd = self.__start_get_cmd(vpnproc)
             running = yield self.__start_spawn_proc(vpnproc, cmd)
             vpnproc.pid = running.pid
             defer.returnValue(True)
         except Exception:
-            # TODO need to propagate the error message properly.
-            defer.returnValue(False)
+            self._vpnproc.failed = True
+            raise
 
     def __start_pre_up(self, proc):
         try:
@@ -130,17 +130,17 @@ class ConfiguredTunnel(object):
         except Exception as exc:
             self.log.error(
                 'Error while getting vpn command... {0!r}'.format(exc))
-            raise
+            raise exc
         return cmd
 
     def __start_spawn_proc(self, proc, cmd):
         env = os.environ
         try:
             running_p = reactor.spawnProcess(proc, cmd[0], cmd, env)
-        except Exception as e:
+        except Exception as exc:
             self.log.error(
-                'Error while spawning vpn process... {0!r}'.format(e))
-            return False
+                'Error while spawning vpn process... {0!r}'.format(exc))
+            raise exc
         return running_p
 
     @defer.inlineCallbacks

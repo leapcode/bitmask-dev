@@ -112,7 +112,7 @@ class VPNService(HookableService):
             raise Exception('Could not start firewall')
 
         try:
-            self._tunnel.start()
+            result = yield self._tunnel.start()
         except Exception as exc:
             self._firewall.stop()
             # TODO get message from exception
@@ -120,7 +120,12 @@ class VPNService(HookableService):
 
         self._domain = domain
         self._write_last(domain)
-        defer.returnValue({'result': 'started'})
+        if result is True:
+            data = {'result': 'started'}
+        else:
+            data = {'result': 'failed', 'error': '%r' % result}
+
+        defer.returnValue(data)
 
     def stop_vpn(self):
         if self._firewall.is_up():
