@@ -186,8 +186,8 @@ class VPNCmd(SubCommand):
 
     @register_method('dict')
     def do_STATUS(self, vpn, *parts):
-        d = vpn.do_status()
-        return d
+        result = vpn.do_status()
+        return result
 
     @register_method('dict')
     def do_START(self, vpn, *parts):
@@ -570,7 +570,11 @@ class CommandDispatcher(object):
 
 
 def _format_result(result):
-    return json.dumps({'error': None, 'result': result})
+    if isinstance(result, dict) and result.get('error'):
+        error = result['error']
+    else:
+        error = None
+    return json.dumps({'error': error, 'result': result})
 
 
 def _format_error(failure):

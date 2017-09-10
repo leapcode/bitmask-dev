@@ -118,8 +118,9 @@ class ConfiguredTunnel(object):
             running = yield self.__start_spawn_proc(vpnproc, cmd)
             vpnproc.pid = running.pid
             defer.returnValue(True)
-        except Exception:
+        except Exception as exc:
             self._vpnproc.failed = True
+            self._vpnproc.errmsg = exc.message
             raise
 
     def __start_pre_up(self, proc):
