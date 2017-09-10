@@ -102,6 +102,7 @@ class _VPNProcess(protocol.ProcessProtocol):
         self._providerconfig = providerconfig
         self._launcher = get_vpn_launcher()
         self._restartfun = restartfun
+        self._status = 'off'
 
         self.restarting = True
         self.failed = False
@@ -215,8 +216,13 @@ class _VPNProcess(protocol.ProcessProtocol):
         if not self.proto:
             return {'status': 'off', 'error': None}
 
-        status = {'status': self.proto.state.simple.lower(),
-                  'error': None}
+        try:
+            self._status = self.proto.state.simple.lower()
+            status = {'status': self._status, 'error': None}
+        except AttributeError:
+            # glitch due to proto.state transition?
+            status = {'status': self._status, 'error': None}
+
         if self.proto.traffic:
             remote = self.proto.remote
             rport = self.proto.rport

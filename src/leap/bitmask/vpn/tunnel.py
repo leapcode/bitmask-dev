@@ -88,8 +88,13 @@ class ConfiguredTunnel(object):
     @property
     def status(self):
         if not self._vpnproc:
-            return {'status': 'off', 'error': None}
-        return self._vpnproc.status
+            status = {'status': 'off', 'error': None}
+        else:
+            status = self._vpnproc.status
+        # Currently, there's some UI flickering that needs to be debugged #9049
+        # XXX remove this print after that.
+        print ">>>STATUS", status
+        return status
 
     @property
     def traffic_status(self):
