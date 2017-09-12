@@ -181,18 +181,10 @@ class VPNLauncher(object):
         args += [
             '--management-signal',
             '--management', socket_host, socket_port,
-            '--script-security', '2',
             '--ca', providerconfig.get_ca_cert_path(),
             '--cert', vpnconfig.get_client_cert_path(providerconfig),
             '--key', vpnconfig.get_client_cert_path(providerconfig)
         ]
-
-        if not IS_MAC:
-            args += [
-                '--ping', '5',
-                '--ping-restart', '10',
-                '--persist-key',
-                '--persist-local-ip', '--persist-remote-ip']
 
         command_and_args = [openvpn_path] + args
         return command_and_args

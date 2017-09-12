@@ -106,7 +106,8 @@ FIXED_FLAGS = [
     "--script-security", "1",
     "--user", "nobody",
     "--persist-key",
-    "--persist-tun",
+    "--persist-local-ip",
+    "--persist-remote-ip",
 ]
 
 if OPENVPN_GROUP is not None:
@@ -124,6 +125,7 @@ ALLOWED_FLAGS = {
     "--ca": ["FILE"],
     "--fragment": ["NUMBER"],
     "--keepalive": ["NUMBER", "NUMBER"],
+    "--verb": ["NUMBER"],
 }
 
 PARAM_FORMATS = {
