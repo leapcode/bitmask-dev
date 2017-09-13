@@ -109,22 +109,28 @@ class LinuxPolicyChecker(object):
         :returns: a list of the paths where pkexec is to be found
         :rtype: list
         """
-        if self._is_pkexec_in_system():
-            if not self.is_up():
-                self.launch()
-                time.sleep(2)
-            if self.is_up():
-                pkexec_possibilities = which(self.PKEXEC_BIN)
-                if not pkexec_possibilities:
-                    raise Exception("We couldn't find pkexec")
-                return pkexec_possibilities
-            else:
-                log.warn('No polkit auth agent found. pkexec ' +
-                         'will use its own auth agent.')
-                raise NoPolkitAuthAgentAvailable()
-        else:
+        if not self._is_pkexec_in_system():
             log.warn('System has no pkexec')
             raise NoPkexecAvailable()
+
+        if not self.is_up():
+            self.launch()
+            seconds = 0
+            while not self.is_up():
+                if seconds >= 20:
+                    log.warn('No polkit auth agent found. pkexec ' +
+                             'will use its own auth agent.')
+                    raise NoPolkitAuthAgentAvailable()
+
+                # XXX: sleep()!!!! we should do it the twisted way
+                time.sleep(1)
+                seconds += 1
+
+        pkexec_possibilities = which(self.PKEXEC_BIN)
+        if not pkexec_possibilities:
+            raise Exception("We couldn't find pkexec")
+
+        return pkexec_possibilities
 
     @classmethod
     def launch(self):
