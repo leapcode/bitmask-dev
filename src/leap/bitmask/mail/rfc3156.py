@@ -157,7 +157,8 @@ def encode_base64(msg):
     # for multipart attachments (eg. 7bit or 8bit encoded attachments). For
     # now, if content is already encoded as base64 or if it is encoded with
     # some unknown encoding, we just pass.
-    if encoding in [None, 'quoted-printable', 'x-uuencode', 'uue', 'x-uue']:
+    if encoding in [None, 'quoted-printable', 'x-uuencode',
+                    'uue', 'x-uue', '7bit']:
         orig = msg.get_payload(decode=True)
         encdata = _bencode(orig)
         msg.set_payload(encdata)
