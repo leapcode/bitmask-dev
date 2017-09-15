@@ -200,8 +200,8 @@ class Session(object):
     # Authentication-protected configuration
 
     @defer.inlineCallbacks
-    def fetch_provider_configs(self, uri, path):
-        config = yield self._request(self._agent, uri)
+    def fetch_provider_configs(self, uri, path, method='GET'):
+        config = yield self._request(self._agent, uri, method=method)
         with open(path, 'w') as cf:
             cf.write(config)
         defer.returnValue('ok')
