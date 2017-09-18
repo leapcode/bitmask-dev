@@ -106,6 +106,10 @@ class VPNService(HookableService):
                 exc = Exception("VPN can't start, a provider is needed")
                 exc.expected = True
                 raise exc
+        if not is_service_ready(domain):
+            exc = Exception("VPN is not ready")
+            exc.expected = True
+            raise exc
 
         yield self._setup(domain)
 

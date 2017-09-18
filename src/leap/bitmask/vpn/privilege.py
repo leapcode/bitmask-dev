@@ -109,7 +109,7 @@ class LinuxPolicyChecker(object):
         :returns: a list of the paths where pkexec is to be found
         :rtype: list
         """
-        if not self._is_pkexec_in_system():
+        if not is_pkexec_in_system():
             log.warn('System has no pkexec')
             raise NoPkexecAvailable()
 
@@ -181,12 +181,12 @@ class LinuxPolicyChecker(object):
 
         return is_running
 
-    @classmethod
-    def _is_pkexec_in_system(self):
-        """
-        Checks the existence of the pkexec binary in system.
-        """
-        pkexec_path = which('pkexec')
-        if len(pkexec_path) == 0:
-            return False
-        return True
+
+def is_pkexec_in_system():
+    """
+    Checks the existence of the pkexec binary in system.
+    """
+    pkexec_path = which('pkexec')
+    if len(pkexec_path) == 0:
+        return False
+    return True

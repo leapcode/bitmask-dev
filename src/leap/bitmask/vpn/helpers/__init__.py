@@ -4,6 +4,7 @@ import os.path
 import sys
 
 from leap.bitmask.vpn.constants import IS_LINUX, IS_MAC
+from leap.bitmask.vpn.privilege import is_pkexec_in_system
 from leap.bitmask.vpn import _config
 
 from leap.bitmask.util import STANDALONE
@@ -38,7 +39,7 @@ if IS_LINUX:
         polkit = (
             os.path.exists(polkit_to) or
             os.path.exists(deb_polkit_to))
-        return helper and polkit
+        return is_pkexec_in_system() and helper and polkit
 
 if IS_MAC:
 
