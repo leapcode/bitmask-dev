@@ -22,7 +22,6 @@ VPN service declaration.
 import json
 import os
 
-from time import strftime
 from twisted.internet import defer
 from twisted.logger import Logger
 
@@ -31,11 +30,14 @@ from leap.bitmask.util import merge_status
 from leap.bitmask.vpn.gateways import GatewaySelector
 from leap.bitmask.vpn.fw.firewall import FirewallManager
 from leap.bitmask.vpn.tunnel import ConfiguredTunnel
-from leap.bitmask.vpn._checks import is_service_ready, get_vpn_cert_path
+from leap.bitmask.vpn._checks import (
+    is_service_ready,
+    get_vpn_cert_path,
+    cert_expires
+)
 from leap.bitmask.vpn import privilege, helpers
 from leap.common.config import get_path_prefix
 from leap.common.files import check_and_fix_urw_only
-from leap.common.certs import get_cert_time_boundaries
 
 
 class ImproperlyConfigured(Exception):
@@ -166,7 +168,8 @@ class VPNService(HookableService):
         ret = {'installed': helpers.check()}
         if domain:
             ret['vpn_ready'] = is_service_ready(domain)
-            ret['cert_expires'] = self._cert_expires(domain)
+            expiry = cert_expires(domain).strftime('%Y-%m-%dT%H:%M:%SZ')
+            ret['cert_expires'] = expiry
         return ret
 
     @defer.inlineCallbacks
@@ -269,15 +272,6 @@ class VPNService(HookableService):
         self._tunnel = ConfiguredTunnel(
             provider, remotes, cert_path, key_path, ca_path, extra_flags)
         self._firewall = FirewallManager(remotes)
-
-    def _cert_expires(self, provider):
-        path = os.path.join(
-            self._basepath, "leap", "providers", provider,
-            "keys", "client", "openvpn.pem")
-        with open(path, 'r') as f:
-            cert = f.read()
-        _, to = get_cert_time_boundaries(cert)
-        return strftime('%Y-%m-%dT%H:%M:%SZ', to)
 
     def _write_last(self, domain):
         path = os.path.join(self._basepath, self._last_vpn_path)
