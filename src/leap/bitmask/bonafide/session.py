@@ -165,12 +165,9 @@ class Session(object):
         # right path.
         uri = self._api.get_smtp_cert_uri()
         met = self._api.get_smtp_cert_method()
-        print met, "to", uri
         return self._request(self._agent, uri, method=met)
 
     def _request(self, *args, **kw):
-        # TODO: we are not pinning the TLS cert of the API
-        # maybe we can use leap.common.http
         kw['token'] = self._token
         return httpRequest(*args, **kw)
 
@@ -201,9 +198,8 @@ class Session(object):
 
     @defer.inlineCallbacks
     def fetch_provider_configs(self, uri, path, method='GET'):
-        config = yield self._request(self._agent, uri, method=method)
-        with open(path, 'w') as cf:
-            cf.write(config)
+        config = yield self._request(
+            self._agent, uri, method=method, saveto=path)
         defer.returnValue('ok')
 
 

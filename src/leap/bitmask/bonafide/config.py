@@ -34,13 +34,15 @@ from urlparse import urlparse
 from twisted.internet import defer, reactor
 from twisted.logger import Logger
 from twisted.web.client import downloadPage
+from twisted.web.client import readBody
 
+from leap.bitmask.bonafide._http import httpRequest
 from leap.bitmask.bonafide.provider import Discovery
 from leap.bitmask.bonafide.errors import NotConfiguredError, NetworkError
 
 from leap.common.check import leap_assert
 from leap.common.config import get_path_prefix as common_get_path_prefix
-from leap.common.files import mkdir_p
+from leap.common.files import mkdir_p, get_mtime
 from leap.common.http import HTTPClient
 
 
@@ -56,6 +58,7 @@ def get_path_prefix(standalone=False):
 
 
 _preffix = get_path_prefix()
+log = Logger()
 
 
 def get_provider_path(domain, config='provider.json'):
@@ -78,19 +81,6 @@ def get_ca_cert_path(domain):
     return os.path.join('providers', domain, 'keys', 'ca', 'cacert.pem')
 
 
-def get_modification_ts(path):
-    """
-    Gets modification time of a file.
-
-    :param path: the path to get ts from
-    :type path: str
-    :returns: modification time
-    :rtype: datetime object
-    """
-    ts = os.path.getmtime(path)
-    return datetime.datetime.fromtimestamp(ts)
-
-
 def update_modification_ts(path):
     """
     Sets modification time of a file to current time.
@@ -101,7 +91,7 @@ def update_modification_ts(path):
     :rtype: datetime object
     """
     os.utime(path, None)
-    return get_modification_ts(path)
+    return get_mtime(path)
 
 
 def is_file(path):
@@ -189,18 +179,17 @@ class Provider(object):
         if not is_configured:
             if autoconf:
                 self.log.debug(
-                    'provider %s not configured: downloading files...' %
-                    domain)
+                    'BOOTSTRAP: provider %s not initialized, '
+                    'downloading files...' % domain)
                 self.bootstrap()
             else:
                 raise NotConfiguredError("Provider %s is not configured"
                                          % (domain,))
         else:
-            self.log.debug('Provider already initialized')
-            self.first_bootstrap[self._domain] = defer.succeed(
-                'already_initialized')
-            self.ongoing_bootstrap[self._domain] = defer.succeed(
-                'already_initialized')
+            self.log.debug(
+                'BOOTSTRAP: Provider is already initialized, checking if '
+                'there are newest config files...')
+            self.bootstrap(replace_if_newer=True)
 
     @property
     def domain(self):
@@ -241,7 +230,7 @@ class Provider(object):
                              " not found in provider " + self._domain)
         return config
 
-    def bootstrap(self):
+    def bootstrap(self, replace_if_newer=False):
         domain = self._domain
         self.log.debug('Bootstrapping provider %s' % domain)
         ongoing = self.ongoing_bootstrap.get(domain)
@@ -263,7 +252,7 @@ class Provider(object):
             self.first_bootstrap[domain].errback(failure)
             return failure
 
-        d = self.maybe_download_provider_info()
+        d = self.maybe_download_provider_info(replace=replace_if_newer)
         d.addCallback(self.maybe_download_ca_cert)
         d.addCallback(self.validate_ca_cert)
         d.addCallbacks(first_bootstrap_done, first_bootstrap_error)
@@ -291,6 +280,7 @@ class Provider(object):
         # TODO handle pre-seeded providers?
         # or let client handle that? We could move them to bonafide.
         provider_json = self._get_provider_json_path()
+
         if is_file(provider_json) and not replace:
             return defer.succeed('provider_info_already_exists')
 
@@ -304,8 +294,9 @@ class Provider(object):
             shutil.rmtree(folders)
             raise NetworkError(failure.getErrorMessage())
 
-        d = self._http.request(uri, method=met)
-        d.addCallback(_write_to_file, provider_json)
+        d = httpRequest(
+            self._http._agent,
+            uri, method=met, saveto=provider_json)
         d.addCallback(lambda _: self._load_provider_json())
         d.addErrback(errback)
         return d
@@ -378,12 +369,6 @@ class Provider(object):
         # UNAUTHENTICATED if we try to get the services
         # See: # https://leap.se/code/issues/7906
 
-        def check_error(content):
-            c = json.loads(content)
-            if 'error' in c:
-                raise Exception(c['error'])
-            return content
-
         def further_bootstrap_needs_auth(ignored):
             self.log.warn('Cannot download services config yet, need auth')
             pending_deferred = defer.Deferred()
@@ -391,10 +376,8 @@ class Provider(object):
             return defer.succeed('ok for now')
 
         uri, met, path = self._get_configs_download_params()
-
-        d = self._http.request(uri, method=met)
-        d.addCallback(check_error)
-        d.addCallback(_write_to_file, path)
+        d = httpRequest(
+            self._http._agent, uri, method=met, saveto=path)
         d.addCallback(lambda _: self._load_provider_json())
         d.addCallback(
             lambda _: self._get_config_for_all_services(session=None))
@@ -414,17 +397,13 @@ class Provider(object):
                 d.addCallback(lambda _: stuck.callback('continue!'))
                 return d
 
-        if not self.has_fetched_services_config():
-            self._load_provider_json()
-            uri, met, path = self._get_configs_download_params()
-            d = session.fetch_provider_configs(uri, path, met)
-            d.addCallback(verify_provider_configs)
-            d.addCallback(complete_bootstrapping)
-            return d
-        else:
-            d = defer.succeed('already downloaded')
-            d.addCallback(complete_bootstrapping)
-            return d
+        self._load_provider_json()
+        uri, met, path = self._get_configs_download_params()
+
+        d = session.fetch_provider_configs(uri, path, met)
+        d.addCallback(verify_provider_configs)
+        d.addCallback(complete_bootstrapping)
+        return d
 
     def _get_configs_download_params(self):
         uri = self._disco.get_configs_uri()
@@ -519,10 +498,11 @@ class Provider(object):
                     uri = base + str(services_dict[subservice])
                     path = self._get_service_config_path(subservice)
                     if session:
-                        d = session.fetch_provider_configs(uri, path)
+                        d = session.fetch_provider_configs(
+                            uri, path, method='GET')
                     else:
                         d = self._fetch_provider_configs_unauthenticated(
-                            uri, path)
+                            uri, path, method='GET')
                     pending.append(d)
         return defer.gatherResults(pending)
 
@@ -534,9 +514,8 @@ class Provider(object):
 
     def _fetch_provider_configs_unauthenticated(self, uri, path):
         self.log.info('Downloading config for %s...' % uri)
-        d = self._http.request(uri)
-        d.addCallback(_write_to_file, path)
-        return d
+        return httpRequest(
+            self._http._agent, uri, saveto=path)
 
 
 class Record(object):
@@ -547,16 +526,14 @@ class Record(object):
         return self.__dict__
 
 
-def _write_to_file(content, path):
-    with open(path, 'w') as f:
-        f.write(content)
-
-
 if __name__ == '__main__':
+    from twisted.internet.task import react
+
+    def main(reactor, *args):
+        provider = Provider('cdev.bitmask.net', autoconf=True)
+        return provider.callWhenReady(print_done)
 
     def print_done():
         print '>>> bootstrapping done!!!'
 
-    provider = Provider('cdev.bitmask.net')
-    provider.callWhenReady(print_done)
-    reactor.run()
+    react(main, [])

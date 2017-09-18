@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # _http.py
-# Copyright (C) 2015 LEAP
+# Copyright (C) 2015-2017 LEAP
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,10 +18,14 @@
 """
 twisted.web utils for bonafide.
 """
-import base64
+
 import cookielib
+import os
 import urllib
 
+from leap.common.files import get_mtime
+
+from twisted.logger import Logger
 from twisted.internet import defer, protocol, reactor
 from twisted.internet.ssl import Certificate
 from twisted.python.filepath import FilePath
@@ -32,6 +36,9 @@ from twisted.web.iweb import IBodyProducer
 from zope.interface import implements
 
 
+log = Logger()
+
+
 def cookieAgentFactory(verify_path, connectTimeout=30):
     customPolicy = BrowserLikePolicyForHTTPS(
         Certificate.loadPEM(FilePath(verify_path).getContent()))
@@ -40,19 +47,36 @@ def cookieAgentFactory(verify_path, connectTimeout=30):
     return CookieAgent(agent, cookiejar)
 
 
-def httpRequest(agent, url, values={}, headers={}, method='POST', token=None):
+class Unchanged(Exception):
+    pass
+
+
+# TODO this should be ported to use treq client.
+
+def httpRequest(agent, url, values={}, headers={}, method='POST', token=None,
+                saveto=None):
     data = ''
     if values:
         data = urllib.urlencode(values)
         headers['Content-Type'] = ['application/x-www-form-urlencoded']
+    if saveto is not None:
+        # TODO - I think we need a force parameter, because we might have a
+        # malformed file. Or maybe just remove the file if sanity check does
+        # not pass.
+        mtime = get_mtime(saveto)
+        if mtime is not None:
+            headers['if-modified-since'] = [mtime]
 
     if token:
         headers['Authorization'] = ['Token token="%s"' % (bytes(token))]
 
     def handle_response(response):
-        # print "RESPONSE CODE", response.code
+        log.debug("RESPONSE %s %s %s" % (method, response.code, url))
         if response.code == 204:
             d = defer.succeed('')
+        if response.code == 304:
+            log.debug('304 (Not modified): %s' % url)
+            raise Unchanged()
         else:
             class SimpleReceiver(protocol.Protocol):
                 def __init__(s, d):
@@ -70,10 +94,26 @@ def httpRequest(agent, url, values={}, headers={}, method='POST', token=None):
             response.deliverBody(SimpleReceiver(d))
         return d
 
+    def passthru(failure):
+        failure.trap(Unchanged)
+
     d = agent.request(method, url, Headers(headers),
                       StringProducer(data) if data else None)
     d.addCallback(handle_response)
+    if saveto:
+        d.addCallback(lambda body: _write_to_file(body, saveto))
+        d.addErrback(passthru)
     return d
+
+
+def _write_to_file(content, path):
+    folder = os.path.split(path)[0]
+    if not os.path.isdir(folder):
+        os.makedirs(folder)
+    with open(path, 'w') as f:
+        f.write(content)
+    # touch it to update its utime
+    os.utime(path, None)
 
 
 class StringProducer(object):

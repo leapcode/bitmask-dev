@@ -3,7 +3,6 @@
 # exersise the codebase.
 
 import config
-import bootstrap
 import session
 import provider
 import service
