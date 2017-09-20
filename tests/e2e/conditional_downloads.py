@@ -28,11 +28,14 @@ def main(reactor, *args):
     assert filesize > 1
     # touch file to 5 minutes in the past
     past = int(os.path.getmtime(fname)) - 300
+    print "PAST MTIME", past
     os.utime(fname, (past, past))
     assert os.path.getmtime(fname) == past
     yield httpRequest(client._agent, URI, method='GET', saveto=fname)
     # it was not modified
-    assert os.path.getmtime(fname) == past
+    current = os.path.getmtime(fname) 
+    print "CURRENT MTIME", current
+    assert current == past
     print 'OK'
     shutil.rmtree(tmp)
 
