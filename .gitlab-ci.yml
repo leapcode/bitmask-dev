@@ -144,7 +144,6 @@ build_docker_image:
 .job_template: &job_definition
   stage: package
   image: "0xacab.org:4567/leap/gitlab-buildpackage:build_${DIST}_${ARCH}"
-  allow_failure: true
   script:
     - "pwd; git describe"
     - build-build-package
