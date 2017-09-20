@@ -6,6 +6,7 @@ import sys
 
 DEMO_ISPS = ('Riseup Networks',
              'Leaseweb Deutschland GmbH')
+CI_LEAP_SE_ISPS = ('AS47172 Greenhost BV')
 
 url = 'https://ipapi.co/json'
 
@@ -28,10 +29,10 @@ try:
 
     if cmd == 'vpn_on':
         print('checking VPN ON...')
-        assert isp in DEMO_ISPS
+        assert isp in CI_LEAP_SE_ISPS
     elif cmd == 'vpn_off':
         print('checking VPN OFF...')
-        assert isp not in DEMO_ISPS
+        assert isp not in CI_LEAP_SE_ISPS
     else:
         raise BadCmd()
 

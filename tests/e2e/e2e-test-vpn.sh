@@ -19,7 +19,7 @@ else
   xtrace=false
 fi
 
-PROVIDER='demo.bitmask.net'
+PROVIDER='ci.leap.se'
 INVITE_CODE=${BITMASK_INVITE_CODE:?"Need to set BITMASK_INVITE_CODE non-empty"}
 
 BCTL='bitmaskctl'
