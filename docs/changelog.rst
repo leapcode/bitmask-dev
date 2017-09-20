@@ -21,6 +21,8 @@ Features
 - `#8804 <https://0xacab.org/leap/bitmask-dev/issues/8804>`_: Automatic selection of gateways, based on user timezone
 - `#8855 <https://0xacab.org/leap/bitmask-dev/issues/8855>`_: Manual override for the vpn gateway selection
 - `#8835 <https://0xacab.org/leap/bitmask-dev/issues/8835>`_: On bitmaskclt vpn start use the last vpn if no provider is provided
+- `#9059 <https://0xacab.org/leap/bitmask-dev/issues/9059>`_: Automatic renewal of vpn certificate
+- `#8895 <https://0xacab.org/leap/bitmask-dev/issues/8895>`_: Check for running pkexec in the system
 - Add VPN API to bitmask.js
 - Add vpn get_cert command
 - Indicate a successful/failure OpenPGP header import
