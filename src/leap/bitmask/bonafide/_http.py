@@ -53,14 +53,22 @@ class Unchanged(Exception):
 
 # TODO this should be ported to use treq client.
 
-def httpRequest(agent, url, values={}, headers={}, method='POST', token=None,
-                saveto=None):
+def httpRequest(agent, url, values=None, headers=None,
+                method='POST', token=None, saveto=None):
+    if values is None:
+        values = {}
+    if headers is None:
+        headers = {}
+
     data = ''
     mtime = None
     if values:
         data = urllib.urlencode(values)
         headers['Content-Type'] = ['application/x-www-form-urlencoded']
-    if saveto is not None and os.path.isfile(saveto):
+
+    isfile = os.path.isfile
+
+    if saveto is not None and isfile(saveto):
         # TODO - I think we need a force parameter, because we might have a
         # malformed file. Or maybe just remove the file if sanity check does
         # not pass.
