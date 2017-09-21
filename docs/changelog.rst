@@ -23,6 +23,7 @@ Features
 - `#8835 <https://0xacab.org/leap/bitmask-dev/issues/8835>`_: On bitmaskclt vpn start use the last vpn if no provider is provided
 - `#9059 <https://0xacab.org/leap/bitmask-dev/issues/9059>`_: Automatic renewal of vpn certificate
 - `#8895 <https://0xacab.org/leap/bitmask-dev/issues/8895>`_: Check for running pkexec in the system
+- `#8977 <https://0xacab.org/leap/bitmask-dev/issues/8977>`_: Download config files if newer ones are found in the provider
 - Add VPN API to bitmask.js
 - Add vpn get_cert command
 - Indicate a successful/failure OpenPGP header import
