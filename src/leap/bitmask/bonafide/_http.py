@@ -56,10 +56,11 @@ class Unchanged(Exception):
 def httpRequest(agent, url, values={}, headers={}, method='POST', token=None,
                 saveto=None):
     data = ''
+    mtime = None
     if values:
         data = urllib.urlencode(values)
         headers['Content-Type'] = ['application/x-www-form-urlencoded']
-    if saveto is not None:
+    if saveto is not None and os.path.isfile(saveto):
         # TODO - I think we need a force parameter, because we might have a
         # malformed file. Or maybe just remove the file if sanity check does
         # not pass.
@@ -74,7 +75,7 @@ def httpRequest(agent, url, values={}, headers={}, method='POST', token=None,
         log.debug("RESPONSE %s %s %s" % (method, response.code, url))
         if response.code == 204:
             d = defer.succeed('')
-        if response.code == 304:
+        if saveto and mtime and response.code == 304:
             log.debug('304 (Not modified): %s' % url)
             raise Unchanged()
         else:
