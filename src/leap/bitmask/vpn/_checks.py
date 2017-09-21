@@ -8,6 +8,8 @@ from leap.bitmask.vpn.privilege import is_pkexec_in_system, NoPkexecAvailable
 from leap.common.certs import get_cert_time_boundaries
 from leap.common.config import get_path_prefix
 
+from .constants import IS_LINUX
+
 log = Logger()
 
 
@@ -19,7 +21,7 @@ def is_service_ready(provider):
     if not _has_valid_cert(provider):
         raise ImproperlyConfigured('Missing VPN certificate')
 
-    if not is_pkexec_in_system():
+    if IS_LINUX and not is_pkexec_in_system():
         log.warn('System has no pkexec')
         raise NoPkexecAvailable()
 
