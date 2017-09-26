@@ -181,6 +181,16 @@ package:amd64_buster:
     LINTIAN_OPTS: "-X filename-length"
   <<: *job_definition
 
+package:amd64_sid:
+  variables:
+    ARCH: "amd64"
+    DIST: "sid"
+    REPONAMES: "platform,client"
+    # Default is to fail on warnings, we disable it here
+    # unless all lintian warnings are fixed (#9033)
+    LINTIAN_OPTS: "-X filename-length"
+  <<: *job_definition
+
 package:amd64_zesty:
   variables:
     ARCH: "amd64"
