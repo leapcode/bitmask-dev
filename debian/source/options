@@ -1,3 +1,6 @@
-tar-ignore = ".git/*"
+tar-ignore = ".git"
+tar-ignore = ".gitattributes"
+tar-ignore = ".gitignore"
+tar-ignore = ".gitlab-ci.yml"
 tar-ignore = "ui/*"
 tar-ignore = "venv/*"
