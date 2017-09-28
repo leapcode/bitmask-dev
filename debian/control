@@ -4,7 +4,7 @@ Priority: extra
 Maintainer: Kali Kaneko <kali@leap.se>
 Uploaders: LEAP automated build <sysdev@leap.se>
 Homepage: https://bitmask.net
-Standards-Version: 3.9.8
+Standards-Version: 4.1.0
 Build-Depends: debhelper (>= 9.0.0),
                dh-python,
                python,

@@ -168,7 +168,7 @@ package:amd64_stretch:
     REPONAMES: "platform,client"
     # Default is to fail on warnings, we disable it here
     # unless all lintian warnings are fixed (#9033)
-    LINTIAN_OPTS: "-X filename-length"
+    LINTIAN_OPTS: "-X filename-length,newer-standards-version"
   <<: *job_definition
 
 package:amd64_buster:
@@ -188,7 +188,7 @@ package:amd64_sid:
     REPONAMES: "platform,client"
     # Default is to fail on warnings, we disable it here
     # unless all lintian warnings are fixed (#9033)
-    LINTIAN_OPTS: "-X filename-length"
+    LINTIAN_OPTS: "-X filename-length,newer-standards-version"
   <<: *job_definition
 
 package:amd64_zesty:
@@ -198,5 +198,5 @@ package:amd64_zesty:
     REPONAMES: "client"
     # Default is to fail on warnings, we disable it here
     # unless all lintian warnings are fixed (#9033)
-    LINTIAN_OPTS: "-X filename-length"
+    LINTIAN_OPTS: "-X filename-length,newer-standards-version"
   <<: *job_definition
