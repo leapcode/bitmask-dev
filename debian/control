@@ -54,6 +54,7 @@ Description: Provides the desktop client for LEAP
 
 Package: bitmask-js
 Architecture: all
+Depends: ${misc:Depends}
 # Provides: leap.bitmask_js
 # this "provides" seems it's not parsed correctly
 Description: Desktop client to access LEAP Services.
@@ -88,7 +89,7 @@ Description: Desktop client to access LEAP Services.
 
 Package: bitmask-mail
 Architecture: all
-Depends: bitmask-core, gnupg1,
+Depends: ${misc:Depends}, bitmask-core, gnupg1,
          soledad-client,
 Recommends: xul-ext-bitmask
 Suggests: bitmask-mua
@@ -111,7 +112,7 @@ Description: Desktop client to access LEAP Services.
 
 Package: bitmask-mua
 Architecture: all
-Depends: bitmask-mail,
+Depends: ${misc:Depends}, bitmask-mail,
          python-whoosh, python-requests, python-chardet
 # XXX this depends on leap-pixelated, leap-pixelated-www
 Provides: leap.bitmask.mua
