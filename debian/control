@@ -66,7 +66,7 @@ Architecture: all
 Depends: ${misc:Depends}, ${python:Depends},
          python-pyqt5,
          python-pyqt5.qtwebkit,
-         bitmask-js
+         bitmask-js, bitmask-core
 Provides: leap.bitmask.gui
 Description: Desktop client to access LEAP Services.
  The LEAP project aims to secure everyday communications.
