@@ -12,6 +12,7 @@ from leap.bitmask.util import STANDALONE
 if IS_LINUX:
 
     helper_to = '/usr/local/sbin/bitmask-root'
+    deb_helper_to = '/usr/sbin/bitmask-root'
     polkit_to = '/usr/share/polkit-1/actions/se.leap.bitmask-bundle.policy'
     deb_polkit_to = '/usr/share/polkit-1/actions/se.leap.bitmask.policy'
     openvpn_to = '/usr/local/sbin/leap-openvpn'
@@ -39,7 +40,8 @@ if IS_LINUX:
         remove(polkit_to)
 
     def check():
-        helper = os.path.exists(helper_to)
+        helper = os.path.exists(helper_to) or os.path.isfile(
+            deb_helper_to)
         polkit = (
             os.path.exists(polkit_to) or
             os.path.exists(deb_polkit_to))
