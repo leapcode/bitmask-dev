@@ -186,5 +186,10 @@ class VPNLauncher(object):
             '--key', vpnconfig.get_client_cert_path(providerconfig)
         ]
 
+        # TODO -- get platform specific launcher args
+        if IS_MAC:
+            args += [
+            '--script-security', '2']
+
         command_and_args = [openvpn_path] + args
         return command_and_args

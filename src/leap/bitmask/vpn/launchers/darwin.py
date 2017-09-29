@@ -91,3 +91,6 @@ class DarwinVPNLauncher(VPNLauncher):
 
     def kill_previous_openvpn():
         pass
+
+    def terminate_or_kill(self, terminatefun, killfun, proc):
+        terminatefun()
