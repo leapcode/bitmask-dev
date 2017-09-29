@@ -27,6 +27,7 @@ from twisted.logger import Logger
 # imports for LITERAL+ patch
 from twisted.internet import defer, interfaces
 from twisted.mail.imap4 import IllegalClientResponse
+from twisted.mail.imap4 import IllegalMailboxEncoding
 from twisted.mail.imap4 import LiteralString, LiteralFile
 
 from leap.common.events import emit_async, catalog
@@ -59,6 +60,16 @@ def _getContentType(msg):
     else:
         major = minor = None
     return major, minor, attrs
+
+
+def _parseMbox(name):
+    if isinstance(name, unicode):
+        return name
+    try:
+        return name.decode('imap4-utf-7')
+    except:
+        log.err()
+        raise IllegalMailboxEncoding(name)
 
 
 # Monkey-patch _getContentType to avoid bug that passes lower-case boundary in
@@ -417,7 +428,7 @@ class LEAPIMAPServer(imap4.IMAP4Server):
     # a deferred.
 
     def _listWork(self, tag, ref, mbox, sub, cmdName):
-        mbox = self._parseMbox(mbox)
+        mbox = _parseMbox(mbox)
         mailboxes = maybeDeferred(self.account.listMailboxes, ref, mbox)
         mailboxes.addCallback(self._cbSubscribed)
         mailboxes.addCallback(
@@ -454,7 +465,7 @@ class LEAPIMAPServer(imap4.IMAP4Server):
 
     # TODO subscribe method had also to be changed to accomodate deferred
     def do_SUBSCRIBE(self, tag, name):
-        name = self._parseMbox(name)
+        name = _parseMbox(name)
 
         def _subscribeCb(_):
             self.sendPositiveResponse(tag, 'Subscribed')
@@ -479,7 +490,7 @@ class LEAPIMAPServer(imap4.IMAP4Server):
     def do_UNSUBSCRIBE(self, tag, name):
         # unsubscribe method had also to be changed to accomodate
         # deferred
-        name = self._parseMbox(name)
+        name = _parseMbox(name)
 
         def _unsubscribeCb(_):
             self.sendPositiveResponse(tag, 'Unsubscribed')
@@ -503,7 +514,7 @@ class LEAPIMAPServer(imap4.IMAP4Server):
     select_UNSUBSCRIBE = auth_UNSUBSCRIBE
 
     def do_RENAME(self, tag, oldname, newname):
-        oldname, newname = [self._parseMbox(n) for n in oldname, newname]
+        oldname, newname = [_parseMbox(n) for n in oldname, newname]
         if oldname.lower() == 'inbox' or newname.lower() == 'inbox':
             self.sendNegativeResponse(
                 tag,
@@ -535,7 +546,7 @@ class LEAPIMAPServer(imap4.IMAP4Server):
     select_RENAME = auth_RENAME
 
     def do_CREATE(self, tag, name):
-        name = self._parseMbox(name)
+        name = _parseMbox(name)
 
         def _createCb(result):
             if result:
@@ -560,7 +571,7 @@ class LEAPIMAPServer(imap4.IMAP4Server):
     select_CREATE = auth_CREATE
 
     def do_DELETE(self, tag, name):
-        name = self._parseMbox(name)
+        name = _parseMbox(name)
         if name.lower() == 'inbox':
             self.sendNegativeResponse(tag, 'You cannot delete the inbox')
             return
@@ -589,7 +600,7 @@ class LEAPIMAPServer(imap4.IMAP4Server):
     # Patched just to allow __cbAppend to receive a deferred from messageCount
     # TODO format and send upstream.
     def do_APPEND(self, tag, mailbox, flags, date, message):
-        mailbox = self._parseMbox(mailbox)
+        mailbox = _parseMbox(mailbox)
         maybeDeferred(self.account.select, mailbox).addCallback(
             self._cbAppendGotMailbox, tag, flags, date, message).addErrback(
             self._ebAppendGotMailbox, tag)
