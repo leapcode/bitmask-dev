@@ -25,9 +25,10 @@ Architecture: all
 Provides: leap.bitmask.core, leap.bitmask.cli
 Depends:
   ${misc:Depends}, ${python:Depends},
-  python-openssl,
   python-setuptools,
+  python-openssl,
   python-cryptography,
+  python-scrypt,
   python-srp,
   python-jsonschema (>= 0.7.0),
   python-zope.proxy,
