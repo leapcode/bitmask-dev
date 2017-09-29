@@ -25,6 +25,9 @@ Architecture: all
 Provides: leap.bitmask.core, leap.bitmask.cli
 Depends:
   ${misc:Depends}, ${python:Depends},
+# This is a workaround for the #7566 #9079 regression in zesty
+# We should remove libssl-dev when python-srp is fixed there.
+  libssl-dev,
   python-setuptools,
   python-openssl,
   python-cryptography,
@@ -34,9 +37,6 @@ Depends:
   python-zope.proxy,
   python-twisted-core (>= 14.0.2),
   python-leap-common,
-# This is a workaround for the #7566 #9079 regression in zesty
-# We should remove libssl-dev when it is solved!
-  libssl-dev
 
 Description: Provides the desktop client for LEAP
  The LEAP project aims to secure everyday communication.
