@@ -342,7 +342,8 @@ class OutgoingMail(object):
                 msg = MIMEMultipart()
                 for h, v in origmsg.items():
                     msg.add_header(h, v)
-                msg.attach(MIMEText(origmsg.get_payload()))
+                msg.attach(MIMEText(origmsg.get_payload(decode=True),
+                                    origmsg.get_content_subtype()))
 
             keymsg = MIMEApplication(from_key.key_data, _subtype='pgp-keys',
                                      _encoder=lambda x: x)

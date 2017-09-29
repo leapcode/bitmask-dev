@@ -13,6 +13,7 @@ Features
 Bugfixes
 ~~~~~~~~
 - `#9099 <https://0xacab.org/leap/bitmask-dev/issues/9099>`_: properly check for openvpn binary path in bundles.
+- `#9064 <https://0xacab.org/leap/bitmask-dev/issues/9064>`_: keep content-type when it is set in message headers.
 - Ship cacert.pem inside Bitmask.app
 - Avoid importing linux-specific constants in firewall helpers.
 
