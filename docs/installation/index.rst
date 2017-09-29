@@ -8,7 +8,7 @@
 Installation and packaging 
 ==========================
 
-Here you can find instructions for developers and advanced users. For **user instructions**, you should refer to the official `Bitmask Install Guide`. You should only need to read the following sections if:
+Here you can find instructions for developers and advanced users. For **user instructions**, you should refer to the official `Bitmask Install Guide`_. You should only need to read the following sections if:
 
 * You plan to contribute code to bitmask core libraries.
 * You intend to develop the Bitmask JS User Interface.
