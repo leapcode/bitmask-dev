@@ -12,12 +12,11 @@ codebase that ships VPN, so expect some rough behavior.
 The demo provider for the Mail service you should use with this bundle is 
 https://mail.bitmask.net. For VPN, you can keep using https://demo.bitmask.net
 
-Please help us test Bitmask and file any bug reports in the new issue tracker:
-https://0xacab.org/leap/bitmask-dev/issues, that will be a great contribution
-towards future improvement!
+Please help us making Bitmask better, by testing it and filing any bug reports
+in the new issue tracker: https://0xacab.org/leap/bitmask-dev/issues, 
 
 Until the next release, see you on the intertubes, and stay safe.
 
 The Bitmask team.
 
-.. _`the changelog`: https://github.com/leapcode/bitmask-dev/blob/0.10a1/docs/CHANGELOG.rst
+.. _`the changelog`: https://0xacab.org/leap/bitmask-dev/blob/master/docs/changelog.rst
