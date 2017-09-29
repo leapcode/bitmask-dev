@@ -189,7 +189,7 @@ class VPNLauncher(object):
         # TODO -- get platform specific launcher args
         if IS_MAC:
             args += [
-            '--script-security', '2']
+                '--script-security', '2']
 
         command_and_args = [openvpn_path] + args
         return command_and_args
