@@ -21,6 +21,10 @@ if IS_LINUX:
         polkit_from = _config.get_bitmask_polkit_policy_path()
         openvpn_from = _config.get_bitmask_openvpn_path()
 
+        sbin = '/usr/local/sbin'
+        if not os.path.isdir(sbin):
+            os.makedirs(sbin)
+
         copyfile(helper_from, helper_to)
         chmod(helper_to, 0744)
 
