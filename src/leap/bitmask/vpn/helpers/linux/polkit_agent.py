@@ -28,8 +28,11 @@ import daemon
 
 POLKIT_PATHS = (
     '/usr/bin/lxpolkit',
+    '/usr/bin/lxqt-policykit-agent',
     '/usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1',
+    '/usr/lib/x86_64-linux-gnu/polkit-mate/polkit-mate-authentication-agent-1',
     '/usr/lib/mate-polkit/polkit-mate-authentication-agent-1',
+    '/usr/lib/x86_64-linux-gnu/libexec/polkit-kde-authentication-agent-1',
     '/usr/lib/kde4/libexec/polkit-kde-authentication-agent-1',
 )
 

@@ -169,6 +169,7 @@ class LinuxPolicyChecker(object):
             'lxpolkit',
             'lxsession',
             'gnome-shell',
+            'gnome-flashback',
             'fingerprint-polkit-agent',
             'xfce-polkit',
         )
