@@ -1,9 +1,8 @@
 Changelog
 =====================
-0.10.0 - la rosa de foc - `master`_
-------------------------------------
 
-.. note:: This version is not yet released and is under active development.
+0.10.0 - la rosa de foc
+-----------------------
 
 Features
 ~~~~~~~~
