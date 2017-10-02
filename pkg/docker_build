@@ -1,7 +1,10 @@
-git clone https://github.com/leapcode/bitmask-dev bitmaskbuild
-mkdir -p dist/
-cd bitmaskbuild
-pkg/build_bundle_with_venv.sh
+: ${REPO:="https://github.com/leapcode/bitmask-dev"}
+: ${BRANCH:="master"}
 
-cp -r bitmaskbuild/dist/ dist/
-rm -rf bitmaskbuild
+RELEASE=bitmask-`cat pkg/next-version`
+echo "[+] CLONING REPO from $REPO [$BRANCH]"
+git clone $REPO bitmaskbuild
+cd bitmaskbuild
+git checkout $BRANCH
+mkdir -p dist/
+pkg/build_bundle_with_venv.sh

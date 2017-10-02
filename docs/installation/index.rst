@@ -78,6 +78,11 @@ and then you can launch the above script inside that container::
 
   make bundle_in_docker
 
+That will build the latest from master. If you're interested in building some
+development branch, you can pass some extra variables::
+
+  make bundle_in_docker REPO=https://0xacab.org/kali/bitmask-dev BRANCH=somethingcool
+
 A new bundle is created by the CI for every commit using this procedure
 involving docker, you can read more about the bundles in the :ref:`qa section
 <qa>`.

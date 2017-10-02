@@ -4,6 +4,7 @@
 # To be run by Gitlab Runner,
 # will produce an artifact for each build.
 ###########################################################
+
 # Stop bundling in case of errors
 set -e
 
@@ -20,7 +21,8 @@ source "$VENV"/bin/activate
 echo "[+] Using venv in" $VIRTUAL_ENV
 
 $VIRTUAL_ENV/bin/pip install appdirs packaging
-$VIRTUAL_ENV/bin/pip install -U pyinstaller
+# qt-plugins instability in develop: see https://github.com/pyinstaller/pyinstaller/issues/1906
+$VIRTUAL_ENV/bin/pip install -U pyinstaller==3.2.1
 $VIRTUAL_ENV/bin/pip install zope.interface zope.proxy
 
 # fix for #8789

@@ -23,6 +23,7 @@ bundle: bundle_clean
 	echo `git describe` > $(DIST)/version
 	mv $(DIST) _bundlelib && mkdir $(DIST_VERSION) && mv _bundlelib $(DIST_VERSION)/lib/
 	cd pkg/launcher && make
+	cp release-notes.rst $(DIST_VERSION)
 	cp pkg/launcher/bitmask $(DIST_VERSION)
 
 bundle_linux_gpg:
