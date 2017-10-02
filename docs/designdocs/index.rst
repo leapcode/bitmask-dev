@@ -9,5 +9,5 @@ List of design docs
 
 Here you can find a list of links to authoritative sources for the design documents
 
-* (lots of links to leap.se/docs)
+* (all the links to leap.se/docs)
 * Paper on the LEAP architecture https://satsymposium.org/papers/leap.pdf

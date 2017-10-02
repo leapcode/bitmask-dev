@@ -4,8 +4,8 @@
 
 .. _qa:
 
-Testing and Reporting
-================================ 
+Testing & QA
+============ 
 
 `Latest bundles`_ for the next release cycle are automatically built by our
 Gitlab CI for every commit in master.
@@ -20,7 +20,7 @@ continuity of the accounts is made at this point):
 .. _`Latest bundles`: https://0xacab.org/leap/bitmask-dev/builds/artifacts/master/download?job=bitmask_latest_bundle
 
 Reporting bugs
---------------------------------
+--------------
 
 * Bug reports go into our `Issue Tracker`_. 
 * `Here`_ is some very good read about what constitutes a `good bug report`_.
@@ -37,7 +37,7 @@ If you want to give a hand testing the unreleased bundles, please follow the
 following tips:
 
 * Focus all your efforts, if possible, on whatever is *the* golden distro at
-  the time of the release.  This currently is: Ubuntu 16.04.x LTS, 64bits, with
+  the time of the release.  This currently is: Ubuntu 17.04.x (zesty), 64bits, with
   Unity as the default desktop environment.
   It's very important to have a reference environment as bug-free as possible,
   before trying to solve issues that are present in other distributions or window

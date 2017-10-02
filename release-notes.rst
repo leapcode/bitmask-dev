@@ -19,4 +19,4 @@ Until the next release, see you on the intertubes, and stay safe.
 
 The Bitmask team.
 
-.. _`the changelog`: https://0xacab.org/leap/bitmask-dev/blob/master/docs/changelog.rst
+.. _`the changelog`: https://0xacab.org/leap/bitmask-dev/blob/0.10rc2/docs/changelog.rst
