@@ -20,6 +20,19 @@ Build-Depends: debhelper (>= 9.0.0),
 # python-sphinx
 X-Python-Version: >= 2.7
 
+Package: bitmask
+Architecture: all
+Section: metapackages
+Pre-Depends: {misc:Pre-Depends}
+Depends:
+    ${misc:Depends}, ${python:Depends}
+    bitmask-core, bitmask-qt, bitmask-vpn, bitmask-mail
+Description: Provides the desktop client for LEAP
+ The LEAP project aims to secure everyday communication.
+ .
+ This package provides a metapackage that installs the qt client, bitmask-vpn
+ and bitmask-mail.
+
 Package: bitmask-core
 Architecture: all
 Provides: leap.bitmask.core, leap.bitmask.cli
@@ -82,8 +95,9 @@ Package: bitmask-vpn
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends},
          bitmask-core,
+         python-psutil,
+         polkit-1-auth-agent,
          openvpn
-Suggests: policykit-1-gnome | lxpolkit
 Enhances: openvpn
 Provides: leap.bitmask.vpn
 Description: Desktop client to access LEAP Services.
