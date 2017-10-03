@@ -8,7 +8,7 @@
 #
 # Uncomment this to turn on verbose mode.
 DH_VERBOSE=1
-DEB_BUILD_OPTIONS=nocheck
+DH_BUILD_MAINT_OPTIONS=nocheck
 package=bitmask
 
 PYTHON2=$(shell pyversions -vr)
