@@ -32,6 +32,16 @@ If you are developing against a non-published branch of ``leap.common`` or
 This expects ``leap_common`` and ``soledad`` repos to be checked out in the
 parent folder.
 
+Gitlab-runner
+~~~~~~~~~~~~~
+
+For debugging issues related to how tests are run by the gitlab CI, you need to install:
+
+* docker_ce from docker's repositories.
+* gitlab-runner from `gitlab's repositories`_
+  
+.. _`gitlab's repositories`: https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh
+
 
 Architecture
 ------------ 
