@@ -24,7 +24,7 @@ Package: bitmask
 Architecture: all
 Section: metapackages
 Depends:
-    ${misc:Depends}, ${python:Depends}
+    ${misc:Depends}, ${python:Depends},
     bitmask-core, bitmask-qt, bitmask-vpn, bitmask-mail
 Description: Provides the desktop client for LEAP
  The LEAP project aims to secure everyday communication.
