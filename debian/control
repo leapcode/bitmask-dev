@@ -95,7 +95,7 @@ Architecture: all
 Depends: ${misc:Depends}, ${python:Depends},
          bitmask-core,
          python-psutil,
-         polkit-1-auth-agent,
+         policykit-1-gnome | polkit-1-auth-agent,
          openvpn
 Enhances: openvpn
 Provides: leap.bitmask.vpn
