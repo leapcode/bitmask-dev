@@ -32,21 +32,8 @@ override_dh_prep:
 	# build the ui package
 	cd ui && make clean && make pydist-build
 
-ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
-
-# run tests!
-
-#test-python%:
-#	xvfb-run ./run_tests.sh -x -N
-
-override_dh_auto_test: $(PYTHON2:%=test-python%) $(PYTHON3:%=test-python%)
-endif
-
-#dh_auto_build should be enough to build the python2 version
-
-
 # build and install sphinx docs
-# 
+ 
 override_dh_installdocs:
 #	python setup.py build_sphinx
 	dh_installdocs
