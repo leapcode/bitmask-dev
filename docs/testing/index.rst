@@ -17,7 +17,7 @@ continuity of the accounts is made at this point):
 * For Encrypted Email, test against ``https://cdev.bitmask.net``
 * For VPN, test against ``https://demo.bitmask.net``
 
-.. _`Latest bundles`: https://0xacab.org/leap/bitmask-dev/builds/artifacts/master/download?job=bitmask_latest_bundle
+.. _`Latest bundles`: https://0xacab.org/leap/bitmask-dev/-/jobs/artifacts/master/download?job=bitmask_latest_bundle
 
 Reporting bugs
 --------------
