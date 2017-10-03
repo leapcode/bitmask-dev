@@ -26,7 +26,7 @@ Section: metapackages
 Depends:
     ${misc:Depends}, ${python:Depends},
     bitmask-core, bitmask-qt, bitmask-vpn, bitmask-mail
-Description: Provides the desktop client for LEAP
+Description: Metapackage to install bitmask desktop client
  The LEAP project aims to secure everyday communication.
  .
  This package provides a metapackage that installs the qt client, bitmask-vpn
@@ -49,7 +49,7 @@ Depends:
   python-zope.proxy,
   python-twisted-core (>= 14.0.2),
   python-leap-common
-Description: Provides the desktop client for LEAP
+Description: Provides the core daemon for bitmask
  The LEAP project aims to secure everyday communication.
  .
  This client is necessary for users to run on their local machines for:
@@ -73,7 +73,7 @@ Architecture: all
 Depends: ${misc:Depends}
 # Provides: leap.bitmask_js
 # this "provides" seems it's not parsed correctly
-Description: Desktop client to access LEAP Services.
+Description: bitmask javascript library
  The LEAP project aims to secure everyday communications.
  .
  This package provides the bitmask_js javascript library.
@@ -85,7 +85,7 @@ Depends: ${misc:Depends}, ${python:Depends},
          python-pyqt5.qtwebkit,
          bitmask-js, bitmask-core
 Provides: leap.bitmask.gui
-Description: Desktop client to access LEAP Services.
+Description: Bitmask desktop client (qt5) to access LEAP Services
  The LEAP project aims to secure everyday communications.
  .
  This package provides the qt5 gui.
@@ -99,10 +99,10 @@ Depends: ${misc:Depends}, ${python:Depends},
          openvpn
 Enhances: openvpn
 Provides: leap.bitmask.vpn
-Description: Desktop client to access LEAP Services.
+Description: Bitmask core VPN daemon
  The LEAP project aims to secure everyday communications.
  .
- This package provides the core daemon.
+ This package provides the core VPN daemon.
 
 Package: bitmask-mail
 Architecture: all
@@ -112,7 +112,7 @@ Recommends: xul-ext-bitmask
 Suggests: bitmask-mua
 Enhances: gnupg1
 Provides: leap.bitmask.mail
-Description: Desktop client to access LEAP Services.
+Description: Bitmask mail components
  The LEAP project aims to secure everyday communications.
  .
  This package provides the Bitmask Mail components.
@@ -122,7 +122,7 @@ Architecture: all
 Depends: ${misc:Depends}, ${python:Depends},
          bitmask-core
 Provides: leap.bitmask.chrome
-Description: Desktop client to access LEAP Services.
+Description: Bitmask chromium launcher
  The LEAP project aims to secure everyday communication.
  .
  This package provides a chromium launcher.
@@ -133,7 +133,7 @@ Depends: ${misc:Depends}, bitmask-mail,
          python-whoosh, python-requests, python-chardet
 # XXX this depends on leap-pixelated, leap-pixelated-www
 Provides: leap.bitmask.mua
-Description: Desktop client to access LEAP Services.
+Description: Pixelated MUA for LEAP bitmask mail
  The LEAP project aims to secure everyday communication.
  .
  This package provides the Pixelated MUA.
