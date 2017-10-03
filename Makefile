@@ -77,15 +77,19 @@ doc:
 bundle_in_virtualenv:
 	pkg/build_bundle_with_venv.sh
 
+docker_container:
+	cd pkg/docker_bundle && docker build -t mybundle .
+
+package_in_docker:
+	# needs docker_ce and gitlab-runner from upstream
+	gitlab-runner exec docker package:amd64_stretch
+
 bundle_in_docker:
 	# needs a docker container called 'mybundle', created with 'make docker_container'
 	rm -rf $(DIST_VERSION) bitmaskbuild
 	cat pkg/docker_build | docker run -i -v ~/leap/bitmask-dev:/dist -w /dist -u `id -u` -e REPO="$(REPO)" -e BRANCH="$(BRANCH)" mybundle bash
 	cp -r bitmaskbuild/$(DIST_VERSION) dist/
 	rm -rf bitmaskbuild
-
-docker_container:
-	cd pkg/docker_bundle && docker build -t mybundle .
 
 upload:
 	python setup.py sdist bdist_wheel --universal upload --sign -i kali@leap.se -r pypi
