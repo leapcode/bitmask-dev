@@ -60,20 +60,20 @@ following tips:
   bug, please attach a log of a new bitmask session, which should contain
   *only* the behaviour needed to reproduce the bug you are reporting.
 
-Xenial live image testing
--------------------------
+On a live image (xenial)
+------------------------
 
-Pasting the following lines in a terminal will help you testing the latest
+Pasting the following line in a terminal will help you testing the latest
 bundle from inside a virtual machine running a **live image for xenial** (note
 that this is **not** an installation method!)::
 
   curl https://0xacab.org/leap/bitmask-dev/raw/master/docs/testing/latest-bundle-xenial | bash
 
-Testing against providers with invalid certificates
----------------------------------------------------
+Providers with invalid certificates
+-----------------------------------
 
-If you need to test against a provider without a valid certificate, you can use
-the following flag::
+If you **really** need to test against a provider without a valid certificate,
+you can use the following flag. I assume you know what you are doing::
 
   SKIP_TWISTED_SSL_CHECK=1 bitmask
 
