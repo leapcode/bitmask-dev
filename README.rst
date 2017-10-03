@@ -97,7 +97,7 @@ Hacking
 -----------------------------------------------------------
 
 In order to run bitmask in a development environment, you must activate a
-virtualenv and install the various packages using 'pip install -e'. This
+virtualenv and install the various packages using `pip install -e`. This
 installs python packages as links to the source code, so that your code
 changes are immediately reflected in the packages installed in the
 virtualenv.
@@ -118,8 +118,10 @@ you can run::
 inside your virtualenv, and it will install any new version of your
 dependencies that is found in pypi.
 
-Checkout the ``docs/hacking`` sections for more advanced instructions to get
-you started.
+Check out the ``docs/hacking`` sections for more extense instructions `to get
+you started`_.
+
+.. _`to get you started`: https://bitmask.readthedocs.io/en/latest/hacking/
 
 
 License
