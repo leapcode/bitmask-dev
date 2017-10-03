@@ -23,7 +23,6 @@ X-Python-Version: >= 2.7
 Package: bitmask
 Architecture: all
 Section: metapackages
-Pre-Depends: {misc:Pre-Depends}
 Depends:
     ${misc:Depends}, ${python:Depends}
     bitmask-core, bitmask-qt, bitmask-vpn, bitmask-mail
