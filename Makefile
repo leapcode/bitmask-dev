@@ -88,6 +88,7 @@ bundle_in_docker:
 	# needs a docker container called 'mybundle', created with 'make docker_container'
 	rm -rf $(DIST_VERSION) bitmaskbuild
 	cat pkg/docker_build | docker run -i -v ~/leap/bitmask-dev:/dist -w /dist -u `id -u` -e REPO="$(REPO)" -e BRANCH="$(BRANCH)" mybundle bash
+	mkdir -p dist/
 	cp -r bitmaskbuild/$(DIST_VERSION) dist/
 	rm -rf bitmaskbuild
 
