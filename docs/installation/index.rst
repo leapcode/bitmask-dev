@@ -28,9 +28,13 @@ touch with us, it will be greatly appreciated to extend the community.
 With Pip
 --------
 
-If we still do not provide packages for your platform (debian/ubuntu only at the moment), and for some reason you cannot run the bundles we offer for download, you still should be able to run bitmask downloading the packages from pypi. First you will need some dependencies in your system, that very probably will be provided by your package manager::
+If we still do not provide packages for your platform (debian/ubuntu only at
+the moment), and for some reason you cannot run the `bundles we offer for
+download`_, you still should be able to run bitmask downloading the packages from
+pypi. First you will need some dependencies in your system, that very probably
+will be provided by your package manager::
 
-  lxpolkit openvpn gnupg1 python-pyside python-dev
+  lxpolkit openvpn gnupg1 python-pyqt5 python-dev libffi-dev
 
 Now you can install the latest bitmask package from pypi::
 
@@ -39,6 +43,8 @@ Now you can install the latest bitmask package from pypi::
 If you want also to use the pixelated MUA, you need to install an additional extra::
 
   pip install leap.bitmask[pixelated]
+
+.. _`bundles we offer for download`: https://bitmask.net/install
 
 
 From git
@@ -90,14 +96,17 @@ involving docker, you can read more about the bundles in the :ref:`qa section
 Debian & ubuntu 
 ---------------
 
-ubuntu:
-https://bitmask.net/en/install/linux#ubuntu-packages
+Refer to the section in the install guide about the different `debian
+repositories`_ that we provide to understand how the different packages are
+produced.
 
-debian:
-https://bitmask.net/en/install/linux#debian-packages
+The debian packages are maintained in the ``debian/`` folder in the source code repo.
 
+For a quick rebuild of local changes, you can do::
 
-Building latest packages (TBD).
+  debuild -us -uc
+
+.. _`debian repositories`: https://bitmask.net/install/linux/deb
 
 
 Archlinux

@@ -3,9 +3,8 @@
 Setting a Development Environment
 =================================
 
-
-Convencience script
-~~~~~~~~~~~~~~~~~~~
+Convenience script
+------------------
 
 There is an automated script that runs, sequentially, all the commands in the
 section below. In debian-based systems, you can get a fully working development
