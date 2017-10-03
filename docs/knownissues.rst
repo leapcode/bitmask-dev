@@ -7,8 +7,8 @@ Known Issues
 VPN
 -------------------
 
-* Partial support for VPN in Linux.
-* Known problems with hibernation (more debug info is welcome).
+* If there's no running polkit agent in the system, the UI hangs in the 'Connecting' State. (solution: install and run some agent, like ``lxpolkit``).
+* Some problems with resuming after hibernation (more debug info is welcome).
 
 Wizard
 -------------------
