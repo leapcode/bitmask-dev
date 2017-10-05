@@ -1,0 +1,22 @@
+---
+os: osx
+# Xcode 6.4, OS X 10.10
+osx_image: xcode6.4
+
+# language: python is not supported on OSX
+# see https://github.com/travis-ci/travis-ci/issues/2312
+language: generic
+
+before_install:
+  - brew update
+  - brew install python
+  # Only if we need a newer version of openssl (1.0.2l instead of 1.0.2a-1)
+  # - brew upgrade OpenSSL
+  - pip2 install virtualenv
+  # https://stackoverflow.com/questions/36555679/fatal-error-in-building-sqlcipher-openssl-rand-h-file-not-found
+  - brew link openssl --force --overwrite
+  - virtualenv env -p python2.7
+  - source env/bin/activate
+  - pip2 install tox
+
+script: tox --recreate -e py27-dev
