@@ -18,7 +18,6 @@
 Configuration for a LEAP provider.
 """
 import binascii
-import datetime
 import json
 import os
 import platform
@@ -31,10 +30,9 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.x509 import load_pem_x509_certificate
 from urlparse import urlparse
 
-from twisted.internet import defer, reactor
+from twisted.internet import defer
 from twisted.logger import Logger
 from twisted.web.client import downloadPage
-from twisted.web.client import readBody
 
 from leap.bitmask.bonafide._http import httpRequest
 from leap.bitmask.bonafide.provider import Discovery
@@ -140,12 +138,7 @@ def delete_provider(domain):
         raise NotConfiguredError("Provider %s is not configured, can't be "
                                  "deleted" % (domain,))
     shutil.rmtree(path)
-
-    # FIXME: this feels hacky, can we find a better way??
-    if domain in Provider.first_bootstrap:
-        del Provider.first_bootstrap[domain]
-    if domain in Provider.ongoing_bootstrap:
-        del Provider.ongoing_bootstrap[domain]
+    Provider.providers[domain] = None
 
 
 class Provider(object):
@@ -155,10 +148,15 @@ class Provider(object):
         'mx': ['soledad', 'smtp']}
 
     log = Logger()
+    providers = defaultdict(None)
 
-    first_bootstrap = defaultdict(None)
-    ongoing_bootstrap = defaultdict(None)
-    stuck_bootstrap = defaultdict(None)
+    @classmethod
+    def get(self, domain, autoconf=False, basedir=None,
+            cert_path=None):
+        if domain not in self.providers:
+            self.providers[domain] = Provider(domain, autoconf, basedir,
+                                              cert_path)
+        return self.providers[domain]
 
     def __init__(self, domain, autoconf=False, basedir=None,
                  cert_path=None):
@@ -168,6 +166,9 @@ class Provider(object):
         self._domain = domain
         self._disco = Discovery('https://%s' % domain)
         self._provider_config = None
+
+        self.first_bootstrap = defer.Deferred()
+        self.stuck_bootstrap = None
 
         is_configured = self.is_configured()
         if not cert_path and is_configured:
@@ -198,7 +199,7 @@ class Provider(object):
     @property
     def api_uri(self):
         if not self._provider_config:
-            return 'https://api.%s:4430' % self._domain
+            return None
         return self._provider_config.api_uri
 
     @property
@@ -233,23 +234,15 @@ class Provider(object):
     def bootstrap(self, replace_if_newer=False):
         domain = self._domain
         self.log.debug('Bootstrapping provider %s' % domain)
-        ongoing = self.ongoing_bootstrap.get(domain)
-        if ongoing:
-            self.log.debug('Already bootstrapping this provider...')
-            self.ongoing_bootstrap[domain].addCallback(
-                self._reload_http_client)
-            return
-
-        self.first_bootstrap[self._domain] = defer.Deferred()
 
         def first_bootstrap_done(ignored):
             try:
-                self.first_bootstrap[domain].callback('got config')
+                self.first_bootstrap.callback('got config')
             except defer.AlreadyCalledError:
                 pass
 
         def first_bootstrap_error(failure):
-            self.first_bootstrap[domain].errback(failure)
+            self.first_bootstrap.errback(failure)
             return failure
 
         d = self.maybe_download_provider_info(replace=replace_if_newer)
@@ -257,15 +250,15 @@ class Provider(object):
         d.addCallback(self.validate_ca_cert)
         d.addCallbacks(first_bootstrap_done, first_bootstrap_error)
         d.addCallback(self.maybe_download_services_config)
-        self.ongoing_bootstrap[domain] = d
+        self.ongoing_bootstrap = d
 
     def callWhenMainConfigReady(self, cb, *args, **kw):
-        d = self.first_bootstrap[self._domain]
+        d = self.first_bootstrap
         d.addCallback(lambda _: cb(*args, **kw))
         return d
 
     def callWhenReady(self, cb, *args, **kw):
-        d = self.ongoing_bootstrap[self._domain]
+        d = self.ongoing_bootstrap
         d.addCallback(lambda _: cb(*args, **kw))
         return d
 
@@ -372,7 +365,7 @@ class Provider(object):
         def further_bootstrap_needs_auth(ignored):
             self.log.warn('Cannot download services config yet, need auth')
             pending_deferred = defer.Deferred()
-            self.stuck_bootstrap[self._domain] = pending_deferred
+            self.stuck_bootstrap = pending_deferred
             return defer.succeed('ok for now')
 
         uri, met, path = self._get_configs_download_params()
@@ -391,10 +384,10 @@ class Provider(object):
             return True
 
         def complete_bootstrapping(ignored):
-            stuck = self.stuck_bootstrap.get(self._domain, None)
-            if stuck:
+            if self.stuck_bootstrap:
                 d = self._get_config_for_all_services(session)
-                d.addCallback(lambda _: stuck.callback('continue!'))
+                d.addCallback(lambda _:
+                              self.stuck_bootstrap.callback('continue!'))
                 return d
 
         self._load_provider_json()

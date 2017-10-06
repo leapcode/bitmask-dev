@@ -37,12 +37,14 @@ class ConfigTest(BaseHTTPSServerTestCase, unittest.TestCase, BaseLeapTest):
         self.cacert = os.path.join(os.path.dirname(__file__),
                                    "cacert.pem")
 
+    @defer.inlineCallbacks
     def test_bootstrap_self_sign_cert_fails(self):
         home = os.path.join(self.home, 'self_sign')
         os.mkdir(home)
-        provider = Provider(self.addr.domain, autoconf=True, basedir=home)
+        provider = Provider.get(self.addr.domain, autoconf=True, basedir=home)
         d = provider.callWhenMainConfigReady(lambda: "Cert was accepted")
-        return self.assertFailure(d, NetworkError)
+        yield self.assertFailure(d, NetworkError)
+        Provider.providers[self.addr.domain] = None
 
     @defer.inlineCallbacks
     def test_bootstrap_invalid_ca_cert(self):
@@ -58,15 +60,17 @@ class ConfigTest(BaseHTTPSServerTestCase, unittest.TestCase, BaseLeapTest):
         provider._http.close()
         try:
             yield defer.gatherResults([
-                d, provider.ongoing_bootstrap[provider._domain]])
+                d, provider.ongoing_bootstrap])
         except:
             pass
+        Provider.providers[self.addr.domain] = None
 
+    @defer.inlineCallbacks
     def test_bootstrap_pinned_cert(self):
         home = os.path.join(self.home, 'pinned')
         os.mkdir(home)
-        provider = Provider(self.addr.domain, autoconf=True, basedir=home,
-                            cert_path=self.cacert)
+        provider = Provider.get(self.addr.domain, autoconf=True, basedir=home,
+                                cert_path=self.cacert)
 
         def check_provider():
             config = provider.config()
@@ -74,9 +78,31 @@ class ConfigTest(BaseHTTPSServerTestCase, unittest.TestCase, BaseLeapTest):
             self.assertEqual(config["ca_cert_fingerprint"],
                              "SHA256: %s" % fingerprint)
 
-        d = provider.callWhenMainConfigReady(check_provider)
-        return defer.gatherResults([
-            d, provider.ongoing_bootstrap[provider._domain]])
+        yield provider.callWhenMainConfigReady(check_provider)
+        provider._http.close()
+        yield provider.ongoing_bootstrap
+        Provider.providers[self.addr.domain] = None
+
+    @defer.inlineCallbacks
+    def test_api_uri(self):
+        api_uri = "api.example.com"
+        self.addr.api_uri = api_uri
+        home = os.path.join(self.home, 'api_uri')
+        os.mkdir(home)
+        provider = Provider.get(self.addr.domain, autoconf=True,
+                                basedir=home, cert_path=self.cacert)
+
+        def check_api_uri():
+            parsed_uri = provider.api_uri
+            self.assertEqual(api_uri, parsed_uri)
+
+        yield provider.callWhenMainConfigReady(check_api_uri)
+        provider._http.close()
+        try:
+            yield provider.ongoing_bootstrap
+        except:
+            pass
+        Provider.providers[self.addr.domain] = None
 
 
 class Addr(object):
@@ -84,6 +110,7 @@ class Addr(object):
         self.host = host
         self.port = port
         self.fingerprint = fingerprint
+        self.api_uri = "https://%s:%s" % (host, port)
 
     @property
     def domain(self):
@@ -95,6 +122,7 @@ def request_handler(addr):
         def do_GET(self):
             if self.path == '/provider.json':
                 body = provider_json % {
+                    'api_uri': addr.api_uri,
                     'host': addr.host,
                     'port': addr.port,
                     'fingerprint': addr.fingerprint
@@ -126,7 +154,7 @@ fingerprint = \
     "cd0131b3352b7a29c307156b24f09fe862b1f5a2e55be7cd888048b91770f220"
 provider_json = """
 {
-  "api_uri": "https://%(host)s:%(port)s",
+  "api_uri": "%(api_uri)s",
   "api_version": "1",
   "ca_cert_fingerprint": "SHA256: %(fingerprint)s",
   "ca_cert_uri": "https://%(host)s:%(port)s/ca.crt",

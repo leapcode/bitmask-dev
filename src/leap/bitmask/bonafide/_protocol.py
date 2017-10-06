@@ -20,11 +20,6 @@ Bonafide protocol.
 import os
 from collections import defaultdict
 
-try:
-    import resource
-except ImportError:
-    pass
-
 from leap.bitmask.bonafide import config
 from leap.bitmask.bonafide.provider import Api
 from leap.bitmask.bonafide.session import Session, OK
@@ -50,11 +45,9 @@ class BonafideProtocol(object):
     log = Logger()
 
     def _get_api(self, provider):
-        # TODO should get deferred
         if provider.domain in self._apis:
             return self._apis[provider.domain]
 
-        # TODO defer the autoconfig for the provider if needed...
         api = Api(provider.api_uri, provider.version)
         self._apis[provider.domain] = api
         return api
@@ -64,7 +57,6 @@ class BonafideProtocol(object):
             return self._sessions[full_id]
 
         # TODO if password/username null, then pass AnonymousCreds
-        # TODO use twisted.cred instead
         username, provider_id = config.get_username_and_provider(full_id)
         credentials = UsernamePassword(username, password)
         api = self._get_api(provider)
@@ -84,7 +76,7 @@ class BonafideProtocol(object):
         self.log.debug('SIGNUP for %s' % full_id)
         _, provider_id = config.get_username_and_provider(full_id)
 
-        provider = config.Provider(provider_id, autoconf=autoconf)
+        provider = config.Provider.get(provider_id, autoconf=autoconf)
         d = provider.callWhenReady(
             self._do_signup, provider, full_id, password, invite)
         return d
@@ -92,23 +84,22 @@ class BonafideProtocol(object):
     def _do_signup(self, provider, full_id, password, invite):
 
         # XXX check it's unauthenticated
-        def return_user(result, _session):
+        def return_user(result):
             return_code, user = result
             if return_code == OK:
                 return user
 
         username, _ = config.get_username_and_provider(full_id)
-        # XXX get deferred?
         session = self._get_session(provider, full_id, password)
         d = session.signup(username, password, invite)
-        d.addCallback(return_user, session)
+        d.addCallback(return_user)
         d.addErrback(self._del_session_errback, full_id)
         return d
 
     def do_authenticate(self, full_id, password, autoconf=False):
         _, provider_id = config.get_username_and_provider(full_id)
 
-        provider = config.Provider(provider_id, autoconf=autoconf)
+        provider = config.Provider.get(provider_id, autoconf=autoconf)
 
         def maybe_finish_provider_bootstrap(result):
             session = self._get_session(provider, full_id, password)
@@ -130,7 +121,6 @@ class BonafideProtocol(object):
 
         self.log.debug('AUTH for %s' % full_id)
 
-        # XXX get deferred?
         session = self._get_session(provider, full_id, password)
         d = session.authenticate()
         d.addCallback(return_token_and_uuid, session)
@@ -170,11 +160,11 @@ class BonafideProtocol(object):
         return session.change_password(new_password)
 
     def do_get_provider(self, provider_id, autoconf=False):
-        provider = config.Provider(provider_id, autoconf=autoconf)
+        provider = config.Provider.get(provider_id, autoconf=autoconf)
         return provider.callWhenMainConfigReady(provider.config)
 
     def do_get_service(self, provider_id, service, autoconf=False):
-        provider = config.Provider(provider_id, autoconf=autoconf)
+        provider = config.Provider.get(provider_id, autoconf=autoconf)
         return provider.callWhenMainConfigReady(provider.config, service)
 
     def do_provider_delete(self, provider_id):
