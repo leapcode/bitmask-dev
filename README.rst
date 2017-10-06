@@ -98,23 +98,23 @@ More info abou testing can be found in the ``docs/hacking/testing`` document.
 Hacking
 -----------------------------------------------------------
 
-In order to run bitmask in a development environment, you must activate a
-virtualenv and install the various packages using `pip install -e`. This
-installs python packages as links to the source code, so that your code
-changes are immediately reflected in the packages installed in the
-virtualenv.
+In order to run bitmask in a development environment, you must activate a 
+`virtualenv`_ and install the various leap-related python packages using ``pip
+install -e``. This installs them as links to the source code, so
+that your code changes are immediately reflected in the packages imported from
+within the virtualenv.
 
 The various ``make dev-*`` commands will run the appropriate ``pip install``
 commands for you.
 
-If you want to setup your whole development environment, and you are running a
-debian-based system, you can use::
+If you want to setup your whole development environment in a single step, and
+you are running a debian-based system, you can use::
 
   make dev-bootstrap
 
 That should install all the system dependencies, create a virtualenv for you,
 and drop you in a shell inside that virtualenv. In the future, you can enter this
-virtualenv again by using ``pew``::
+`virtualenv`_ again by using `pew`_::
 
   pew workon bitmask
 
@@ -124,12 +124,15 @@ you can run::
   make upgrade-all
 
 inside your virtualenv, and it will install any new version of your
-dependencies that is found in pypi.
+dependencies that is found in `pypi`_.
 
 Check out the ``docs/hacking`` page for more extense instructions `to get
 you started`_.
 
 .. _`to get you started`: https://bitmask.readthedocs.io/en/latest/hacking/
+.. _`pew`: https://pypi.python.org/pypi/pew
+.. _`virtualenv`: https://pypi.python.org/pypi/virtualenv
+.. _`pypi`: https://pypi.python.org
 
 
 License
