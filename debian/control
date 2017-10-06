@@ -107,7 +107,8 @@ Description: Bitmask core VPN daemon
 Package: bitmask-mail
 Architecture: all
 Depends: ${misc:Depends}, bitmask-core, gnupg1,
-         soledad-client,
+         soledad-client, soledad-common
+# XXX can remove soledad-common after soledad 0.10.4 is released
 Recommends: xul-ext-bitmask
 Suggests: bitmask-mua
 Enhances: gnupg1
