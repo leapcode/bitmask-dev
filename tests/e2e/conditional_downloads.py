@@ -15,7 +15,7 @@ from twisted.internet.task import react
 from leap.bitmask.bonafide._http import httpRequest
 from leap.common import http
 
-URI = 'https://demo.bitmask.net/1/configs/eip-service.json'
+URI = 'https://ci.leap.se/provider.json'
 tmp = tempfile.mkdtemp()
 
 
