@@ -87,13 +87,13 @@ bundle_win:
 	cp src/leap/bitmask/core/bitmaskd.tac $(DIST)
 
 bundle_tar:
-	cd dist/ && tar cvzf Bitmask.$(NEXT_VERSION).tar.gz bitmask-$(NEXT_VERSION)
+	cd dist/ && tar cvzf Bitmask-linux64-$(NEXT_VERSION).tar.gz bitmask-$(NEXT_VERSION)
 
 bundle_sign:
-	gpg2 -a --sign --detach-sign dist/Bitmask.$(NEXT_VERSION).tar.gz 
+	gpg2 -a --sign --detach-sign dist/Bitmask-linux64-$(NEXT_VERSION).tar.gz 
 
 bundle_upload:
-	rsync --rsh='ssh' -avztlpog --progress --partial dist/Bitmask.$(NEXT_VERSION).* downloads.leap.se:./
+	rsync --rsh='ssh' -avztlpog --progress --partial dist/Bitmask-linux64-$(NEXT_VERSION).* downloads.leap.se:./
 
 bundle_clean:
 	rm -rf "dist" "build"
