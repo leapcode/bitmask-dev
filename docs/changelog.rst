@@ -1,6 +1,19 @@
 Changelog
 =====================
 
+0.10.2 -  `master`_ 
+-------------------------------
+
+.. note:: This version is not yet released and is under active development.
+
+0.10.1
+---------------------
+
+Bugfixes
+~~~~~~~~
+- `#9073 <https://0xacab.org/leap/bitmask-dev/issues/9073>`_: fix bootstrapping of providers like riseup.
+- Use the right path for firewall in debian packages.
+
 0.10.0 - la rosa de foc
 -----------------------
 
