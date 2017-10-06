@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # constants.py
-# Copyright (C) 2015 LEAP
+# Copyright (C) 2015-2017 LEAP
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,3 +26,11 @@ IS_LINUX = _system == "Linux"
 IS_MAC = _system == "Darwin"
 IS_UNIX = IS_MAC or IS_LINUX
 IS_WIN = _system == "Windows"
+
+if IS_LINUX:
+    BITMASK_ROOT_SYSTEM = '/usr/sbin/bitmask-root'
+    BITMASK_ROOT_LOCAL = '/usr/local/sbin/bitmask-root'
+    OPENVPN_SYSTEM = '/usr/sbin/openvpn'
+    OPENVPN_LOCAL = '/usr/local/sbin/leap-openvpn'
+    POLKIT_LOCAL = '/usr/share/polkit-1/actions/se.leap.bitmask-bundle.policy'
+    POLKIT_SYSTEM = '/usr/share/polkit-1/actions/se.leap.bitmask.policy'

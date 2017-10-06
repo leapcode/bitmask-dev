@@ -29,6 +29,7 @@ from twisted.logger import Logger
 
 from leap.bitmask.util import STANDALONE
 from leap.bitmask.vpn.utils import first, force_eval
+from leap.bitmask.vpn import constants
 from leap.bitmask.vpn.privilege import LinuxPolicyChecker
 from leap.bitmask.vpn.management import ManagementProtocol
 from leap.bitmask.vpn.launcher import VPNLauncher
@@ -84,10 +85,10 @@ class LinuxVPNLauncher(VPNLauncher):
 
     class BITMASK_ROOT(object):
         def __call__(self):
-            _global = '/usr/sbin/bitmask-root'
-            _local = '/usr/local/sbin/bitmask-root'
-            if os.path.isfile(_global):
-                return _global
+            _sys = constants.BITMASK_ROOT_SYSTEM
+            _local = constants.BITMASK_ROOT_LOCAL
+            if os.path.isfile(_sys):
+                return _sys
             elif os.path.isfile(_local):
                 return _local
             else:
@@ -95,8 +96,16 @@ class LinuxVPNLauncher(VPNLauncher):
 
     class OPENVPN_BIN_PATH(object):
         def __call__(self):
-            return ("/usr/local/sbin/leap-openvpn" if STANDALONE else
-                    "/usr/sbin/openvpn")
+            _sys = constants.OPENVPN_SYSTEM
+            _local = constants.OPENVPN_LOCAL
+            # XXX this implies that, for the time being, we prefer the system
+            # openvpn if there is any. We assume that the system is kept
+            # up-to-date, since we still do not have a safe way of upgrading
+            # the bundle binaries. See #9101
+            if os.path.exists(_sys):
+                return _sys
+            else:
+                return _local
 
     class POLKIT_PATH(object):
         def __call__(self):

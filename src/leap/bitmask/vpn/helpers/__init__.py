@@ -4,19 +4,15 @@ import os.path
 import sys
 
 from leap.bitmask.vpn.constants import IS_LINUX, IS_MAC
+from leap.bitmask.vpn.constants import BITMASK_ROOT_SYSTEM, BITMASK_ROOT_LOCAL
+from leap.bitmask.vpn.constants import OPENVPN_SYSTEM, OPENVPN_LOCAL
+from leap.bitmask.vpn.constants import POLKIT_SYSTEM, POLKIT_LOCAL
 from leap.bitmask.vpn.privilege import is_pkexec_in_system
 from leap.bitmask.vpn import _config
 
 from leap.bitmask.util import STANDALONE
 
 if IS_LINUX:
-
-    helper_to = '/usr/local/sbin/bitmask-root'
-    deb_helper_to = '/usr/sbin/bitmask-root'
-    polkit_to = '/usr/share/polkit-1/actions/se.leap.bitmask-bundle.policy'
-    deb_polkit_to = '/usr/share/polkit-1/actions/se.leap.bitmask.policy'
-    openvpn_to = '/usr/local/sbin/leap-openvpn'
-
     def install():
         helper_from = _config.get_bitmask_helper_path()
         polkit_from = _config.get_bitmask_polkit_policy_path()
@@ -26,26 +22,31 @@ if IS_LINUX:
         if not os.path.isdir(sbin):
             os.makedirs(sbin)
 
-        copyfile(helper_from, helper_to)
-        chmod(helper_to, 0744)
+        copyfile(helper_from, BITMASK_ROOT_LOCAL)
+        chmod(BITMASK_ROOT_LOCAL, 0744)
 
-        copyfile(polkit_from, polkit_to)
+        copyfile(polkit_from, POLKIT_LOCAL)
 
         if STANDALONE:
-            copyfile(openvpn_from, openvpn_to)
-            chmod(openvpn_to, 0700)
+            copyfile(openvpn_from, OPENVPN_LOCAL)
+            chmod(OPENVPN_LOCAL, 0700)
 
     def uninstall():
-        remove(helper_to)
-        remove(polkit_to)
+        remove(BITMASK_ROOT_LOCAL)
+        remove(POLKIT_LOCAL)
 
     def check():
-        helper = os.path.exists(helper_to) or os.path.isfile(
-            deb_helper_to)
+        helper = (
+            os.path.exists(BITMASK_ROOT_LOCAL) or
+            os.path.isfile(BITMASK_ROOT_SYSTEM))
         polkit = (
-            os.path.exists(polkit_to) or
-            os.path.exists(deb_polkit_to))
-        return is_pkexec_in_system() and helper and polkit
+            os.path.exists(POLKIT_LOCAL) or
+            os.path.exists(POLKIT_SYSTEM))
+        openvpn = (
+            os.path.exists(OPENVPN_LOCAL) or
+            os.path.exists(OPENVPN_SYSTEM))
+
+        return is_pkexec_in_system() and helper and polkit and openvpn
 
 if IS_MAC:
 

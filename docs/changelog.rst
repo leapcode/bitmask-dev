@@ -6,6 +6,11 @@ Changelog
 
 .. note:: This version is not yet released and is under active development.
 
+Bugfixes
+~~~~~~~~
+- `#9099 <https://0xacab.org/leap/bitmask-dev/issues/9099>`_: properly check for openvpn binary path in bundles.
+
+
 0.10.1
 ---------------------
 

@@ -139,7 +139,6 @@ class VPNLauncher(object):
             log.warn('Could not find openvpn bin in path %s' % (
                      openvpn_path))
             err = OpenVPNNotFoundException()
-            err.expected = True
             raise err
 
         args = []
