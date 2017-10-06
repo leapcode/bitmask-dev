@@ -96,6 +96,10 @@ involving docker, you can read more about the bundles in the :ref:`qa section
 Debian & ubuntu 
 ---------------
 
+You only need to paste three lines to get bitmask installed under debian or
+ubuntu, and get updates as they are released, or as they are merged into
+master. `Watch a screencast`_ of the install process.
+
 Refer to the section in the install guide about the different `debian
 repositories`_ that we provide to understand how the different packages are
 produced.
@@ -106,6 +110,7 @@ For a quick rebuild of local changes, you can do::
 
   debuild -us -uc
 
+.. _`Watch a screencast`: https://asciinema.org/a/Hfg0Z5k95j4JfF0S31B7SCrZ8
 .. _`debian repositories`: https://bitmask.net/install/linux/deb
 
 
