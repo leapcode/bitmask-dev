@@ -30,6 +30,12 @@ Reporting bugs
 .. _`Here`: http://www.chiark.greenend.org.uk/~sgtatham/bugs.html
 .. _`good bug report`: http://www.chiark.greenend.org.uk/~sgtatham/bugs.html
 
+Logs
+--------------
+Bitmask stores the logs in ``$HOME/.config/leap/bitmaskd.log``. You might want
+to remove the whole ``~/.config/leap`` folder when trying a new account, or when you
+stop using Bitmask.
+
 Tips for QA
 --------------------------------
 
