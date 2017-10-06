@@ -82,7 +82,7 @@ class DarwinVPNLauncher(VPNLauncher):
         # this might happen if os.getcwd() was deleted under our feet. We do
         # not want to raise the Exception at import time.
         logger.error('Error while setting openvpn paths: %r' % exc)
-        INSTALL_PATH_ESCAPED="/Applications/Bitmask.app/"
+        INSTALL_PATH_ESCAPED = "/Applications/Bitmask.app/"
     OPENVPN_PATH_ESCAPED = "%s/Contents/Resources/openvpn" % (
         INSTALL_PATH_ESCAPED,)
 
