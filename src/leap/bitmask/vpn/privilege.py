@@ -63,7 +63,7 @@ def _helper_installer(action):
         if retcode != 0:
             log.error('Error installing/uninstalling helpers: %s' % output)
             log.error('Command was: %s' % cmd)
-            raise Exception('Could not install/install helpers')
+            raise Exception('Could not install/uninstall helpers')
     else:
         raise Exception('No install mechanism for this platform')
 

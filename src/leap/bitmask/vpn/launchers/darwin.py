@@ -74,11 +74,18 @@ class DarwinVPNLauncher(VPNLauncher):
     # Hardcode the installation path for OSX for security, openvpn is
     # run as root
     INSTALL_PATH = "/Applications/Bitmask.app/"
-    INSTALL_PATH_ESCAPED = os.path.realpath(os.getcwd() + "/../../")
     OPENVPN_BIN = 'openvpn.leap'
     OPENVPN_PATH = "%s/Contents/Resources/openvpn" % (INSTALL_PATH,)
+    try:
+        INSTALL_PATH_ESCAPED = os.path.realpath(os.getcwd() + "/../../")
+    except OSError as exc:
+        # this might happen if os.getcwd() was deleted under our feet. We do
+        # not want to raise the Exception at import time.
+        logger.error('Error while setting openvpn paths: %r' % exc)
+        INSTALL_PATH_ESCAPED="/Applications/Bitmask.app/"
     OPENVPN_PATH_ESCAPED = "%s/Contents/Resources/openvpn" % (
         INSTALL_PATH_ESCAPED,)
+
     OTHER_FILES = []
 
     _openvpn_bin_path = "%s/Contents/Resources/%s" % (

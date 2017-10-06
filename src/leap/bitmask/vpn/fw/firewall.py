@@ -44,6 +44,10 @@ def check_root(cmd):
     return cmd
 
 
+class FirewallError(Exception):
+    pass
+
+
 class _OSXFirewallManager(object):
     def __init__(self, remotes):
         self._remotes = list(remotes)
@@ -83,7 +87,11 @@ class _LinuxFirewallManager(object):
     This allows us to achieve fail close on a vpn connection.
     """
 
-    BITMASK_ROOT = "/usr/local/sbin/bitmask-root"
+    _SYSTEM_BITMASK_ROOT = '/usr/sbin/bitmask-root'
+    if os.path.isfile(_SYSTEM_BITMASK_ROOT):
+        BITMASK_ROOT = _SYSTEM_BITMASK_ROOT
+    else:
+        BITMASK_ROOT = "/usr/local/sbin/bitmask-root"
 
     def __init__(self, remotes):
         """
@@ -114,11 +122,16 @@ class _LinuxFirewallManager(object):
         if restart:
             cmd.append("restart")
         result = '<did not run>'
+        if not os.path.isfile(self.BITMASK_ROOT):
+            raise FirewallError('Could not find bitmask-root!')
         try:
             retcode, result = commands.getstatusoutput(
                 ' '.join(cmd + gateways))
         except Exception:
-            log.failure('Error launching the firewall')
+            msg = 'Error launching the firewall'
+            log.failure(msg)
+            if NOT_ROOT:
+                raise FirewallError(msg)
         finally:
             log.debug(result)
         emit_async(catalog.VPN_STATUS_CHANGED)
