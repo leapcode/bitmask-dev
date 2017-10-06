@@ -111,7 +111,7 @@ For a quick rebuild of local changes, you can do::
   debuild -us -uc
 
 .. _`Watch a screencast`: https://asciinema.org/a/Hfg0Z5k95j4JfF0S31B7SCrZ8
-.. _`debian repositories`: https://bitmask.net/install/linux/deb
+.. _`debian repositories`: https://bitmask.net/install/linux/debs
 
 
 Archlinux
