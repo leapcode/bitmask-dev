@@ -22,15 +22,12 @@ function add_pew_to_environment()
 function apt_install()
 {
   sudo apt install $APT_DEPS
+  sudo pip install pew
 }
 
 function init_pew()
 {
-  which pew || pip install pew
-  which pew || add_pew_to_environment
-  PATH=~/.local/bin:$PATH
-  # this hangs when creating for the first time
-  pew ls | grep bitmask || echo '[+] bitmask boostrap: creating new bitmask virtualenv. Type "exit" in the shell to continue!' && pew new bitmask
+  pew ls | grep bitmask || echo '[+] creating new bitmask virtualenv...' && pew new -d bitmask
 }
 
 function clone_repo()
