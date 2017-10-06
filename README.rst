@@ -66,6 +66,8 @@ in the system)::
 
   bitmaskctl logs send
 
+but do not upload anything that you do not want to make public ;)
+
 
 Development
 ===========================================================
@@ -106,9 +108,15 @@ The various ``make dev-*`` commands will run the appropriate ``pip install``
 commands for you.
 
 If you want to setup your whole development environment, and you are running a
-debian-based system, you can try::
+debian-based system, you can use::
 
   make dev-bootstrap
+
+That should install all the system dependencies, create a virtualenv for you,
+and drop you in a shell inside that virtualenv. In the future, you can enter this
+virtualenv again by using ``pew``::
+
+  pew workon bitmask
 
 To upgrade regularly the python dependencies installed inside your virtualenv,
 you can run::
@@ -118,7 +126,7 @@ you can run::
 inside your virtualenv, and it will install any new version of your
 dependencies that is found in pypi.
 
-Check out the ``docs/hacking`` sections for more extense instructions `to get
+Check out the ``docs/hacking`` page for more extense instructions `to get
 you started`_.
 
 .. _`to get you started`: https://bitmask.readthedocs.io/en/latest/hacking/
