@@ -44,10 +44,7 @@ from leap.bitmask.mail.imap.messages import IMAPMessage
 # [ ] implement the rest of ISearchableMailbox
 
 
-INIT_FLAGS = (MessageFlags.SEEN_FLAG, MessageFlags.ANSWERED_FLAG,
-              MessageFlags.FLAGGED_FLAG, MessageFlags.DELETED_FLAG,
-              MessageFlags.DRAFT_FLAG, MessageFlags.RECENT_FLAG,
-              MessageFlags.LIST_FLAG)
+INIT_FLAGS = (MessageFlags.RECENT_FLAG, MessageFlags.LIST_FLAG)
 
 
 def make_collection_listener(mailbox):
