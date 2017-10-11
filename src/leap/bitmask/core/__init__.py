@@ -11,6 +11,7 @@ def dummy_imports():
     import mail_services
     import dispatcher
 
+
 APPNAME = "bitmask.core"
 if platform.system() == 'Windows':
     ENDPOINT = "tcp://127.0.0.1:5001"

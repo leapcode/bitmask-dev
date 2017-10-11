@@ -10,7 +10,8 @@ from leap.bitmask.util import STANDALONE
 
 if IS_LINUX:
 
-    from leap.bitmask.vpn.constants import BITMASK_ROOT_SYSTEM, BITMASK_ROOT_LOCAL
+    from leap.bitmask.vpn.constants import BITMASK_ROOT_SYSTEM
+    from leap.bitmask.vpn.constants import BITMASK_ROOT_LOCAL
     from leap.bitmask.vpn.constants import OPENVPN_SYSTEM, OPENVPN_LOCAL
     from leap.bitmask.vpn.constants import POLKIT_SYSTEM, POLKIT_LOCAL
     from leap.bitmask.vpn.privilege import is_pkexec_in_system
