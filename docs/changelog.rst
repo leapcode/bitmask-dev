@@ -6,9 +6,15 @@ Changelog
 
 .. note:: This version is not yet released and is under active development.
 
+Features
+~~~~~~~~
+- Ship gpg1 binary with osx builds.
+
 Bugfixes
 ~~~~~~~~
 - `#9099 <https://0xacab.org/leap/bitmask-dev/issues/9099>`_: properly check for openvpn binary path in bundles.
+- Ship cacert.pem inside Bitmask.app
+- Avoid importing linux-specific constants in firewall helpers.
 
 
 0.10.1
