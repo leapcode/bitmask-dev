@@ -4,15 +4,17 @@ import os.path
 import sys
 
 from leap.bitmask.vpn.constants import IS_LINUX, IS_MAC
-from leap.bitmask.vpn.constants import BITMASK_ROOT_SYSTEM, BITMASK_ROOT_LOCAL
-from leap.bitmask.vpn.constants import OPENVPN_SYSTEM, OPENVPN_LOCAL
-from leap.bitmask.vpn.constants import POLKIT_SYSTEM, POLKIT_LOCAL
-from leap.bitmask.vpn.privilege import is_pkexec_in_system
 from leap.bitmask.vpn import _config
 
 from leap.bitmask.util import STANDALONE
 
 if IS_LINUX:
+
+    from leap.bitmask.vpn.constants import BITMASK_ROOT_SYSTEM, BITMASK_ROOT_LOCAL
+    from leap.bitmask.vpn.constants import OPENVPN_SYSTEM, OPENVPN_LOCAL
+    from leap.bitmask.vpn.constants import POLKIT_SYSTEM, POLKIT_LOCAL
+    from leap.bitmask.vpn.privilege import is_pkexec_in_system
+
     def install():
         helper_from = _config.get_bitmask_helper_path()
         polkit_from = _config.get_bitmask_polkit_policy_path()

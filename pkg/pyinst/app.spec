@@ -17,6 +17,7 @@ if IS_MAC:
 hiddenimports = [
      'appdirs',
      'scrypt', 'zope.interface', 'zope.proxy',
+     'psutil',
      'leap.pixelated_www', 'pixelated', 'chardet', 'whoosh', 'requests',
      'pysqlcipher', 'service_identity',
      'leap.common', 'leap.bitmask', 
