@@ -55,5 +55,5 @@ $VIRTUAL_ENV/bin/pip install `ls -tr dist/*.whl | tail -n 1`
 $VIRTUAL_ENV/bin/pip install -I pyzmq --install-option="--zmq=bundled"
 
 # Get latest tags from repo
-git pull --tags
+git fetch --tags
 make bundle_linux
