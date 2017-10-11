@@ -85,8 +85,7 @@ def get_gpg_bin_path():
             gpgbin = os.path.abspath(
                 os.path.join(here(), "apps", "mail", "gpg.exe"))
         elif platform.system() == "Darwin":
-            gpgbin = os.path.abspath(
-                os.path.join(here(), "apps", "mail", "gpg"))
+            gpgbin =  '/Applications/Bitmask.app/Contents/Resources/gpg'
         else:
             gpgbin = os.path.abspath(
                 os.path.join(here(), "..", "apps", "mail", "gpg"))

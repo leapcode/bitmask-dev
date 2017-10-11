@@ -46,6 +46,7 @@ bundle_linux_helpers:
 	cp src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.bundle.policy $(DIST_VERSION)/apps/helpers/
 	cp /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1.2.0 $(DIST_VERSION)/lib/libGL.so.1 || echo "libGL version not found"
 
+
 bundle_osx_helpers:
 	mkdir -p $(DIST_VERSION)/apps/helpers
 	cp src/leap/bitmask/vpn/helpers/osx/bitmask-helper $(DIST_VERSION)/apps/helpers/
@@ -59,6 +60,7 @@ bundle_osx_missing:
 	install_name_tool -change /usr/local/opt/openssl/lib/libcrypto.1.0.0.dylib  "@loader_path/libcrypto.1.0.0.dylib" $(DIST_VERSION)/lib/_scrypt.so
 	cp $(DIST_VERSION)/lib/_scrypt.so $(OSX_CON)/
 	cp $(DIST_VERSION)/lib/bitmaskd.tac $(OSX_CON)/
+	cp $(DIST_VERSION)/lib/cacert.pem $(OSX_CON)/
 	cp $(DIST_VERSION)/lib/version $(OSX_CON)/
 	cp -r $(DIST_VERSION)/lib/leap $(OSX_CON)/
 	mv dist/Bitmask.app/Contents/MacOS/bitmask $(OSX_CON)/bitmask-app
@@ -70,6 +72,8 @@ bundle_osx_missing:
 	cp -r $(DIST_VERSION)/apps/helpers/openvpn/* $(OSX_RES)/
 	wget https://downloads.leap.se/thirdparty/osx/openvpn/openvpn -O $(OSX_RES)/openvpn.leap
 	chmod +x $(OSX_RES)/openvpn.leap
+	cp ~/src/gnupg-1.4.20/g10/gpg $(OSX_RES)/gpg
+	chmod +x $(OSX_RES)/gpg
 
 bundle_osx_pkg:
 	pkg/osx/quickpkg --output dist/Bitmask-$(NEXT_VERSION)_pre.pkg --scripts pkg/osx/scripts/ dist/Bitmask.app/
