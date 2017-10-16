@@ -47,6 +47,11 @@ else:
     from PyQt5.QtCore import QSize
     from PyQt5.QtCore import QObject, pyqtSlot
     from PyQt5.QtWidgets import QApplication
+    from PyQt5.QtGui import QIcon
+    from PyQt5.QtWidgets import QMenu
+    from PyQt5.QtWidgets import QSystemTrayIcon
+    from PyQt5.QtWidgets import QDialog
+
     try:
         from PyQt5.QtWebKitWidgets import QWebView
         from PyQt5.QtWebKit import QWebSettings
@@ -66,7 +71,14 @@ bitmaskd = None
 browser = None
 
 
-class BrowserWindow(QWebView):
+class WithTrayIcon(QDialog):
+
+    def createTrayIcon(self):
+         self.trayIcon = QSystemTrayIcon(self)
+         self.trayIcon.setContextMenu(self.trayIconMenu)
+
+
+class BrowserWindow(QWebView, WithTrayIcon):
     """
     This qt-webkit window exposes a couple of callable objects through the
     python-js bridge:
@@ -215,6 +227,9 @@ def launch_gui():
     except NoAuthToken as e:
         print('ERROR: ' + e.message)
         sys.exit(1)
+
+    browser.createTrayIcon()
+    browser.trayIcon.show()
 
     qApp.setQuitOnLastWindowClosed(True)
     qApp.lastWindowClosed.connect(browser.shutdown)
