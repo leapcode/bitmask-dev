@@ -32,7 +32,7 @@ from leap.bitmask.keymanager.refresher import RandomRefreshPublicKey, \
     ERROR_UNEQUAL_FINGERPRINTS
 from leap.bitmask.keymanager.testing import KeyManagerWithSoledadTestCase
 
-from common import KEY_FINGERPRINT
+from common import KEY_FINGERPRINT, PUBLIC_KEY_2, KEY_FINGERPRINT_2
 
 ANOTHER_FP = 'ANOTHERFINGERPRINT'
 
@@ -76,13 +76,13 @@ class RandomRefreshPublicKeyTestCase(KeyManagerWithSoledadTestCase):
                     fingerprint=KEY_FINGERPRINT)))
 
             km._nicknym.fetch_key_with_fingerprint = \
-                Mock(return_value=defer.succeed(OpenPGPKey(
-                    fingerprint=ANOTHER_FP)))
+                Mock(return_value=defer.succeed(PUBLIC_KEY_2))
 
             yield rf.maybe_refresh_key()
 
-            mock_logger_error.assert_called_with(ERROR_UNEQUAL_FINGERPRINTS %
-                                                 (KEY_FINGERPRINT, ANOTHER_FP))
+            mock_logger_error.assert_called_with(
+                ERROR_UNEQUAL_FINGERPRINTS %
+                (KEY_FINGERPRINT, KEY_FINGERPRINT_2))
 
     @defer.inlineCallbacks
     def test_put_new_key_in_local_storage(self):
@@ -95,7 +95,7 @@ class RandomRefreshPublicKeyTestCase(KeyManagerWithSoledadTestCase):
             OpenPGPKey(fingerprint=KEY_FINGERPRINT)))
 
         km._nicknym.fetch_key_with_fingerprint = Mock(
-            return_value=defer.succeed(OpenPGPKey(fingerprint=ANOTHER_FP)))
+            return_value=defer.succeed(PUBLIC_KEY_2))
 
         yield rf.maybe_refresh_key()
 

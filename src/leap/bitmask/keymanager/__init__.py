@@ -18,16 +18,12 @@
 Key Manager is a Nicknym agent for LEAP client.
 """
 import fileinput
-import json
-import sys
 import tempfile
 
 from urlparse import urlparse
 
 from twisted.logger import Logger
 from twisted.internet import defer, task, reactor
-from twisted.web import client
-from twisted.web._responses import NOT_FOUND
 
 from leap.common import ca_bundle
 from leap.common.http import HTTPClient
@@ -48,9 +44,6 @@ class KeyManager(object):
     #
 
     log = Logger()
-
-    OPENPGP_KEY = 'openpgp'
-    PUBKEY_KEY = "user[public_key]"
 
     def __init__(self, address, nickserver_uri, soledad, token=None,
                  ca_cert_path=None, api_uri=None, api_version=None, uid=None,
@@ -203,23 +196,17 @@ class KeyManager(object):
         :rtype: Deferred
 
         """
-        server_keys = yield self._nicknym.fetch_key_with_address(address)
+        raw_key = yield self._nicknym.fetch_key_with_address(address)
 
-        # insert keys in local database
-        if self.OPENPGP_KEY in server_keys:
-            # nicknym server is authoritative for its own domain,
-            # for other domains the key might come from key servers.
-            validation_level = ValidationLevels.Weak_Chain
-            _, domain = _split_email(address)
-            if (domain == _get_domain(self._nickserver_uri)):
-                validation_level = ValidationLevels.Provider_Trust
+        # nicknym server is authoritative for its own domain,
+        # for other domains the key might come from key servers.
+        validation_level = ValidationLevels.Weak_Chain
+        _, domain = _split_email(address)
+        if (domain == _get_domain(self._nickserver_uri)):
+            validation_level = ValidationLevels.Provider_Trust
 
-            yield self.put_raw_key(
-                server_keys[self.OPENPGP_KEY],
-                address=address,
-                validation=validation_level)
-        else:
-            raise KeyNotFound("No openpgp key found")
+        yield self.put_raw_key(
+            raw_key, address=address, validation=validation_level)
 
     def get_key(self, address, private=False, fetch_remote=True):
         """

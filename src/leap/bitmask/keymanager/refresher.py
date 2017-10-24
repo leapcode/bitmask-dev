@@ -106,17 +106,24 @@ class RandomRefreshPublicKey(object):
         if old_key is None:
             defer.returnValue(None)
 
-        old_updated_key = yield self._keymanger._nicknym.\
+        updated_key_data = yield self._keymanger._nicknym.\
             fetch_key_with_fingerprint(old_key.fingerprint)
+        updated_key, _ = self._openpgp.parse_key(updated_key_data,
+                                                 old_key.address)
 
-        if old_updated_key.fingerprint != old_key.fingerprint:
+        if updated_key.fingerprint != old_key.fingerprint:
             self.log.error(
                 ERROR_UNEQUAL_FINGERPRINTS % (
-                    old_key.fingerprint, old_updated_key.fingerprint))
+                    old_key.fingerprint, updated_key.fingerprint))
             defer.returnValue(None)
 
-        yield self._maybe_unactivate_key(old_updated_key)
-        yield self._openpgp.put_key(old_updated_key)
+        updated_key.validation = old_key.validation
+        updated_key.last_audited_at = old_key.last_audited_at
+        updated_key.encr_used = old_key.encr_used
+        updated_key.sign_used = old_key.sign_used
+
+        yield self._maybe_unactivate_key(updated_key)
+        yield self._openpgp.put_key(updated_key)
 
         # No new fetch by address needed, bc that will happen before sending an
         # email could be discussed since fetching before sending an email

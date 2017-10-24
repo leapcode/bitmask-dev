@@ -298,10 +298,9 @@ class KeymanagerContainer(Container):
         try:
             remote = yield keymanager._nicknym.fetch_key_with_address(userid)
         except Exception:
-            remote = {}
+            remote = ""
 
-        if (keymanager.OPENPGP_KEY not in remote or
-                key.key_data != remote[KeyManager.OPENPGP_KEY]):
+        if key.key_data != remote:
             yield keymanager.send_key()
 
     def _set_status(self, address, status, error=None, keys=None):

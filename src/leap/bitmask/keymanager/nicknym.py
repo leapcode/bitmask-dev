@@ -38,6 +38,7 @@ class Nicknym(object):
 
     log = Logger()
 
+    OPENPGP_KEY = 'openpgp'
     PUBKEY_KEY = "user[public_key]"
 
     def __init__(self, nickserver_uri, ca_cert_path, token):
@@ -99,12 +100,13 @@ class Nicknym(object):
         :param uri: The URI of the request.
         :type uri: str
 
-        :return: A deferred that will be fired with GET content as json (dict)
+        :return: A deferred that will be fired with GET content as raw key str
         :rtype: Deferred
         """
         try:
             content = yield self._fetch_and_handle_404_from_nicknym(uri)
             json_content = json.loads(content)
+            key = json_content[self.OPENPGP_KEY]
         except KeyNotFound:
             raise
         except IOError as e:
@@ -114,15 +116,12 @@ class Nicknym(object):
         except ValueError as v:
             self.log.warn('Invalid JSON data from key: %s' % (uri,))
             raise KeyNotFound(v.message + ' - ' + uri), None, sys.exc_info()[2]
+        except KeyError:
+            raise KeyNotFound("No openpgp key found")
         except Exception as e:
             self.log.warn('Error retrieving key: %r' % (e,))
             raise KeyNotFound(e.message), None, sys.exc_info()[2]
-        # Responses are now text/plain, although it's json anyway, but
-        # this will fail when it shouldn't
-        # leap_assert(
-        #     res.headers['content-type'].startswith('application/json'),
-        #     'Content-type is not JSON.')
-        defer.returnValue(json_content)
+        defer.returnValue(key)
 
     def _fetch_and_handle_404_from_nicknym(self, uri):
         """
@@ -166,9 +165,8 @@ class Nicknym(object):
         :param address: The address bound to the keys.
         :type address: str
 
-        :return: A Deferred which fires when the key is in the storage,
-                 or which fails with KeyNotFound if the key was not found on
-                 nickserver.
+        :return: A Deferred with the raw key, or which fails with KeyNotFound
+                 if the key was not found on nickserver.
         :rtype: Deferred
 
         """
@@ -183,9 +181,8 @@ class Nicknym(object):
         :param fingerprint: The fingerprint bound to the keys.
         :type fingerprint: str
 
-        :return: A Deferred which fires when the key is in the storage,
-                 or which fails with KeyNotFound if the key was not found on
-                 nickserver.
+        :return: A Deferred with the raw key, or which fails with KeyNotFound
+                 if the key was not found on nickserver.
         :rtype: Deferred
 
         """
