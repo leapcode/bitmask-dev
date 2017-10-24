@@ -3,6 +3,11 @@
 Bitmask Release Checklist
 =========================
 
+New resources
+-------------
+If there are new resources in the qt app (icons), you need to make sure that they've been included in the packaged resource.
+You'll need to install ``pyqt5-dev-tools``, and execute ``make qt-resources``.
+
 CI check
 --------
 * [ ] Check that all tests are passing!
