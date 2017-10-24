@@ -429,6 +429,7 @@ class IncomingMail(Service):
         # parse the original message
         encoding = get_email_charset(data)
         msg = self._parser.parsestr(data)
+        self._strip_leap_headers(msg)
 
         fromHeader = msg.get('from', None)
         senderAddress = None
@@ -460,6 +461,11 @@ class IncomingMail(Service):
                       encoding)
         d.addCallback(add_leap_header)
         return d
+
+    def _strip_leap_headers(self, msg):
+        for h in [self.LEAP_ENCRYPTION_HEADER, self.LEAP_SIGNATURE_HEADER]:
+            if h in msg:
+                del msg[h]
 
     def _decrypt_by_content_type(self, msg, senderAddress, encoding):
         if msg.get_content_type() == MULTIPART_ENCRYPTED:

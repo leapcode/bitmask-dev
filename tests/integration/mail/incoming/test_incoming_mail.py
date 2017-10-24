@@ -287,6 +287,27 @@ subject: independence of cyberspace
 
         self.assertEquals(msg.headers['X-Leap-Encryption'], 'decrypted')
 
+    def testStripLeapHeaders(self):
+        ENC_HEADER = "fake encryption header"
+        SIG_HEADER = "fake signature header"
+
+        message = Parser().parsestr(self.EMAIL)
+        message.add_header("X-Leap-Encryption", ENC_HEADER)
+        message.add_header("X-Leap-Signature", SIG_HEADER)
+        self.fetcher._add_message_locally = Mock()
+
+        def check_headers(_):
+            self.assertTrue(self.fetcher._add_message_locally.called,
+                            "The message was not added to soledad")
+            _, data = self.fetcher._add_message_locally.call_args[0][0]
+            msg = Parser().parsestr(data)
+            self.assertNotEqual(msg.get('X-Leap-Encryption', ''), ENC_HEADER)
+            self.assertNotEqual(msg.get('X-Leap-Signature', ''), SIG_HEADER)
+
+        d = self._do_fetch(message.as_string())
+        d.addCallback(check_headers)
+        return d
+
     def testDecryptEmail(self):
 
         self.fetcher._decryption_error = Mock()
