@@ -34,6 +34,8 @@ from multiprocessing import Process
 from leap.bitmask.core.launcher import run_bitmaskd, pid
 from leap.bitmask.gui import app_rc
 from leap.common.config import get_path_prefix
+from leap.common.events import client as leap_events
+from leap.common.events import catalog
 
 if platform.system() == 'Windows':
     from multiprocessing import freeze_support
@@ -48,6 +50,7 @@ else:
     from PyQt5.QtCore import QObject, pyqtSlot
     from PyQt5.QtWidgets import QApplication
     from PyQt5.QtGui import QIcon
+    from PyQt5.QtGui import QPixmap
     from PyQt5.QtWidgets import QMenu
     from PyQt5.QtWidgets import QSystemTrayIcon
     from PyQt5.QtWidgets import QDialog
@@ -70,10 +73,49 @@ qApp = None
 bitmaskd = None
 browser = None
 
+# TODO do switch based on theme
+
+TRAY_ICONS = (
+    ':/black/22/wait.png',
+    ':/black/22/on.png',
+    ':/black/22/off.png')
 
 class WithTrayIcon(QDialog):
 
-    def createTrayIcon(self):
+    def setupSysTray(self):
+        self._createIcons()
+        self._createTrayIcon()
+        self.setVPNStatus('off')
+        self.trayIcon.show()
+        self.setUpEventListener()
+
+    def setVPNStatus(self, status):
+        seticon = self.trayIcon.setIcon
+        if status == 'off':
+            seticon(self.ICON_OFF)
+        elif status == 'on':
+            seticon(self.ICON_ON)
+        elif status == 'starting':
+            seticon(self.ICON_WAIT)
+        elif status == 'stopping':
+            seticon(self.ICON_WAIT)
+
+    def setUpEventListener(self):
+        leap_events.register(catalog.VPN_STATUS_CHANGED, self._handle_vpn_event)
+
+    def _handle_vpn_event(self, *args):
+        print ">>>>>> GOT EVENT", str(args)
+        status = None
+        if len(args) > 1:
+            status = args[1]
+            self.setVPNStatus(status.lower())
+
+    def _createIcons(self):
+        self.ICON_WAIT = QIcon(QPixmap(TRAY_ICONS[0]))
+        self.ICON_ON = QIcon(QPixmap(TRAY_ICONS[1]))
+        self.ICON_OFF = QIcon(QPixmap(TRAY_ICONS[2]))
+
+    def _createTrayIcon(self):
          self.trayIcon = QSystemTrayIcon(self)
 
 
@@ -227,8 +269,7 @@ def launch_gui():
         print('ERROR: ' + e.message)
         sys.exit(1)
 
-    browser.createTrayIcon()
-    browser.trayIcon.show()
+    browser.setupSysTray()
 
     qApp.setQuitOnLastWindowClosed(True)
     qApp.lastWindowClosed.connect(browser.shutdown)

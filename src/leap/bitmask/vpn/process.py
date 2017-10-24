@@ -50,7 +50,7 @@ class VPNStateListener(object):
     # and make VPNProcess the implementer itself - or the service.
 
     def change_state(self, state):
-        emit_async(catalog.VPN_STATUS_CHANGED)
+        emit_async(catalog.VPN_STATUS_CHANGED, state.simple)
 
 
 class _VPNProcess(protocol.ProcessProtocol):
@@ -109,6 +109,7 @@ class _VPNProcess(protocol.ProcessProtocol):
         self.errmsg = None
         self.proto = None
         self._remotes = remotes
+        self._listener = VPNStateListener()
 
     # processProtocol methods
 
@@ -120,8 +121,7 @@ class _VPNProcess(protocol.ProcessProtocol):
     @defer.inlineCallbacks
     def _got_management_protocol(self, proto):
         self.proto = proto
-        listener = VPNStateListener()
-        proto.addStateListener(listener)
+        proto.addStateListener(self._listener)
 
         try:
             yield proto.logOn()
@@ -134,7 +134,7 @@ class _VPNProcess(protocol.ProcessProtocol):
 
     def _connect_to_management(self, retries=30):
         if retries == 0:
-            self.log.error('Timeout whilte connecting to management')
+            self.log.error('Timeout while connecting to management')
             self.failed = True
             return
 
@@ -213,8 +213,23 @@ class _VPNProcess(protocol.ProcessProtocol):
     def status(self):
         if self.failed:
             return {'status': 'failed', 'error': self.errmsg}
+
+        # FIXME - hack, doesn't belong here ----------------------------------
+        # needs to go with implementing the history within the VPNProcess.
+        # this only will work before the UI is pulling the state and therefore
+        # checking this condition as a side-effect of reading the property.
+
+        # TODO trigger off transition when proto dissapears (at processExited)
         if not self.proto:
-            return {'status': 'off', 'error': None}
+            OFF = 'off'
+            if self._status != OFF:
+                self._status = OFF 
+                class _state(object):
+                    simple = 'OFF'
+                off = _state()
+                self._listener.change_state(off)
+            return {'status': OFF, 'error': None}
+        # --------------------------------------------------------------------
 
         try:
             self._status = self.proto.state.simple.lower()

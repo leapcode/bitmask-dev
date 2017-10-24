@@ -134,7 +134,7 @@ class _LinuxFirewallManager(object):
                 raise FirewallError(msg)
         finally:
             log.debug(result)
-        emit_async(catalog.VPN_STATUS_CHANGED)
+        emit_async(catalog.VPN_STATUS_CHANGED, "FW_ON")
         return True
 
     def stop(self):
@@ -144,7 +144,7 @@ class _LinuxFirewallManager(object):
         cmd = [self.BITMASK_ROOT, "firewall", "stop"]
         cmd = check_root(cmd)
         exitCode = subprocess.call(cmd)
-        emit_async(catalog.VPN_STATUS_CHANGED)
+        emit_async(catalog.VPN_STATUS_CHANGED, "FW_OFF")
         if exitCode == 0:
             return True
         else:

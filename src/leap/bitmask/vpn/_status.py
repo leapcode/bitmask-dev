@@ -80,7 +80,7 @@ class VPNStatus(object):
         if self._status != status:
             self._status = status
             self.errcode = errcode
-            emit_async(catalog.VPN_STATUS_CHANGED)
+            emit_async(catalog.VPN_STATUS_CHANGED, status.upper())
 
     def get_traffic_status(self):
         down = None
