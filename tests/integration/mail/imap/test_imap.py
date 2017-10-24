@@ -462,8 +462,7 @@ class LEAPIMAP4ServerTestCase(IMAP4HelperMixin):
         self.assertEqual(self.selectedArgs, {
             'EXISTS': 0, 'RECENT': 0, 'UIDNEXT': 1,
             'UIDVALIDITY': 42,
-            'FLAGS': ('\\Seen', '\\Answered', '\\Flagged',
-                      '\\Deleted', '\\Draft', '\\Recent', 'List'),
+            'FLAGS': ('\\Recent', 'List'),
             'READ-WRITE': True
         })
 
@@ -671,8 +670,7 @@ class LEAPIMAP4ServerTestCase(IMAP4HelperMixin):
         self.assertEqual(self.examinedArgs, {
             'EXISTS': 0, 'RECENT': 0, 'UIDNEXT': 1,
             'UIDVALIDITY': 42,
-            'FLAGS': ('\\Seen', '\\Answered', '\\Flagged',
-                      '\\Deleted', '\\Draft', '\\Recent', 'List'),
+            'FLAGS': ('\\Recent', 'List'),
             'READ-WRITE': False})
 
     def _listSetup(self, f, f2=None):
