@@ -75,7 +75,6 @@ class WithTrayIcon(QDialog):
 
     def createTrayIcon(self):
          self.trayIcon = QSystemTrayIcon(self)
-         self.trayIcon.setContextMenu(self.trayIconMenu)
 
 
 class BrowserWindow(QWebView, WithTrayIcon):
