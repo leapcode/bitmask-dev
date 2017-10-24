@@ -428,6 +428,19 @@ var bitmask = function(){
             },
 
             /**
+             * Fetch key by fingerprint
+             *,
+             * @param {string} uid The uid of the keyring.
+             * @param {string} address The email address of the key.
+             * @param {string} fingerprint The key fingerprnit.
+             *
+             * @return {Promise<KeyObject>} The key
+             */
+            fetch: function(uid, address, fingerprint) {
+                return call(['keys', 'fetch', address, fingerprint]);
+            },
+
+            /**
              * Insert key
              *
              * @param {string} uid The uid of the keyring.

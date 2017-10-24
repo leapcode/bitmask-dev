@@ -47,6 +47,8 @@ from common import (
     PUBLIC_KEY_2,
     PRIVATE_KEY,
     PRIVATE_KEY_2,
+    NEW_PUB_KEY,
+    OLD_AND_NEW_KEY_ADDRESS
 )
 
 
@@ -211,7 +213,7 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         pubkey = yield km.get_key(ADDRESS, fetch_remote=False)
         # setup expected args
         data = urllib.urlencode({
-            km.PUBKEY_KEY: pubkey.key_data,
+            km._nicknym.PUBKEY_KEY: pubkey.key_data,
         })
         headers = {'Authorization': [str('Token token=%s' % token)]}
         headers['Content-Type'] = ['application/x-www-form-urlencoded']
@@ -607,6 +609,39 @@ class KeyManagerCryptoTestCase(KeyManagerWithSoledadTestCase):
             lambda _: km.encrypt(self.RAW_DATA, ADDRESS_2, sign=ADDRESS,
                                  fetch_remote=False))
         return self.assertFailure(d, errors.KeyNotFound)
+
+    @defer.inlineCallbacks
+    def test_fetch_key_fingerprint(self):
+        km = self._key_manager(user=ADDRESS_2)
+        km._nicknym.fetch_key_with_fingerprint = mock.Mock(
+            return_value=defer.succeed(PUBLIC_KEY))
+        yield km.fetch_key_fingerprint(ADDRESS, KEY_FINGERPRINT)
+        key = yield km.get_key(ADDRESS, fetch_remote=False)
+        self.assertEqual(key.fingerprint, KEY_FINGERPRINT)
+
+    def test_fetch_key_fingerprint_wrong_fp(self):
+        km = self._key_manager(user=ADDRESS_2)
+        km._nicknym.fetch_key_with_fingerprint = mock.Mock(
+            return_value=defer.succeed(NEW_PUB_KEY))
+        d = km.fetch_key_fingerprint(OLD_AND_NEW_KEY_ADDRESS, KEY_FINGERPRINT)
+        return self.assertFailure(d, errors.KeyNotFound)
+
+    @defer.inlineCallbacks
+    def test_fetch_key_fingerprint_keep_usage(self):
+        km = self._key_manager(user=ADDRESS_2)
+        key, _ = km._openpgp.parse_key(PUBLIC_KEY, ADDRESS)
+        key.sign_used = True
+        yield km.put_key(key)
+
+        km._nicknym.fetch_key_with_fingerprint = mock.Mock(
+            return_value=defer.succeed(PUBLIC_KEY))
+        yield km.fetch_key_fingerprint(ADDRESS, KEY_FINGERPRINT)
+
+        key = yield km.get_key(ADDRESS, fetch_remote=False)
+        self.assertEqual(key.fingerprint, KEY_FINGERPRINT)
+        self.assertTrue(key.sign_used)
+        self.assertFalse(key.encr_used)
+
 
 if __name__ == "__main__":
     import unittest

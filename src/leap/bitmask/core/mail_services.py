@@ -422,6 +422,15 @@ class KeymanagerService(HookableService):
         d.addCallback(lambda key: dict(key))
         return d
 
+    def do_fetch(self, userid, address, fingerprint):
+        km = self._container.get_instance(userid)
+        if km is None:
+            return defer.fail(ValueError("User " + userid + " has no active "
+                                         "keymanager"))
+        d = km.fetch_key_fingerprint(address, fingerprint)
+        d.addCallback(lambda key: dict(key))
+        return d
+
     def do_insert(self, userid, address, rawkey, validation='Fingerprint'):
         km = self._container.get_instance(userid)
         if km is None:

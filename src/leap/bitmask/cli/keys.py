@@ -41,6 +41,7 @@ SUBCOMMANDS:
 
    list       List all known keys
    export     Export a given key
+   fetch      Fetch key by fingerprint
    insert     Insert a key to the key storage
    delete     Delete a key from the key storage
 '''.format(name=command.appname)
@@ -94,6 +95,26 @@ SUBCOMMANDS:
             self.data += ['private']
         if subargs.fetch:
             self.data += ['fetch']
+
+        return self._send(self._print_key)
+
+    def fetch(self, raw_args):
+        parser = argparse.ArgumentParser(
+            description='Bitmask fetch key by fingerprint',
+            prog='%s %s %s' % tuple(sys.argv[:3]))
+        parser.add_argument('-u', '--userid', default='',
+                            help='Select the userid of the keyring')
+        parser.add_argument('address', nargs=1,
+                            help='email address to pin to the key')
+        parser.add_argument('fingerprint', nargs=1,
+                            help='fingerprint to fetch of the key')
+        subargs = parser.parse_args(raw_args)
+
+        userid = subargs.userid
+        if not userid:
+            userid = self.cfg.get('bonafide', 'active', default='')
+        self.data += ['fetch', userid, subargs.address[0],
+                      subargs.fingerprint[0]]
 
         return self._send(self._print_key)
 

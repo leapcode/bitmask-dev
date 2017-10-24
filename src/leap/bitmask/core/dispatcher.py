@@ -363,6 +363,16 @@ class KeysCmd(SubCommand):
         return service.do_export(uid, address, private, fetch_remote)
 
     @register_method('dict')
+    def do_FETCH(self, service, *parts, **kw):
+        if len(parts) < 5:
+            raise ValueError("An email address is needed")
+        uid = parts[2]
+        address = parts[3]
+        fingerprint = parts[4]
+
+        return service.do_fetch(uid, address, fingerprint)
+
+    @register_method('dict')
     def do_INSERT(self, service, *parts, **kw):
         if len(parts) < 6:
             raise ValueError("An email address is needed")

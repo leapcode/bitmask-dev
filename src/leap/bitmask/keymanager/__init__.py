@@ -261,6 +261,43 @@ class KeyManager(object):
         d.addCallbacks(key_found, key_not_found)
         return d
 
+    @defer.inlineCallbacks
+    def fetch_key_fingerprint(self, address, fingerprint):
+        """
+        Fetch a key from the key servers by fingerprint.
+
+        It will replace any key assigned to the address in the keyring and have
+        validation level Fingerprint.
+
+        :param address: The address bound to the key.
+        :type address: str
+        :param fingerprint: The fingerprint of the key to fetch.
+        :type fingerprint: str
+
+        :return: A Deferred which fires with an EncryptionKey fetched,
+                 or which fails with KeyNotFound if no key was found in the
+                 keyserver for this fingerprint.
+        :rtype: Deferred
+        """
+        key_data = yield self._nicknym.fetch_key_with_fingerprint(fingerprint)
+        key, _ = self._openpgp.parse_key(key_data, address)
+        key.validation = ValidationLevels.Fingerprint
+
+        if key.fingerprint != fingerprint:
+            raise keymanager_errors.KeyNotFound("Got wrong fingerprint")
+
+        try:
+            old_key = yield self._openpgp.get_key(address)
+            if old_key.fingerprint == key.fingerprint:
+                key.last_audited_at = old_key.last_audited_at
+                key.encr_used = old_key.encr_used
+                key.sign_used = old_key.sign_used
+        except keymanager_errors.KeyNotFound:
+            pass
+
+        yield self._openpgp.put_key(key)
+        defer.returnValue(key)
+
     def get_all_keys(self, private=False):
         """
         Return all keys stored in local database.
