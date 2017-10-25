@@ -91,14 +91,19 @@ class WithTrayIcon(QDialog):
 
     def setVPNStatus(self, status):
         seticon = self.trayIcon.setIcon
+        settip = self.trayIcon.setToolTip
         if status == 'off':
             seticon(self.ICON_OFF)
+            settip('Off')
         elif status == 'on':
             seticon(self.ICON_ON)
+            settip('On')
         elif status == 'starting':
             seticon(self.ICON_WAIT)
+            settip('Starting')
         elif status == 'stopping':
             seticon(self.ICON_WAIT)
+            settip('Stopping')
 
     def setUpEventListener(self):
         leap_events.register(catalog.VPN_STATUS_CHANGED, self._handle_vpn_event)
@@ -116,7 +121,7 @@ class WithTrayIcon(QDialog):
         self.ICON_OFF = QIcon(QPixmap(TRAY_ICONS[2]))
 
     def _createTrayIcon(self):
-         self.trayIcon = QSystemTrayIcon(self)
+        self.trayIcon = QSystemTrayIcon(self)
 
 
 class BrowserWindow(QWebView, WithTrayIcon):
