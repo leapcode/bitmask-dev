@@ -172,11 +172,9 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
 
     @defer.inlineCallbacks
     def test_get_public_key_fetches_remotely_if_key_expired(self):
-        km = self._key_manager()
-        nicknym_response = {'address': ADDRESS,
-                            'openpgp': DIFFERENT_PUBLIC_KEY}
+        km = self._key_manager(user=ADDRESS_2)
         km._nicknym.fetch_key_with_address = mock.Mock(
-            return_value=nicknym_response)
+            return_value=DIFFERENT_PUBLIC_KEY)
         # put key
         yield km._openpgp.put_raw_key(PUBLIC_KEY, ADDRESS)
 
