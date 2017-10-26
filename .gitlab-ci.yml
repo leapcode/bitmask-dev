@@ -11,16 +11,17 @@ stages:
 variables:
   DOCKER_DRIVER: overlay
 
+# Cache gems in between stages for this pipeline only
+cache:
+  key: "$CI_PIPELINE_ID"
+  paths:
+    - .tox/py27-dev
+
 linux_test:
   image: 0xacab.org:4567/leap/soledad:latest
   stage: test
   script:
     - tox --recreate -e py27-dev
-  artifacts:
-    paths:
-      - .tox/py27-dev
-    name: "bitmask virtualenv ${CI_BUILD_REF}"
-    expire_in: 1 week
   tags:
     - linux
 
@@ -61,11 +62,6 @@ e2e_tests:
     - mkdir -p /root/.config/leap/
     - make install_helpers
     - make test_e2e
-  artifacts:
-    paths:
-      - .tox/py27-dev
-    name: "bitmask virtualenv ${CI_BUILD_REF} (e2e)"
-    expire_in: 1 week
   tags:
     - linux
 
