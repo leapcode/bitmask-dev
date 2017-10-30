@@ -35,7 +35,7 @@ def main(reactor, *args):
     # it was not modified
     current = os.path.getmtime(fname)
     print "CURRENT MTIME", current
-    assert current == past
+    assert int(current) == past
     print 'OK'
     shutil.rmtree(tmp)
 
