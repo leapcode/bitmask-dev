@@ -7,6 +7,7 @@ Changelog
 
 Features
 ~~~~~~~~
+- `#8217 <https://0xacab.org/leap/bitmask-dev/issues/8217>`_: renew OpenPGP keys before they expire.
 - Set a windows title, so that Bitmask windows can be programmatically manipulated.
 
 Misc

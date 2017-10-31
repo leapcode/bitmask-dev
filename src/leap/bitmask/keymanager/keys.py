@@ -338,6 +338,8 @@ class OpenPGPKey(object):
         :return: True if the current date is within the threshold
         :rtype: Boolean
         """
+        if self.expiry_date is None:
+            return False
 
         days_till_expiry = (self.expiry_date - datetime.now())
         return days_till_expiry.days < pre_expiration_threshold

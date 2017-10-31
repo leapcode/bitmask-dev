@@ -47,6 +47,16 @@ Currently Bitmask can discover new public keys from different sources:
 Other methods are planned to be added in the future, like discovery from signatures in emails, headers (autocrypt spec) or other kind of key servers.  
 
 
+Key expiration dates
+--------------------
+
+KeyManager creates the OpenPGP key with the default expiration of gnupg, that currently is 2 years after the key creation. We want keys with expiration date, to be able to roll new ones if the key material get lost.
+
+We will reduce the default expiration lenght in the future. That will require the rest of OpenPGP ecosystem to have good refresh mechanisms for keys, situation that is improving in the last years.
+
+KeyManager extends one year the expiration date automatically two months before the key gets expired.
+
+
 Implementation: using Soledad Documents
 ---------------------------------------
 

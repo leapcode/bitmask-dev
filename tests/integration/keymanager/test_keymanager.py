@@ -21,7 +21,7 @@ import json
 import urllib
 import tempfile
 import pkg_resources
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 from twisted.internet import defer
 from twisted.trial import unittest
@@ -189,6 +189,37 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         self.assertEqual(
             key.fingerprint.lower(), DIFFERENT_KEY_FPR.lower())
         self.assertFalse(key.private)
+
+    @defer.inlineCallbacks
+    def test_get_expired_private_key_extends_expiration(self):
+        token = "mytoken"
+        km = self._key_manager(user=ADDRESS_EXPIRING, token=token)
+        km._nicknym.put_key = mock.Mock(return_value=defer.succeed(''))
+
+        yield km.put_raw_key(PRIVATE_EXPIRING_KEY, ADDRESS_EXPIRING)
+        key = yield km.get_key(ADDRESS_EXPIRING, private=True)
+
+        def assert_expiration_date(key):
+            expected = datetime.now() + timedelta(days=365)
+            self.assertTrue(expected - key.expiry_date < timedelta(days=1))
+
+        # check that the right key is returned with the expiration extended
+        self.assertTrue(key.private)
+        assert_expiration_date(key)
+        self.assertTrue(km._nicknym.put_key.called)
+        key_sent_data = km._nicknym.put_key.call_args[0][1]
+        key_sent_pub, key_sent_priv = km._openpgp.parse_key(key_sent_data)
+        self.assertTrue(key_sent_priv is None)
+        assert_expiration_date(key_sent_pub)
+
+        # check that the key in the keyring has the right expiration and
+        # a second get key doesn't try to extend the expiration again
+        km._nicknym.put_key = mock.Mock(return_value=defer.succeed(''))
+        pubkey = yield km.get_key(ADDRESS_EXPIRING)
+        privkey = yield km.get_key(ADDRESS_EXPIRING, private=True)
+        self.assertFalse(km._nicknym.put_key.called)
+        assert_expiration_date(privkey)
+        assert_expiration_date(pubkey)
 
     @defer.inlineCallbacks
     def test_get_public_key_with_binary_private_key(self):

@@ -254,6 +254,13 @@ class KeyManager(object):
         self.log.debug('Getting key for %s' % (address,))
         emit_async(catalog.KEYMANAGER_LOOKING_FOR_KEY, address)
 
+        @defer.inlineCallbacks
+        def maybe_extend_expiration(key):
+            if key.needs_renewal():
+                key = yield self._openpgp.expire(key, expiration_time='1y')
+                yield self.send_key()
+            defer.returnValue(key)
+
         def key_found(key):
             emit_async(catalog.KEYMANAGER_KEY_FOUND, address)
             return key
@@ -288,6 +295,8 @@ class KeyManager(object):
 
         # return key if it exists in local database
         d = self._openpgp.get_key(address, private=private)
+        if private:
+            d.addCallback(maybe_extend_expiration)
         d.addCallbacks(ensure_valid, key_not_found)
         return d
 
