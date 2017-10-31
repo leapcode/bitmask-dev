@@ -361,20 +361,6 @@ class KeyManager(object):
         d.addCallback(signal_finished)
         return d
 
-    @defer.inlineCallbacks
-    def regenerate_key(self):
-        """
-        Regenerate a key bound to the user's address.
-
-        :return: A Deferred which fires with the generated EncryptionKey.
-        :rtype: Deferred
-        """
-
-        self.log.info('Regenerating key for %s.' % self._address)
-
-        new_key = yield self._openpgp.regenerate_key(self._address)
-        defer.returnValue(new_key)
-
     #
     # Setters/getters
     #

@@ -592,51 +592,6 @@ class KeyManagerKeyManagementTestCase(KeyManagerWithSoledadTestCase):
         yield km.put_raw_key(PRIVATE_KEY, ADDRESS)
         km.send_key.assert_called_once_with()
 
-    @defer.inlineCallbacks
-    def test_key_regenerate_gets_new_expiry_date_and_signed_by_old_key(self):
-        km = self._key_manager(user=ADDRESS_EXPIRING)
-
-        yield km._openpgp.put_raw_key(PRIVATE_EXPIRING_KEY, ADDRESS_EXPIRING)
-        old_key = yield km.get_key(ADDRESS_EXPIRING, fetch_remote=False)
-
-        new_key = yield km.regenerate_key()
-
-        today = datetime.now()
-        new_expiry_date = date(today.year + 1, today.month, today.day)
-        renewed_public_key = yield km.get_key(ADDRESS_EXPIRING,
-                                              fetch_remote=False)
-        renewed_private_key = yield km.get_key(ADDRESS_EXPIRING, private=True)
-
-        self.assertEqual(new_expiry_date,
-                         renewed_public_key.expiry_date.date())
-        self.assertEqual(new_expiry_date,
-                         renewed_private_key.expiry_date.date())
-        self.assertNotEqual(old_key.fingerprint,
-                            renewed_public_key.fingerprint)
-        self.assertEqual(new_key.fingerprint, renewed_public_key.fingerprint)
-        self.assertIn(old_key.fingerprint[-16:], renewed_public_key.signatures)
-
-    @defer.inlineCallbacks
-    def test_key_regenerate_deactivate_the_old_private_key(self):
-        km = self._key_manager(user=ADDRESS_EXPIRING)
-
-        yield km._openpgp.put_raw_key(PRIVATE_EXPIRING_KEY, ADDRESS_EXPIRING)
-        old_key = yield km.get_key(ADDRESS_EXPIRING, fetch_remote=False)
-
-        new_key = yield km.regenerate_key()
-        inactive_private_keys = yield km._get_inactive_private_keys()
-        renewed_public_key = yield km.get_key(ADDRESS_EXPIRING, private=False,
-                                              fetch_remote=False)
-
-        self.assertEqual(1, len(inactive_private_keys))
-        retrieved_old_key = inactive_private_keys[0]
-        self.assertEqual(old_key.fingerprint,
-                         retrieved_old_key.fingerprint)
-        self.assertNotEqual(old_key.fingerprint,
-                            new_key.fingerprint)
-        self.assertEqual(new_key.fingerprint, renewed_public_key.fingerprint)
-        self.assertIn(old_key.fingerprint[-16:], renewed_public_key.signatures)
-
 
 class KeyManagerCryptoTestCase(KeyManagerWithSoledadTestCase):
     RAW_DATA = 'data'
@@ -669,9 +624,6 @@ class KeyManagerCryptoTestCase(KeyManagerWithSoledadTestCase):
                                    fetch_remote=False)
         self.assertNotEqual(self.RAW_DATA, encdata)
 
-        # renew key
-        yield km.regenerate_key()
-
         # decrypt
         rawdata, signingkey = yield km.decrypt(
             encdata, ADDRESS, verify=ADDRESS_2, fetch_remote=False)
@@ -685,9 +637,6 @@ class KeyManagerCryptoTestCase(KeyManagerWithSoledadTestCase):
         # put raw private key
         yield km._openpgp.put_raw_key(PRIVATE_KEY, ADDRESS)
         yield km._openpgp.put_raw_key(PRIVATE_KEY_2, ADDRESS_2)
-
-        # renew key -- deactivate current key
-        yield km.regenerate_key()
 
         # decrypt
         with self.assertRaises(errors.DecryptError):

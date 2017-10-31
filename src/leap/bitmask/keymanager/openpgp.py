@@ -161,44 +161,6 @@ class OpenPGPScheme(object):
     #
     # Keys management
     #
-    @defer.inlineCallbacks
-    def regenerate_key(self, address):
-        """
-        Deactivate Current keypair,
-        Generate a new OpenPGP keypair bound to C{address},
-        and sign the new key with the old key.
-
-        :param address: The address bound to the key.
-        :type address: str
-
-        :return: A Deferred which fires with the new key bound to address.
-        :rtype: Deferred
-        """
-        leap_assert(is_address(address), 'Not an user address: %s' % address)
-        current_sec_key = yield self.get_key(address, private=True)
-        current_pub_key = yield self.get_key(address, private=False)
-        with TempGPGWrapper([current_sec_key], self._gpgbinary) as gpg:
-            if current_sec_key.is_expired():
-                temporary_extension_period = '1'  # extend for 1 extra day
-                gpg.expire(current_sec_key.fingerprint,
-                           expiration_time=temporary_extension_period)
-            yield self.unactivate_key(address)  # only one priv key allowed
-            yield self.delete_key(current_pub_key)
-            new_key = yield self.gen_key(address)
-            gpg.import_keys(new_key.key_data)
-            key_signing = yield from_thread(gpg.sign_key, new_key.fingerprint)
-            if key_signing.status == 'ok':
-                fetched_keys = gpg.list_keys(secret=False)
-                fetched_key = filter(lambda k: k['fingerprint'] ==
-                                     new_key.fingerprint, fetched_keys)[0]
-                key_data = gpg.export_keys(new_key.fingerprint, secret=False)
-                renewed_key = self._build_key_from_gpg(
-                    fetched_key,
-                    key_data,
-                    new_key.address)
-                yield self.put_key(renewed_key)
-        defer.returnValue(new_key)
-
     def gen_key(self, address):
         """
         Generate an OpenPGP keypair bound to C{address}.
@@ -411,7 +373,7 @@ class OpenPGPScheme(object):
             d.addCallback(put_key, openpgp_privkey)
         return d
 
-    def put_key(self, key, key_renewal=False):
+    def put_key(self, key):
         """
         Put C{key} in local storage.
 
@@ -431,7 +393,7 @@ class OpenPGPScheme(object):
                 active_content = activedoc.content
             oldkey = build_key_from_dict(keydoc.content, active_content)
 
-            key.merge(oldkey, key_renewal)
+            key.merge(oldkey)
             keydoc.set_json(key.get_json())
             d = self._soledad.put_doc(keydoc)
             d.addCallback(put_active, activedoc)
