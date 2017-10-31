@@ -25,6 +25,8 @@ interface.
 import os
 import shutil
 import sys
+import time
+from collections import OrderedDict
 
 from twisted.internet import protocol, reactor, defer
 from twisted.internet import error as internet_error
@@ -33,26 +35,35 @@ from twisted.logger import Logger
 from zope.interface import implementer
 
 from leap.bitmask.vpn.utils import get_vpn_launcher
-from leap.bitmask.vpn.management import ManagementProtocol, IStateListener
+from leap.bitmask.vpn.management import ManagementProtocol
 from leap.bitmask.vpn.launchers import darwin
 from leap.bitmask.vpn.constants import IS_MAC, IS_LINUX
-
 from leap.common.events import catalog, emit_async
+
+from zope.interface import Interface
+
+from ._state import State
 
 
 OPENVPN_VERBOSITY = 4
 
 
+class IStateListener(Interface):
+
+    def changeState(self, state):
+        pass
+
+    def appendToStateLog(self, state):
+        pass
+
+    def getState(sef):
+        pass
+
+    def getStateHistory(self):
+        pass
+
+
 @implementer(IStateListener)
-class VPNStateListener(object):
-
-    # TODO we should move the state history to this class
-    # and make VPNProcess the implementer itself - or the service.
-
-    def change_state(self, state):
-        emit_async(catalog.VPN_STATUS_CHANGED, state.simple)
-
-
 class _VPNProcess(protocol.ProcessProtocol):
 
     """
@@ -102,14 +113,39 @@ class _VPNProcess(protocol.ProcessProtocol):
         self._providerconfig = providerconfig
         self._launcher = get_vpn_launcher()
         self._restartfun = restartfun
-        self._status = 'off'
 
         self.restarting = True
         self.failed = False
         self.errmsg = None
         self.proto = None
         self._remotes = remotes
-        self._listener = VPNStateListener()
+        self._statelog = OrderedDict()
+        self._turn_state_off()
+
+    def _turn_state_off(self):
+        ts = time.time()
+        off = State('OFF', ts)
+        self.changeState(off)
+
+    # IStateListener methods
+
+    def changeState(self, state):
+        self.appendToStateLog(state)
+        emit_async(catalog.VPN_STATUS_CHANGED, state.simple)
+
+    def appendToStateLog(self, state):
+        ts = state.timestamp
+        self._statelog[ts] = state
+
+    def getState(self):
+        if self._statelog.values():
+            return self._statelog.values()[-1]
+        else:
+            return None
+
+    # TODO -- expose on the API, wanted by UI
+    def getStateHistory(self):
+        return self._statelog
 
     # processProtocol methods
 
@@ -121,7 +157,7 @@ class _VPNProcess(protocol.ProcessProtocol):
     @defer.inlineCallbacks
     def _got_management_protocol(self, proto):
         self.proto = proto
-        proto.addStateListener(self._listener)
+        proto.addStateListener(self)
 
         try:
             yield proto.logOn()
@@ -175,6 +211,7 @@ class _VPNProcess(protocol.ProcessProtocol):
             # TODO: need to exit properly!
             self.errmsg = None
         self.proto = None
+        self._turn_state_off()
 
     def processEnded(self, reason):
         """
@@ -213,32 +250,20 @@ class _VPNProcess(protocol.ProcessProtocol):
     def status(self):
         if self.failed:
             return {'status': 'failed', 'error': self.errmsg}
-
-        # FIXME - hack, doesn't belong here ----------------------------------
-        # needs to go with implementing the history within the VPNProcess.
-        # this only will work before the UI is pulling the state and therefore
-        # checking this condition as a side-effect of reading the property.
-
-        # TODO trigger off transition when proto dissapears (at processExited)
-        if not self.proto:
-            OFF = 'off'
-            if self._status != OFF:
-                self._status = OFF 
-                class _state(object):
-                    simple = 'OFF'
-                off = _state()
-                self._listener.change_state(off)
-            return {'status': OFF, 'error': None}
-        # --------------------------------------------------------------------
-
         try:
-            self._status = self.proto.state.simple.lower()
-            status = {'status': self._status, 'error': None}
+            state = self.getState()
+            if state:
+                _status = state.simple.lower()
+            status = {'status': _status, 'error': None}
         except AttributeError:
-            # glitch due to proto.state transition?
-            status = {'status': self._status, 'error': None}
+            raise
+            # BUG -- glitch due to proto.state transition?
+            #state = self.getState()
+            #if state:
+            #    _status = state.simple.lower()
+            #status = {'status': _status, 'error': None}
 
-        if self.proto.traffic:
+        if self.proto and self.proto.traffic:
             remote = self.proto.remote
             rport = self.proto.rport
             status['remote'] = '%s:%s' % (remote, rport)

@@ -27,15 +27,9 @@ from twisted.protocols.basic import LineReceiver
 from twisted.internet.defer import Deferred
 from twisted.logger import Logger
 
-from zope.interface import Interface
-
 from _human import bytes2human
 
-
-class IStateListener(Interface):
-
-    def change_state(self, state):
-        pass
+from ._state import State
 
 
 class ManagementProtocol(LineReceiver):
@@ -53,22 +47,15 @@ class ManagementProtocol(LineReceiver):
         self.pid = None
 
         self._defs = []
-        self._statelog = OrderedDict()
         self._linebuf = []
         self._state_listeners = set([])
 
     def addStateListener(self, listener):
         """
-        A Listener must implement change_state method,
+        A Listener must implement changeState method,
         and it will be called with a State object.
         """
         self._state_listeners.add(listener)
-
-    # TODO -- this needs to be exposed by the API
-    # The UI needs this feature.
-
-    def getStateHistory(self):
-        return self._statelog
 
     def lineReceived(self, line):
         if self.verbose:
@@ -169,11 +156,9 @@ class ManagementProtocol(LineReceiver):
             return
 
         if state != self.state:
-            now = time.time()
             stateobj = State(state, ts)
-            self._statelog[now] = stateobj
             for listener in self._state_listeners:
-                listener.change_state(stateobj)
+                listener.changeState(stateobj)
         self.state = stateobj
         self.remote = remote
         self.rport = rport
@@ -233,89 +218,13 @@ class ManagementProtocol(LineReceiver):
         return d
 
     def getInfo(self):
-        state = self._statelog.values()[-1]
         return {
             'remote': self.remote,
             'rport': self.rport,
-            'state': state.state,
-            'state_simple': state.simple,
-            'state_legend': state.legend,
             'openvpn_version': self.openvpn_version,
             'pid': self.pid,
             'traffic_down_total': self.traffic.down,
             'traffic_up_total': self.traffic.up}
-
-
-class State(object):
-
-    """
-    Possible States in an OpenVPN connection, according to the
-    OpenVPN Management documentation.
-    """
-
-    CONNECTING = 'CONNECTING'
-    WAIT = 'WAIT'
-    AUTH = 'AUTH'
-    GET_CONFIG = 'GET_CONFIG'
-    ASSIGN_IP = 'ASSIGN_IP'
-    ADD_ROUTES = 'ADD_ROUTES'
-    CONNECTED = 'CONNECTED'
-    RECONNECTING = 'RECONNECTING'
-    EXITING = 'EXITING'
-
-    OFF = 'OFF'
-    ON = 'ON'
-    STARTING = 'STARTING'
-    STOPPING = 'STOPPING'
-    FAILED = 'FAILED'
-
-    _legend = {
-        'CONNECTING': 'Connecting to remote server',
-        'WAIT': 'Waiting from initial response from server',
-        'AUTH': 'Authenticating with server',
-        'GET_CONFIG': 'Downloading configuration options from server',
-        'ASSIGN_IP': 'Assigning IP address to virtual network interface',
-        'ADD_ROUTES': 'Adding routes to system',
-        'CONNECTED': 'Initialization Sequence Completed',
-        'RECONNECTING': 'A restart has occurred',
-        'EXITING': 'A graceful exit is in progress'
-    }
-
-    _simple = {
-        'CONNECTING': STARTING,
-        'WAIT': STARTING,
-        'AUTH': STARTING,
-        'GET_CONFIG': STARTING,
-        'ASSIGN_IP': STARTING,
-        'ADD_ROUTES': STARTING,
-        'CONNECTED': ON,
-        'RECONNECTING': STARTING,
-        'EXITING': STOPPING
-    }
-
-    def __init__(self, state, timestamp):
-        self.state = state
-        self.timestamp = timestamp
-
-    @classmethod
-    def get_legend(cls, state):
-        return cls._legend.get(state)
-
-    @classmethod
-    def get_simple(cls, state):
-        return cls._simple.get(state)
-
-    @property
-    def simple(self):
-        return self.get_simple(self.state)
-
-    @property
-    def legend(self):
-        return self.get_legend(self.state)
-
-    def __repr__(self):
-        return '<State: %s [%s]>' % (
-            self.state, time.ctime(int(self.timestamp)))
 
 
 class TrafficCounter(object):
