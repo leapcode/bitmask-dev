@@ -3,11 +3,11 @@ Changelog
 
 0.10.2 -  `master`_ 
 -------------------------------
-
 .. note:: This version is not yet released and is under active development.
 
 Features
 ~~~~~~~~
+- `#9094 <https://0xacab.org/leap/bitmask-dev/issues/9094>`_: Implement a simple systray icon.
 - Ship gpg1 binary with osx builds.
 
 Bugfixes

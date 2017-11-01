@@ -94,22 +94,21 @@ class WithTrayIcon(QDialog):
         settip = self.trayIcon.setToolTip
         if status == 'off':
             seticon(self.ICON_OFF)
-            settip('Off')
+            settip('VPN: Off')
         elif status == 'on':
             seticon(self.ICON_ON)
-            settip('On')
+            settip('VPN: On')
         elif status == 'starting':
             seticon(self.ICON_WAIT)
-            settip('Starting')
+            settip('VPN: Starting')
         elif status == 'stopping':
             seticon(self.ICON_WAIT)
-            settip('Stopping')
+            settip('VPN: Stopping')
 
     def setUpEventListener(self):
         leap_events.register(catalog.VPN_STATUS_CHANGED, self._handle_vpn_event)
 
     def _handle_vpn_event(self, *args):
-        print ">>>>>> GOT EVENT", str(args)
         status = None
         if len(args) > 1:
             status = args[1]

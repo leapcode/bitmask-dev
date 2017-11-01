@@ -92,7 +92,7 @@ class ConfiguredTunnel(object):
         else:
             status = self._vpnproc.status
         # Currently, there's some UI flickering that needs to be debugged #9049
-        print ">>>> STATUS", status
+        # print ">>>> STATUS", status
         return status
 
     @property
