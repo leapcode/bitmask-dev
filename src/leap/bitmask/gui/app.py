@@ -43,17 +43,17 @@ if platform.system() == 'Windows':
     from PySide.QtGui import QDialog
     from PySide.QtGui import QApplication
     from PySide.QtWebKit import QWebView, QGraphicsWebView
-    from PySide.QtCore import QSize
 else:
     from PyQt5 import QtCore, QtGui
-    from PyQt5.QtCore import QSize
     from PyQt5.QtCore import QObject, pyqtSlot
     from PyQt5.QtWidgets import QApplication
     from PyQt5.QtGui import QIcon
     from PyQt5.QtGui import QPixmap
+    from PyQt5.QtWidgets import QAction
     from PyQt5.QtWidgets import QMenu
     from PyQt5.QtWidgets import QSystemTrayIcon
     from PyQt5.QtWidgets import QDialog
+    from PyQt5.QtWidgets import QMessageBox
 
     try:
         from PyQt5.QtWebKitWidgets import QWebView
@@ -80,14 +80,18 @@ TRAY_ICONS = (
     ':/black/22/on.png',
     ':/black/22/off.png')
 
+
 class WithTrayIcon(QDialog):
+
+    user_closed = False
 
     def setupSysTray(self):
         self._createIcons()
+        self._createActions()
         self._createTrayIcon()
         self.setVPNStatus('off')
-        self.trayIcon.show()
         self.setUpEventListener()
+        self.trayIcon.show()
 
     def setVPNStatus(self, status):
         seticon = self.trayIcon.setIcon
@@ -106,7 +110,9 @@ class WithTrayIcon(QDialog):
             settip('VPN: Stopping')
 
     def setUpEventListener(self):
-        leap_events.register(catalog.VPN_STATUS_CHANGED, self._handle_vpn_event)
+        leap_events.register(
+            catalog.VPN_STATUS_CHANGED,
+            self._handle_vpn_event)
 
     def _handle_vpn_event(self, *args):
         status = None
@@ -119,8 +125,31 @@ class WithTrayIcon(QDialog):
         self.ICON_ON = QIcon(QPixmap(TRAY_ICONS[1]))
         self.ICON_OFF = QIcon(QPixmap(TRAY_ICONS[2]))
 
+    def _createActions(self):
+        self.quitAction = QAction(
+            "&Quit", self,
+            triggered=self.closeFromSystray)
+
+    def closeFromSystray(self):
+        self.user_closed = True
+        self.close()
+
     def _createTrayIcon(self):
+        self.trayIconMenu = QMenu(self)
+        self.trayIconMenu.addAction(self.quitAction)
         self.trayIcon = QSystemTrayIcon(self)
+        self.trayIcon.setContextMenu(self.trayIconMenu)
+
+    def closeEvent(self, event):
+        if self.trayIcon.isVisible() and not self.user_closed:
+            QMessageBox.information(
+                self, "Systray",
+                "The program will keep running in the system tray. To "
+                "terminate the program, choose <b>Quit</b> in the "
+                "context menu of the system tray entry.")
+        self.hide()
+        if not self.user_closed:
+            event.ignore()
 
 
 class BrowserWindow(QWebView, WithTrayIcon):
