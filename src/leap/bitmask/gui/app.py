@@ -89,6 +89,7 @@ class WithTrayIcon(QDialog):
         self._createIcons()
         self._createActions()
         self._createTrayIcon()
+        self.trayIcon.activated.connect(self.iconActivated)
         self.setVPNStatus('off')
         self.setUpEventListener()
         self.trayIcon.show()
@@ -130,6 +131,11 @@ class WithTrayIcon(QDialog):
             "&Quit", self,
             triggered=self.closeFromSystray)
 
+    def iconActivated(self, reason):
+        # can use .Trigger also for single click
+        if reason in (QSystemTrayIcon.DoubleClick, ):
+            self.showNormal()
+
     def closeFromSystray(self):
         self.user_closed = True
         self.close()
@@ -144,9 +150,9 @@ class WithTrayIcon(QDialog):
         if self.trayIcon.isVisible() and not self.user_closed:
             QMessageBox.information(
                 self, "Systray",
-                "The program will keep running in the system tray. To "
-                "terminate the program, choose <b>Quit</b> in the "
-                "context menu of the system tray entry.")
+                "Bitmask will minimize to the system tray. "
+                "You can choose 'Quit' from the menu with a "
+                "right click on the icon.")
         self.hide()
         if not self.user_closed:
             event.ignore()
