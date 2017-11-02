@@ -17,6 +17,9 @@ Bugfixes
 - Ship cacert.pem inside Bitmask.app
 - Avoid importing linux-specific constants in firewall helpers.
 
+Misc
+~~~~
+- Build packages for artful too.
 
 0.10.1
 ---------------------
