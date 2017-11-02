@@ -263,6 +263,7 @@ class AppProxy(QObject):
         """To be exposed from the js bridge"""
         global browser
         if browser:
+            browser.user_closed = True
             browser.close()
 
     @pyqtSlot(str)
