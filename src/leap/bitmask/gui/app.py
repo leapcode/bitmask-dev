@@ -97,6 +97,8 @@ class WithTrayIcon(QDialog):
     def setVPNStatus(self, status):
         seticon = self.trayIcon.setIcon
         settip = self.trayIcon.setToolTip
+        # XXX this is an oversimplification, see #9131
+        # the simple state for failure is off too, for now.
         if status == 'off':
             seticon(self.ICON_OFF)
             settip('VPN: Off')
