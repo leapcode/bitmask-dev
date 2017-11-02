@@ -34,7 +34,10 @@ POLKIT_PATHS = (
     '/usr/lib/mate-polkit/polkit-mate-authentication-agent-1',
     '/usr/lib/x86_64-linux-gnu/libexec/polkit-kde-authentication-agent-1',
     '/usr/lib/kde4/libexec/polkit-kde-authentication-agent-1',
+    # now we get weird
     '/usr/libexec/policykit-1-pantheon/pantheon-agent-polkit',
+    '/usr/lib/polkit-1-dde/dde-polkit-agent',
+    # do you know some we're still missing? :)
 )
 
 
