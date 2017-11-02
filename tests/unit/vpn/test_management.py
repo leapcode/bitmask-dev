@@ -45,8 +45,11 @@ class StateListener(object):
     def __init__(self):
         self.states = []
 
-    def change_state(self, state):
+    def changeState(self, state):
         self.states.append(state)
+
+    def getStateHistory(self):
+        return self.states
 
 
 class ManagementTestCase(unittest.TestCase):
@@ -66,10 +69,12 @@ class ManagementTestCase(unittest.TestCase):
 
     def test_get_state_history(self):
         proto = ManagementProtocol()
+        listener = StateListener()
+        proto.addStateListener(listener)
         feed_the_protocol(proto, session1)
-        log = proto.getStateHistory()
-        states = [st.state for st in log.values()]
-        assert len(log) == 4
+        log = listener.getStateHistory()
+        states = [st.state for st in log]
+        assert len(states) == 4
         assert states == ['AUTH', 'GET_CONFIG', 'ASSIGN_IP', 'CONNECTED']
 
     def test_state_listener(self):
@@ -128,8 +133,5 @@ class ManagementTestCase(unittest.TestCase):
         info = proto.getInfo()
         assert info['remote'] == '46.165.242.169'
         assert info['rport'] == '443'
-        assert info['state'] == 'CONNECTED'
-        assert info['state_simple'] == 'ON'
-        assert info['state_legend'] == 'Initialization Sequence Completed'
         assert info['openvpn_version'].startswith('OpenVPN 2.4.0')
         assert info['pid'] == 23783
