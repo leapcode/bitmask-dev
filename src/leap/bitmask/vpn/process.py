@@ -258,10 +258,11 @@ class _VPNProcess(protocol.ProcessProtocol):
         except AttributeError:
             raise
             # BUG -- glitch due to proto.state transition?
-            #state = self.getState()
-            #if state:
+            # still needed?
+            # state = self.getState()
+            # if state:
             #    _status = state.simple.lower()
-            #status = {'status': _status, 'error': None}
+            # status = {'status': _status, 'error': None}
 
         if self.proto and self.proto.traffic:
             remote = self.proto.remote
