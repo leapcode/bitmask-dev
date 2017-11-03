@@ -1,9 +1,16 @@
 Changelog
 =====================
 
-0.10.2 -  `master`_ 
+0.10.3 -  `master`_ 
 -------------------------------
 .. note:: This version is not yet released and is under active development.
+
+Features
+________
+- Set a windows title, so that Bitmask windows can be programmatically manipulated.
+
+0.10.2
+-------------------------------
 
 Features
 ~~~~~~~~

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # app.py
-# Copyright (C) 2016 LEAP Encryption Acess Project
+# Copyright (C) 2016-2017 LEAP Encryption Acess Project
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -151,10 +151,11 @@ class WithTrayIcon(QDialog):
     def closeEvent(self, event):
         if self.trayIcon.isVisible() and not self.user_closed:
             QMessageBox.information(
-                self, "Systray",
+                self, "Bitmask",
                 "Bitmask will minimize to the system tray. "
                 "You can choose 'Quit' from the menu with a "
-                "right click on the icon.")
+                "right click on the icon, and restore the window "
+                "with a double click.")
         self.hide()
         if not self.user_closed:
             event.ignore()
@@ -196,6 +197,7 @@ class BrowserWindow(QWebView, WithTrayIcon):
         self.closing = False
 
         super(QWebView, self).__init__(*args, **kw)
+        self.setWindowTitle('Bitmask')
         self.bitmask_browser = NewPageConnector(self) if first else None
         self.loadPage(self.url)
 
