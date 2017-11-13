@@ -7,11 +7,24 @@
 Contributing
 ============
 
-* Send your merge requests to https://0xacab/leap/bitmask-dev, it will be
-  subject to code-review.
+This project adheres to the `Contributor Covenant 1.2`_. By participating you
+are expected to uphold this code. Please report unacceptable behavior to
+info@leap.se.
+
+* Fork the code at https://0xacab.org/leap/bitmask-dev. New users may be
+  limited in how many forks they can have, so if this is a problem for you,
+  file a `support ticket`_ or fork the code from the `github mirror`_.
+* Create a merge request on `0xacab`_. If you  forked from the
+  `github mirror`_, create your pull request there. They will be subject to
+  code review.
 * Please base your branch for master, and keep it rebased when you push.
 * After review, please squash your commits.
- 
+
+.. _`Contributor Covenant 1.2`: http://contributor-covenant.org/version/1/2/0
+.. _`support ticket`: https://0xacab.org/riseup/0xacab/issues
+.. _`github mirror`: https://github.com/leapcode/bitmask-dev
+.. _`0xacab`: https://0xacab.org/leap/bitmask-dev
+
 
 Coding conventions
 ---------------------------------
@@ -57,4 +70,4 @@ in your gitconfig to only allow the merges that can be resolved as a
 fast-forward::
 
   [merge]
-  ff = only  
+  ff = only

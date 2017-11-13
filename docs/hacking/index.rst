@@ -86,6 +86,13 @@ There are some :ref:`guidelines for contributing code <contributing>` that you
 might want to check if you are insterested in developing with Bitmask.
 
 
+Submitting a Bug
+----------------
+
+You can read more about how to submit a bug in the section on
+`Testing and QA <../testing/index>`_.
+
+
 Release
 -------
 

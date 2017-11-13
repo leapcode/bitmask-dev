@@ -42,10 +42,15 @@ still available at the http://github.com/leapcode/bitmask_client repo).
 Read the Docs!
 -----------------------------------------------------------
 
-There is documentation about Bitmask `for users`_ and `for developers`_.
+There is documentation about Bitmask `for users`_ and `for developers`_. For
+developers, be sure to read the sections on `hacking`_ and `contributing_`.
+Testers should read the section on `testing and QA`_.
 
 .. _`for users`: https://leap.se/en/docs/client
-.. _`for developers`: https://bitmask.rtfd.io
+.. _`for developers`: https://bitmask.readthedocs.io
+.. _`hacking`: https://bitmask.readthedocs.io/en/latest/hacking/index.html
+.. _`contributing`: https://bitmask.readthedocs.io/en/latest/hacking/contributing.html#contributing
+.. _`testing and QA`: https://bitmask.readthedocs.io/en/latest/testing/index.html
 
 Bugs
 ===========================================================

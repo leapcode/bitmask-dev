@@ -23,18 +23,21 @@ Reporting bugs
 --------------
 
 * Bug reports go into our `Issue Tracker`_. 
-* `Here`_ is some very good read about what constitutes a `good bug report`_.
+* `Here`_ is a very good read about what constitutes a `good bug report`_.
 * Have also a look at the :ref:`Known Issues <issues>` page.
 
 .. _`Issue Tracker`: https://0xacab.org/leap/bitmask-dev/issues/
 .. _`Here`: http://www.chiark.greenend.org.uk/~sgtatham/bugs.html
 .. _`good bug report`: http://www.chiark.greenend.org.uk/~sgtatham/bugs.html
 
+.. note:: Before including logs in a bug report, please read through them and
+          *remove any personally-identifying information*!
+
 Logs
 --------------
 Bitmask stores the logs in ``$HOME/.config/leap/bitmaskd.log``. You might want
-to remove the whole ``~/.config/leap`` folder when trying a new account, or when you
-stop using Bitmask.
+to remove the whole ``~/.config/leap`` folder when trying a new account, or
+when you stop using Bitmask.
 
 Tips for QA
 --------------------------------
