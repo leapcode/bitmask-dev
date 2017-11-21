@@ -108,4 +108,4 @@ GUI options
 BUGS
 ====
 
-Please report any bugs to https://leap.se/code/projects/report-issues
+Please report any bugs to https://0xacab.org/leap/bitmask-dev
