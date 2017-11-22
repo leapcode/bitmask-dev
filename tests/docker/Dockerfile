@@ -6,7 +6,7 @@ LABEL Description="Image for building bitmask-dev based on Ubuntu 17:10" Vendor=
 # Install bitmask-dev build and test deps
 RUN apt-get update && \
   apt-get -y install --no-install-recommends \
-  build-essential python-virtualenv libpython-dev \
+  build-essential tox libpython-dev \
   libsqlcipher-dev libssl-dev libffi-dev \
   python-pyqt5 python-pyqt5.qtwebkit \
   nodejs mocha \
