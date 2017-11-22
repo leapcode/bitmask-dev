@@ -21,6 +21,9 @@ linux_test:
   image: 0xacab.org:4567/leap/soledad:latest
   stage: test
   script:
+    # In this first job, recreate the tox venv from scratch
+    # on start of every pipeline
+    - dpkg -l tox > /dev/null || apt-get -y --no-install-recommends install tox
     - tox --recreate -e py27-dev
   tags:
     - linux
@@ -57,6 +60,8 @@ e2e_tests:
   dependencies:
       - linux_test
   script:
+    - dpkg -l tox > /dev/null || apt-get -y --no-install-recommends install tox
+    - tox -e py27-dev --notest
     - source .tox/py27-dev/bin/activate
     - make dev-latest-backend
     - mkdir -p /root/.config/leap/
@@ -71,6 +76,8 @@ functional_tests:
   dependencies:
       - e2e_tests
   before_script:
+    - dpkg -l tox > /dev/null || apt-get -y --no-install-recommends install tox
+    - tox -e py27-dev --notest
     - source .tox/py27-dev/bin/activate
     - make dev-latest-all
     - make test_functional_setup
