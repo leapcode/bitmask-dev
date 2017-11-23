@@ -7,7 +7,7 @@
 Contributing
 ============
 
-This project adheres to the `Contributor Covenant 1.2`_. By participating you
+This project adheres to the `Contributor Covenant 1.4`_. By participating you
 are expected to uphold this code. Please report unacceptable behavior to
 info@leap.se.
 
@@ -20,7 +20,7 @@ info@leap.se.
 * Please base your branch for master, and keep it rebased when you push.
 * After review, please squash your commits.
 
-.. _`Contributor Covenant 1.2`: http://contributor-covenant.org/version/1/2/0
+.. _`Contributor Covenant 1.4`: http://contributor-covenant.org/version/1/4/0
 .. _`support ticket`: https://0xacab.org/riseup/0xacab/issues
 .. _`github mirror`: https://github.com/leapcode/bitmask-dev
 .. _`0xacab`: https://0xacab.org/leap/bitmask-dev
