@@ -3,17 +3,37 @@
 Setting up a development environment in OSX™
 ============================================
 
-.. note: work in progress
+.. note: work in progress. send a MR if you spot any mistake or missing info!
 
-* Make sure you're using a new enough version of pip (1.8 or newest). This will make all the problems with ``cryptography`` going away, since it will install the statically built wheel.
+* You will need to install xcode and the command line developer tools (``xcode-select --install``).
 
-* Use ``brew`` to install ``OpenSSL``.
+* Use ``brew`` to install ``OpenSSL``: ``brew install openssl``
 
-In OSX, we're using ``pywebview`` for the GUI launcher, that depends on ``pyobjc``. You can install that with::
+* Install ``wget``: ``brew install wget`` (interestingly, this installs openssl 1.1, which we might want in order not to use the python scrypt extension).
 
-  pip install -r pkg/requirements-osx.pip
+* Install a recent python: ``brew install python``
 
-After installing that, you should be able to build the bundle::
+* Put the installed python in your path: ``echo 'export PATH="/usr/local/opt/python/libexec/bin:$PATH"' >> ~/.bash_profile``
+
+* Log-in again so that the $PATH changes take effect.
+
+* Make sure you're using a new enough version of pip (1.8 or newest). This will make all the problems with ``cryptography`` going away, since it will install the statically built wheel: ``pip --version``
+
+* Clone the repo, create and activate a virtualenv::
+
+  mkdir ~/leap && cd ~/leap
+  git clone "https://0xacab.org/leap/bitmask-dev"
+  pip install virtualenv
+  virtualenv ~/leap/venv
+  source ~/leap/venv/bin/activate
+
+* In OSX, we're using ``pywebview`` for the GUI launcher, that depends on ``pyobjc``. You can install that with::
+
+  pip install -r ~/leap/bitmask-dev/pkg/requirements-osx.pip
+
+* Install the rest of dependencies as usual.
+
+* After installing that, you should be able to build the bundle::
 
   make bundle_osx
 
