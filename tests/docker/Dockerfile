@@ -9,7 +9,7 @@ RUN apt-get update && \
   build-essential tox libpython-dev \
   libsqlcipher-dev libssl-dev libffi-dev \
   python-pyqt5 python-pyqt5.qtwebkit \
-  nodejs mocha \
+  nodejs npm mocha \
   git swaks uuid-runtime \
   openvpn policykit-1 lxpolkit \
   wget patchelf libusb-0.1-4 \
