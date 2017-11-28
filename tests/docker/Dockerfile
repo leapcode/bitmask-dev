@@ -13,7 +13,7 @@ RUN apt-get update && \
   git swaks uuid-runtime \
   openvpn policykit-1 lxpolkit \
   wget patchelf libusb-0.1-4 \
-  xvfb \
+  xvfb gnupg1 haveged \
   # needed for chromedriver
   libgconf-2-4 chromium-browser unzip
 
