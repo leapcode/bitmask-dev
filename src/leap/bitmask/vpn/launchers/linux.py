@@ -22,14 +22,15 @@ Linux VPN launcher implementation.
 import os
 
 import psutil
+import subprocess
 
 from twisted.internet import defer, reactor
 from twisted.internet.endpoints import clientFromString, connectProtocol
 from twisted.logger import Logger
 
-from leap.bitmask.util import STANDALONE
 from leap.bitmask.vpn.utils import first, force_eval
 from leap.bitmask.vpn import constants
+from leap.bitmask.vpn import _config
 from leap.bitmask.vpn.privilege import LinuxPolicyChecker
 from leap.bitmask.vpn.management import ManagementProtocol
 from leap.bitmask.vpn.launcher import VPNLauncher
@@ -85,14 +86,32 @@ class LinuxVPNLauncher(VPNLauncher):
 
     class BITMASK_ROOT(object):
         def __call__(self):
+            current_version = self._version(_config.get_bitmask_helper_path())
+
             _sys = constants.BITMASK_ROOT_SYSTEM
-            _local = constants.BITMASK_ROOT_LOCAL
+            _sys_version = 0
             if os.path.isfile(_sys):
+                _sys_version = self._version(_sys)
+
+            _local = constants.BITMASK_ROOT_LOCAL
+            _local_version = 0
+            if os.path.isfile(_local):
+                _local_version = self._version(_local)
+
+            if _sys_version == current_version:
                 return _sys
-            elif os.path.isfile(_local):
+            elif _local_version == current_version:
+                return _local
+            elif _sys_version != 0 and _sys_version >= _local_version:
+                return _sys
+            elif _local_version != 0:
                 return _local
             else:
                 return 'bitmask-root'
+
+        def _version(self, bitmask_root):
+            out = subprocess.check_output(['python', bitmask_root, "version"])
+            return int(out)
 
     class OPENVPN_BIN_PATH(object):
         def __call__(self):
