@@ -6,8 +6,13 @@ Changelog
 .. note:: This version is not yet released and is under active development.
 
 Features
-________
+~~~~~~~~
 - Set a windows title, so that Bitmask windows can be programmatically manipulated.
+
+Misc
+~~~~
+- Configure travis build for OSX.
+- Add tox to the docker image; install it on every job.
 
 0.10.2
 -------------------------------
