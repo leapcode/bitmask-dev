@@ -44,7 +44,7 @@ To see the loaded rules:
 To test the commands, you can write directly to the unix socket. Remember to
 terminate the command properly:
 
- echo 'firewall_stop/CMD' | socat - UNIX-CONNECT:/tmp/bitmask-helper.socket
+ echo 'firewall_stop/CMD' | socat - UNIX-CONNECT:/var/run/bitmask-helper.socket
 
 """
 import os
@@ -122,7 +122,7 @@ GREP = '/usr/bin/grep'
 CAT = '/bin/cat'
 
 UID = os.getuid()
-SERVER_ADDRESS = '/tmp/bitmask-helper.socket'
+SERVER_ADDRESS = '/var/run/bitmask-helper.socket'
 
 
 #

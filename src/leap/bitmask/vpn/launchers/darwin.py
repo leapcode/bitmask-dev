@@ -33,7 +33,7 @@ logger = Logger()
 
 class HelperCommand(object):
 
-    SOCKET_ADDR = '/tmp/bitmask-helper.socket'
+    SOCKET_ADDR = '/var/run/bitmask-helper.socket'
 
     def __init__(self):
         pass
