@@ -19,7 +19,7 @@ Setting up a development environment in OSX™
 
 * Make sure you're using a new enough version of pip (1.8 or newest). This will make all the problems with ``cryptography`` going away, since it will install the statically built wheel: ``pip --version``
 
-* Clone the repo, create and activate a virtualenv::
+Clone the repo, create and activate a virtualenv::
 
   mkdir ~/leap && cd ~/leap
   git clone "https://0xacab.org/leap/bitmask-dev"
@@ -27,13 +27,13 @@ Setting up a development environment in OSX™
   virtualenv ~/leap/venv
   source ~/leap/venv/bin/activate
 
-* In OSX, we're using ``pywebview`` for the GUI launcher, that depends on ``pyobjc``. You can install that with::
+In OSX, we're using ``pywebview`` for the GUI launcher, that depends on ``pyobjc``. You can install that with::
 
   pip install -r ~/leap/bitmask-dev/pkg/requirements-osx.pip
 
 * Install the rest of dependencies as usual.
 
-* After installing that, you should be able to build the bundle::
+After installing that, you should be able to build the bundle::
 
   make bundle_osx
 
@@ -83,11 +83,17 @@ installed to the same path mentioned in the previous section.
 
 .. note: cleanup unused helpers
 
+Uninstalling
+===================================
+
+There's an uninstall script in `pkg/osx/uninstall.sh`.
+
 Installing the bundle with homebrew
 ===================================
 
-For testing purposes, `homebrew`_ can be used to distribute and install the
-bundle. This should download and install the latest version of the bundle::
+For testing purposes, `homebrew`_ can be used to distribute and install
+experimental versions of the bundle. This should download and install the
+latest version of the bundle::
 
   brew install kalikaneko/bitmask/bitmask
 
