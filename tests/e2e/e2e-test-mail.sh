@@ -31,7 +31,7 @@
 set -e
 
 # DEBUG
-# set -x
+set -x
 
 # Check if scipt is run in debug mode so we can hide secrets
 if [[ "$-" =~ 'x' ]]
@@ -43,19 +43,20 @@ else
   xtrace=false
 fi
 
-#PROVIDER='ci.leap.se'
-PROVIDER='mail.bitmask.net'
-INVITE_CODE=${BITMASK_INVITE_CODE:?"Need to set BITMASK_INVITE_CODE non-empty"}
+PROVIDER='ci.leap.se'
 
 BCTL='bitmaskctl'
-POLKIT='lxpolkit'
 LEAP_HOME="$HOME/.config/leap"
 MAIL_UUID=$(uuidgen)
 
 username="tmp_user_$(date +%Y%m%d%H%M%S)"
 user="${username}@${PROVIDER}"
+set +x  # Disable xtrace
 pw="$(head -c 10 < /dev/urandom | base64)"
-SWAKS="swaks --h-Subject $MAIL_UUID --silent 2 --helo ci.leap.se -f ci@leap.se -t $user"
+INVITE_CODE=${BITMASK_INVITE_CODE:?"Need to set BITMASK_INVITE_CODE non-empty"}
+[[ $xtrace == true ]] && set -x  # Enable xtrace again only if it was set at beginning of script
+
+SWAKS="swaks --h-Subject $MAIL_UUID --silent 2 -s ${PROVIDER} --helo leap.se -f ci@leap.se -t $user"
 
 # Stop any previously started bitmaskd
 # and start a new instance
@@ -63,9 +64,11 @@ SWAKS="swaks --h-Subject $MAIL_UUID --silent 2 --helo ci.leap.se -f ci@leap.se -
 
 [ -d "$LEAP_HOME" ] && rm -rf "$LEAP_HOME"
 
-
 # XXX skip certificate verification! -- self-signed cert in ci.leap.se
 SKIP_TWISTED_SSL_CHECK=1 "$BCTL" start
+
+# Show bitmaskd logs
+# tail -F "${LEAP_HOME}/bitmaskd.log" &
 
 # Register a new user
 # Disable xtrace
@@ -78,7 +81,11 @@ set +x
 echo "created user. authenticating..."
 
 # Authenticate
+# Disable xtrace
+set +x
 "$BCTL" user auth "$user" --pass "$pw" > /dev/null
+# Enable xtrace again only if it was set at beginning of script
+[[ $xtrace == true ]] && set -x
 
 # Note that imap_pw is the same for smtp
 
@@ -90,7 +97,7 @@ imap_pw="None"
 
 while [[ $imap_pw == *"None"* ]]; do
   response=$("$BCTL" mail get_token)
-  sleep 2
+  sleep 10
   imap_pw=$(echo "$response" | head -n 1 | sed 's/  */ /g' | cut -d' ' -f 2)
 done
 
@@ -109,4 +116,4 @@ do
   sleep 10
 done
 
-echo "Succeeded - mail arrived"
+echo -e "Succeeded - mail arrived\n\n\n"
