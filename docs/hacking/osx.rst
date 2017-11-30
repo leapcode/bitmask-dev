@@ -33,6 +33,11 @@ In OSX, we're using ``pywebview`` for the GUI launcher, that depends on ``pyobjc
 
 * Install the rest of dependencies as usual.
 
+You also want to build the thirdparty binaryes (openvpn, gpg)::
+
+  cd pkg/thirdparty/gnupg && ./build_gnupg.sh
+
+
 After installing that, you should be able to build the bundle::
 
   make bundle_osx

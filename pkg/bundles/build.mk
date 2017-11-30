@@ -72,7 +72,7 @@ bundle_osx_missing:
 	cp -r $(DIST_VERSION)/apps/helpers/openvpn/* $(OSX_RES)/
 	wget https://downloads.leap.se/thirdparty/osx/openvpn/openvpn -O $(OSX_RES)/openvpn.leap
 	chmod +x $(OSX_RES)/openvpn.leap
-	cp ~/src/gnupg-1.4.20/g10/gpg $(OSX_RES)/gpg
+	cp ~/leap_thirdparty_build/gpg $(OSX_RES)/gpg
 	chmod +x $(OSX_RES)/gpg
 
 bundle_osx_pkg:
