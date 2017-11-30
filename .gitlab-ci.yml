@@ -18,7 +18,7 @@ cache:
     - .tox/py27-dev
 
 linux_test:
-  image: 0xacab.org:4567/leap/soledad:latest
+  image: 0xacab.org:4567/leap/bitmask-dev:latest
   stage: test
   script:
     # In this first job, recreate the tox venv from scratch
