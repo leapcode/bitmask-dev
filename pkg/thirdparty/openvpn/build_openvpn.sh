@@ -25,8 +25,8 @@ mkdir -p $SRC
 
 LZO="lzo-2.10"
 ZLIB="zlib-1.2.11"
-MBEDTLS="mbedtls-2.5.1"
-OPENVPN="openvpn-2.4.3"
+MBEDTLS="mbedtls-2.6.0"
+OPENVPN="openvpn-2.4.4"
 
 WGET="wget --prefer-family=IPv4"
 DEST=$BASE/install

@@ -38,7 +38,8 @@ bundle_linux_gpg:
 bundle_linux_vpn:
 	mkdir -p $(DIST_VERSION)/apps/vpn
 	# TODO verify signature
-	wget https://downloads.leap.se/thirdparty/linux/openvpn/openvpn -O $(DIST_VERSION)/apps/vpn/openvpn.leap
+	# TODO pick 32 bits if needed
+	wget https://downloads.leap.se/thirdparty/linux/openvpn/openvpn-x64 -O $(DIST_VERSION)/apps/vpn/openvpn.leap
 
 bundle_linux_helpers:
 	mkdir -p $(DIST_VERSION)/apps/helpers
