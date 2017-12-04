@@ -27,6 +27,7 @@ LZO="lzo-2.10"
 ZLIB="zlib-1.2.11"
 MBEDTLS="mbedtls-2.6.0"
 OPENVPN="openvpn-2.4.4"
+OPENVPN_KEYS="https://swupdate.openvpn.net/community/keys/security.key.asc"
 
 WGET="wget --prefer-family=IPv4"
 DEST=$BASE/install
@@ -113,9 +114,12 @@ function build_lzo2()
 function build_openvpn()
 {
 	mkdir $SRC/openvpn && cd $SRC/openvpn
+    $WGET -q -O - $OPENVPN_KEYS | gpg --import
 	if [ ! -f $OPENVPN.tar.gz ]; then
 	    $WGET http://swupdate.openvpn.org/community/releases/$OPENVPN.tar.gz
+	    $WGET http://swupdate.openvpn.org/community/releases/$OPENVPN.tar.gz.asc
 	fi
+    gpg --verify $OPENVPN.tar.gz.asc && echo "[+] gpg verification ok"
 	tar zxvf $OPENVPN.tar.gz
 	cd $OPENVPN
 
