@@ -3,6 +3,7 @@
 #############################################################################
 # Builds OpenVPN statically against mbedtls (aka polarssl).
 # Requirements:  cmake
+# Output: ~/openvpn_build/sbin/openvpn-x.y.z
 #############################################################################
 
 set -e
@@ -27,6 +28,12 @@ LZO="lzo-2.10"
 ZLIB="zlib-1.2.11"
 MBEDTLS="mbedtls-2.6.0"
 OPENVPN="openvpn-2.4.4"
+
+# [!] This needs to be updated for every release --------------------------
+LZO_SHA1="4924676a9bae5db58ef129dc1cebce3baa3c4b5d"
+MBEDTLS_SHA1="0e657805b5dc9777e0e0333a95d7886ae8f0314e"
+# -------------------------------------------------------------------------
+ZLIB_KEYS="https://pgp.mit.edu/pks/lookup?op=get&search=0x783FCD8E58BCAFBA"
 OPENVPN_KEYS="https://swupdate.openvpn.net/community/keys/security.key.asc"
 
 WGET="wget --prefer-family=IPv4"
@@ -45,10 +52,12 @@ MAKE="make -j2"
 
 function build_zlib()
 {
+        gpg --fetch-keys $ZLIB_KEYS
 	mkdir $SRC/zlib && cd $SRC/zlib
 
 	if [ ! -f $ZLIB.tar.gz ]; then
-	    $WGET http://zlib.net/$ZLIB.tar.gz
+	    $WGET https://zlib.net/$ZLIB.tar.gz
+	    $WGET https://zlib.net/$ZLIB.tar.gz.asc
 	fi
 	tar zxvf $ZLIB.tar.gz
 	cd $ZLIB
@@ -74,6 +83,13 @@ function build_mbedtls()
 	if [ ! -f $MBEDTLS-gpl.tgz ]; then
 	    $WGET https://tls.mbed.org/download/$MBEDTLS-gpl.tgz
 	fi
+	sha1=`sha1sum $MBEDTLS-gpl.tgz | cut -d' ' -f 1`
+	if [ "${MBEDTLS_SHA1}" = "${sha1}" ]; then
+	    echo "[+] sha1 verified ok"
+	else
+	    echo "[!] problem with sha1 verification"
+	    exit 1
+	fi
 	tar zxvf $MBEDTLS-gpl.tgz
 	cd $MBEDTLS
 	mkdir -p build
@@ -93,6 +109,13 @@ function build_lzo2()
 	mkdir $SRC/lzo2 && cd $SRC/lzo2
 	if [ ! -f $LZO.tar.gz ]; then
 	    $WGET http://www.oberhumer.com/opensource/lzo/download/$LZO.tar.gz
+	fi
+	sha1=`sha1sum $LZO.tar.gz | cut -d' ' -f 1`
+	if [ "${LZO_SHA1}" = "${sha1}" ]; then
+	    echo "[+] sha1 verified ok"
+	else
+	    echo "[!] problem with sha1 verification"
+	    exit 1
 	fi
 	tar zxvf $LZO.tar.gz
 	cd $LZO
@@ -114,12 +137,12 @@ function build_lzo2()
 function build_openvpn()
 {
 	mkdir $SRC/openvpn && cd $SRC/openvpn
-    $WGET -q -O - $OPENVPN_KEYS | gpg --import
+	gpg --fetch-keys $OPENVPN_KEYS
 	if [ ! -f $OPENVPN.tar.gz ]; then
 	    $WGET http://swupdate.openvpn.org/community/releases/$OPENVPN.tar.gz
 	    $WGET http://swupdate.openvpn.org/community/releases/$OPENVPN.tar.gz.asc
 	fi
-    gpg --verify $OPENVPN.tar.gz.asc && echo "[+] gpg verification ok"
+	gpg --verify $OPENVPN.tar.gz.asc && echo "[+] gpg verification ok"
 	tar zxvf $OPENVPN.tar.gz
 	cd $OPENVPN
 
@@ -134,7 +157,7 @@ function build_openvpn()
 	--with-crypto-library=mbedtls \
 	--enable-small \
 	--disable-debug \
-    --enable-iproute2
+	--enable-iproute2
 
 	$MAKE LIBS="-all-static -lz -llzo2"
 	make install DESTDIR=$BASE/openvpn
