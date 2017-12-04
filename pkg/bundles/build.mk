@@ -78,6 +78,8 @@ bundle_osx_missing:
 	chmod +x $(OSX_RES)/openvpn.leap
 	cp ~/leap_thirdparty_build/gpg $(OSX_RES)/gpg
 	chmod +x $(OSX_RES)/gpg
+	cp release-notes.rst $(OSX_RES)/../../
+	cp pkg/osx/uninstall.sh $(OSX_RES)/../../
 
 bundle_osx_pkg:
 	pkg/osx/quickpkg --output dist/Bitmask-$(NEXT_VERSION)_pre.pkg --scripts pkg/osx/scripts/ dist/Bitmask.app/
