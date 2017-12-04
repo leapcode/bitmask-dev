@@ -14,6 +14,7 @@ Misc
 ~~~~
 - Configure travis build for OSX.
 - Add tox to the docker image; install it on every job.
+- Build openvpn with iproute2 option for bundles.
 
 0.10.2
 -------------------------------

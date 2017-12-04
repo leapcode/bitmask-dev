@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #############################################################################
-# Builds OpenVPN statically against polarssl.
+# Builds OpenVPN statically against mbedtls (aka polarssl).
 # Requirements:  cmake
 #############################################################################
 
@@ -133,7 +133,8 @@ function build_openvpn()
 	--disable-plugin-auth-pam \
 	--with-crypto-library=mbedtls \
 	--enable-small \
-	--disable-debug
+	--disable-debug \
+    --enable-iproute2
 
 	$MAKE LIBS="-all-static -lz -llzo2"
 	make install DESTDIR=$BASE/openvpn
