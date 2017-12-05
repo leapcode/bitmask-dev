@@ -17,7 +17,7 @@
 """
 Bonafide protocol.
 """
-import os
+import os.path
 from collections import defaultdict
 
 from leap.bitmask.bonafide import config
@@ -31,7 +31,7 @@ from twisted.logger import Logger
 
 
 COMMANDS = 'signup', 'authenticate', 'logout', 'stats'
-_preffix = get_path_prefix()
+_preffix = os.path.join(get_path_prefix(), 'leap')
 
 
 class BonafideProtocol(object):
@@ -60,7 +60,7 @@ class BonafideProtocol(object):
         username, provider_id = config.get_username_and_provider(full_id)
         credentials = UsernamePassword(username, password)
         api = self._get_api(provider)
-        provider_pem = _get_provider_ca_path(provider_id)
+        provider_pem = config.get_ca_cert_path(_preffix, provider_id)
         session = Session(credentials, api, provider_pem)
         self._sessions[full_id] = session
         return session
@@ -192,8 +192,3 @@ class BonafideProtocol(object):
     def do_update_user(self):
         # FIXME to be implemented
         pass
-
-
-def _get_provider_ca_path(provider_id):
-    return os.path.join(
-        _preffix, 'leap', 'providers', provider_id, 'keys', 'ca', 'cacert.pem')

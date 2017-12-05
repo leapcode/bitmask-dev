@@ -20,6 +20,7 @@ Configuration for a LEAP provider.
 import binascii
 import json
 import os
+import pkg_resources
 import platform
 import shutil
 import sys
@@ -37,6 +38,7 @@ from twisted.web.client import downloadPage
 from leap.bitmask.bonafide._http import httpRequest
 from leap.bitmask.bonafide.provider import Discovery
 from leap.bitmask.bonafide.errors import NotConfiguredError, NetworkError
+from leap.bitmask.util import here, STANDALONE
 
 from leap.common.check import leap_assert
 from leap.common.config import get_path_prefix as common_get_path_prefix
@@ -73,10 +75,17 @@ def get_provider_path(domain, config='provider.json'):
     return os.path.join('providers', domain, config)
 
 
-def get_ca_cert_path(domain):
-    # TODO sanitize domain
+def get_ca_cert_path(basedir, domain):
     leap_assert(domain is not None, 'get_provider_path: We need a domain')
-    return os.path.join('providers', domain, 'keys', 'ca', 'cacert.pem')
+
+    enc_domain = domain.encode(sys.getfilesystemencoding())
+    cert_path = os.path.join(basedir, 'providers', enc_domain, 'keys', 'ca',
+                             'cacert.pem')
+    if not is_file(cert_path):
+        pinned_cert = get_pinned_path(domain, '.pem')
+        if is_file(pinned_cert):
+            return pinned_cert
+    return cert_path
 
 
 def update_modification_ts(path):
@@ -128,7 +137,12 @@ def list_providers():
     path = os.path.expanduser(path)
     if not os.path.isdir(path):
         os.makedirs(path)
-    return os.listdir(path)
+    configured = os.listdir(path)
+
+    pinned = os.listdir(get_pinned_path())
+    pinned = [provider[:-5] for provider in pinned if provider[-5:] == ".json"]
+
+    return set(configured + pinned)
 
 
 def delete_provider(domain):
@@ -139,6 +153,20 @@ def delete_provider(domain):
                                  "deleted" % (domain,))
     shutil.rmtree(path)
     Provider.providers[domain] = None
+
+
+def get_pinned_path(domain=None, extension='.json'):
+    if domain is None:
+        filename = ''
+    else:
+        filename = domain.encode(sys.getfilesystemencoding()) + extension
+
+    if STANDALONE:
+        # TODO: do the bundling part
+        return os.path.join(here(), "..", "apps", "providers", filename)
+
+    return pkg_resources.resource_filename(
+        'leap.bitmask.bonafide.providers', filename)
 
 
 class Provider(object):
@@ -210,9 +238,13 @@ class Provider(object):
 
     def is_configured(self):
         provider_json = self._get_provider_json_path()
-        if not is_file(provider_json):
+        pinned_json = get_pinned_path(self._domain)
+        if not is_file(provider_json) and not is_file(pinned_json):
             return False
-        if not is_file(self._get_ca_cert_path()):
+
+        provider_cert = self._get_ca_cert_path()
+        pinned_cert = get_pinned_path(self._domain, '.pem')
+        if not is_file(provider_cert) and not is_file(pinned_cert):
             return False
         return True
 
@@ -246,7 +278,7 @@ class Provider(object):
             return failure
 
         d = self.maybe_download_provider_info(replace=replace_if_newer)
-        d.addCallback(self.maybe_download_ca_cert)
+        d.addCallback(self.maybe_download_ca_cert, replace_if_newer)
         d.addCallback(self.validate_ca_cert)
         d.addCallbacks(first_bootstrap_done, first_bootstrap_error)
         d.addCallback(self.maybe_download_services_config)
@@ -270,8 +302,6 @@ class Provider(object):
         Download the provider.json info from the main domain.
         This SHOULD only be used once with the DOMAIN url.
         """
-        # TODO handle pre-seeded providers?
-        # or let client handle that? We could move them to bonafide.
         provider_json = self._get_provider_json_path()
 
         if is_file(provider_json) and not replace:
@@ -300,12 +330,15 @@ class Provider(object):
         """
         pass
 
-    def maybe_download_ca_cert(self, ignored):
+    def maybe_download_ca_cert(self, ignored, replace=False):
         """
         :rtype: deferred
         """
-        path = self._get_ca_cert_path()
-        if is_file(path):
+        # TODO: doesn't update the cert :((((
+        enc_domain = self._domain.encode(sys.getfilesystemencoding())
+        path = os.path.join(self._basedir, 'providers', enc_domain, 'keys',
+                            'ca', 'cacert.pem')
+        if not replace and is_file(path):
             return defer.succeed('ca_cert_path_already_exists')
 
         def errback(failure):
@@ -452,9 +485,7 @@ class Provider(object):
         return configs_path
 
     def _get_ca_cert_path(self):
-        domain = self._domain.encode(sys.getfilesystemencoding())
-        cert_path = os.path.join(self._basedir, get_ca_cert_path(domain))
-        return cert_path
+        return get_ca_cert_path(self._basedir, self._domain)
 
     def _get_ca_cert_uri(self):
         try:
@@ -468,7 +499,11 @@ class Provider(object):
         path = self._get_provider_json_path()
         if not is_file(path):
             self.log.debug('cannot LOAD provider config path %s' % path)
-            return
+            path = get_pinned_path(self._domain)
+            if not is_file(path):
+                return
+
+            self.log.debug('using pinned provider %s' % path)
 
         with open(path, 'r') as config:
             self._provider_config = Record(**json.load(config))
