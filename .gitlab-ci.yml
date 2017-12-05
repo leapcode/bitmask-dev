@@ -32,7 +32,8 @@ osx_test:
   stage: test
   allow_failure: true
   script:
-    - tox --recreate -e py27-dev
+    - ls -la /usr/bin/gpg
+    - /usr/local/bin/tox --recreate -e py27-dev
   tags:
     - yosemite
     - osx
