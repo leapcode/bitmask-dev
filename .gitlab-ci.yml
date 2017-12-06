@@ -32,6 +32,8 @@ osx_test:
   stage: test
   allow_failure: true
   script:
+    # why don't you see the gpg???
+    - ls -la /usr/bin/gpg
     - /usr/local/bin/tox --recreate -e py27-dev
   tags:
     - yosemite
