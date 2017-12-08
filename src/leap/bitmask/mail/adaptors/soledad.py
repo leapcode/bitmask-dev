@@ -45,7 +45,7 @@ from leap.soledad.common.document import SoledadDocument
 # [ ] Convenience function to create mail specifying subject, date, etc?
 
 
-_MSGID_PATTERN = r"""<([\w@.]+)>"""
+_MSGID_PATTERN = r"""<([\w\-@.]+)>"""
 _MSGID_RE = re.compile(_MSGID_PATTERN)
 
 
