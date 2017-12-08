@@ -110,6 +110,11 @@ class LinuxVPNLauncher(VPNLauncher):
                 return 'bitmask-root'
 
         def _version(self, bitmask_root):
+            # FIXME this, as a couple of other calls in the vpn modules, relies
+            # on having a python executable in the path. Even all modern
+            # default distros provide that, we should not rely on it.
+            # At least, we should be ready to do error handling if the binary
+            # is not found.
             out = subprocess.check_output(['python', bitmask_root, "version"])
             return int(out)
 
