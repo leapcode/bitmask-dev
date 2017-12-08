@@ -286,6 +286,18 @@ class MailCmd(SubCommand):
         return mail.get_token(userid)
 
     @register_method('dict')
+    def do_MSG_STATUS(self, mail, *parts, **kw):
+        try:
+            userid = parts[2]
+            mbox = parts[3]
+            message_id = parts[4]
+        except IndexError:
+            raise DispatchError(
+                'wrong number of arguments: expected 3')
+        d = mail.do_msg_status(userid, mbox, message_id)
+        return d
+
+    @register_method('dict')
     def do_MIXNET_STATUS(self, mail, *parts, **kw):
         try:
             userid = parts[2]

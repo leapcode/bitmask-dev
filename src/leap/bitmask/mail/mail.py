@@ -1038,6 +1038,21 @@ class Account(object):
         """
         raise NotImplementedError()
 
+    def get_message_by_msgid(self, mbox, msgid):
+        """
+        :rtype: Message
+        """
+        def get_msg_from_mdoc(mdoc_id):
+            if not mdoc_id:
+                return None
+
+            return self.adaptor.get_msg_from_mdoc_id(
+                Message, self.store, mdoc_id)
+
+        d = self.adaptor.get_mdoc_id_from_msgid(self.store, mbox, msgid)
+        d.addCallback(get_msg_from_mdoc)
+        return d
+
     # Session handling
 
     def end_session(self):

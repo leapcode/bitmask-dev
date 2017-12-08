@@ -22,6 +22,7 @@ This should be moved to the different submodules when it stabilizes.
 """
 import json
 import os
+import re
 import shutil
 import tempfile
 from collections import defaultdict
@@ -48,6 +49,7 @@ try:
     from leap.bitmask.mail.smtp import service as smtp_service
     from leap.bitmask.mail.incoming.service import IncomingMail
     from leap.bitmask.mail.incoming.service import INCOMING_CHECK_PERIOD
+    from leap.bitmask.mail.utils import first
     from leap.soledad.client.api import Soledad
     HAS_MAIL = True
 except ImportError:
@@ -625,6 +627,32 @@ class StandardMailService(service.MultiService, HookableService):
         token = self._service_tokens.get(userid)
         return {'user': userid, 'token': token}
 
+    @defer.inlineCallbacks
+    def do_msg_status(self, userid, mbox, msgid):
+        account = self._get_account(userid)
+        msg = yield account.get_message_by_msgid(mbox, msgid)
+        if msg is None:
+            raise Exception("Not found message id: " + msgid)
+
+        headers = msg.get_headers()
+        encryption = headers.get(IncomingMail.LEAP_ENCRYPTION_HEADER, '')
+        signature = headers.get(IncomingMail.LEAP_SIGNATURE_HEADER, '')
+
+        status = {}
+        pubkey_re = re.compile(' pubkey="([0-9A-F]*)"')
+        fingerprint = first(pubkey_re.findall(signature))
+        status['signature'] = signature.split(';')[0]
+        status['sign_fp'] = fingerprint
+        status['encryption'] = encryption
+
+        if ((IncomingMail.LEAP_ENCRYPTION_DECRYPTED == encryption) and
+                (IncomingMail.LEAP_SIGNATURE_VALID == status['signature'])):
+            status['secured'] = True
+        else:
+            status['secured'] = False
+
+        defer.returnValue(status)
+
     def do_msg_add(self, userid, raw_msg, mailbox=None):
         if not mailbox:
             mailbox = INBOX_NAME
@@ -896,10 +924,6 @@ def _get_config_for_service(service, basedir, provider):
             'could not open config file %s' % config_path)
     else:
         return config
-
-
-def first(xs):
-    return xs[0]
 
 
 def _pick_server(config, strategy=first):

@@ -373,3 +373,8 @@ class CaseInsensitiveDict(dict):
 
     def __getitem__(self, key):
         return super(CaseInsensitiveDict, self).__getitem__(key.lower())
+
+    def get(self, key, default=None):
+        if key.lower() in self:
+            return self[key]
+        return default

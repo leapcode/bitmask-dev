@@ -395,6 +395,19 @@ var bitmask = function(){
             },
 
             /**
+             * Get message status of one email
+             *
+             * @param {string} uid The uid to get status about
+             * @param {string} mbox The name of the mailbox where the message is stored
+             * @param {string} message_id The Message-Id from the headers of the email
+             *
+             * @return {Promise<{'secured': bool}>} Returns the status of the email
+             */
+            msg_status: function(uid, mbox, message_id) {
+                return call(['mail', 'msg_status', mbox, message_id]);
+            },
+
+            /**
              * Get status on the mixnet for an address.
              *
              * @param {string} uid The uid to get status about
