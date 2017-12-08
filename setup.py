@@ -89,7 +89,7 @@ setup(
     classifiers=trove_classifiers,
     namespace_packages=['leap'],
     package_dir={'': 'src'},
-    package_data={'': ['*.pem', '*.bin']},
+    package_data={'': ['*.pem', '*.bin', '*.json']},
     packages=find_packages('src'),
     include_package_data=True,
     zip_safe=False,
