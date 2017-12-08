@@ -35,6 +35,8 @@ from leap.bitmask.core.launcher import run_bitmaskd, pid
 from leap.bitmask.gui import app_rc
 from leap.common.config import get_path_prefix
 
+from .systray import WithTrayIcon
+
 if platform.system() == 'Windows':
     from multiprocessing import freeze_support
     from PySide import QtCore, QtGui
@@ -59,9 +61,6 @@ else:
         from PyQt5.QtWebEngineWidgets import QWebEngineView as QWebView
         from PyQt5.QtWebEngineWidgets import QWebEngineSettings as QWebSettings
 
-from .systray import WithTrayIcon
-
-
 IS_WIN = platform.system() == "Windows"
 DEBUG = os.environ.get("DEBUG", False)
 
@@ -71,7 +70,6 @@ PIXELATED_URI = 'http://localhost:9090/'
 qApp = None
 bitmaskd = None
 browser = None
-
 
 
 class BrowserWindow(QWebView, WithTrayIcon):
@@ -86,6 +84,7 @@ class BrowserWindow(QWebView, WithTrayIcon):
     This BrowserWindow assumes that the backend is already running, since it is
     going to look for the authtoken in the configuration folder.
     """
+
     def __init__(self, *args, **kw):
         url = kw.pop('url', None)
         first = False
@@ -128,7 +127,7 @@ class BrowserWindow(QWebView, WithTrayIcon):
         try:
             if os.environ.get('DEBUG'):
                 self.settings().setAttribute(
-	            QWebSettings.DeveloperExtrasEnabled, True)
+                    QWebSettings.DeveloperExtrasEnabled, True)
         except Exception:
             pass
 
@@ -243,7 +242,7 @@ def launch_gui():
     timer.start(500)
 
     browser.show()
-        
+
     sys.exit(qApp.exec_())
 
 
