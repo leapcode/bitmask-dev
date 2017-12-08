@@ -625,7 +625,7 @@ class StandardMailService(service.MultiService, HookableService):
         token = self._service_tokens.get(userid)
         return {'user': userid, 'token': token}
 
-    def do_add_msg(self, userid, raw_msg, mailbox=None):
+    def do_msg_add(self, userid, raw_msg, mailbox=None):
         if not mailbox:
             mailbox = INBOX_NAME
 

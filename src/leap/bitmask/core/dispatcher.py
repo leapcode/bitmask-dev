@@ -297,7 +297,7 @@ class MailCmd(SubCommand):
         return d
 
     @register_method('dict')
-    def do_ADD_MSG(self, mail, *parts, **kw):
+    def do_MSG_ADD(self, mail, *parts, **kw):
         try:
             userid = parts[2]
             mailbox = parts[3]
@@ -305,7 +305,7 @@ class MailCmd(SubCommand):
         except IndexError:
             raise DispatchError(
                 'wrong number of arguments: expected 3, got none')
-        d = mail.do_add_msg(userid, msg, mailbox)
+        d = mail.do_msg_add(userid, msg, mailbox)
         return d
 
 

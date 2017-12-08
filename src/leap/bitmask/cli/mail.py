@@ -35,7 +35,7 @@ SUBCOMMANDS:
    disable              Stop service
    status               Display status about service
    get_token            Returns token for the mail service
-   add_msg              Add a msg file to a mailbox
+   msg_add              Add a msg file to a mailbox
 
 '''.format(name=command.appname)
 
@@ -75,7 +75,7 @@ SUBCOMMANDS:
 
         return self._send(command.default_printer)
 
-    def add_msg(self, raw_args):
+    def msg_add(self, raw_args):
         parser = argparse.ArgumentParser(
             description='Bitmask email status',
             prog='%s %s %s' % tuple(sys.argv[:3]))
@@ -99,7 +99,7 @@ SUBCOMMANDS:
         with open(subargs.file[0], 'r') as msgfile:
             rawmsg = msgfile.read()
 
-        self.data += ['add_msg', userid, mailbox, rawmsg]
+        self.data += ['msg_add', userid, mailbox, rawmsg]
 
         return self._send(command.default_printer)
 
