@@ -16,9 +16,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-This is an alternative entrypoint for Bitmask, based on pywebview.
+This is an alternative entrypoint for Bitmask, based on pywebview, to be used
+in osx and windows.
+
+For the moment, it requires also qt5 for the systray, but we should move to a
+native solution on each platform.
 """
 
+import getpass
 import os
 import platform
 import signal
@@ -74,7 +79,6 @@ class Systray(WithTrayIcon):
             sys.exit()
         else:
             event.ignore()
-	
 
 
 def launch_systray():
@@ -93,6 +97,7 @@ class BrowserWindow(object):
     This BrowserWindow assumes that the backend is already running, since it is
     going to look for the authtoken in the configuration folder.
     """
+
     def __init__(self, *args, **kw):
         url = kw.pop('url', None)
         first = False
@@ -117,7 +122,6 @@ class BrowserWindow(object):
         self.closing = False
 
         webview.create_window('Bitmask', self.url)
-        
 
     def loadPage(self, web_page):
         self.load(url)
@@ -139,8 +143,10 @@ class BrowserWindow(object):
         print('[bitmask] shutting down gui...')
 
     def cleanup(self):
-        # TODO get path!!!!!!! -----------
-        os.remove('/Users/admin/Library/Preferences/leap/bitmasd.pid')
+        # TODO get path-----------------------------------
+        os.remove('/Users/' + getpass.getuser() +
+                  '/Library/Preferences/leap/bitmasd.pid')
+        # ------------------------------------------------
 
 
 def launch_gui():
@@ -187,7 +193,6 @@ def start_app():
         pass
 
     launch_gui()
-
 
 
 class NoAuthToken(Exception):
