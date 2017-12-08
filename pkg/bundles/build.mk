@@ -25,6 +25,9 @@ bundle: bundle_clean
 	cd pkg/launcher && make
 	cp release-notes.rst $(DIST_VERSION)
 	cp pkg/launcher/bitmask $(DIST_VERSION)
+	# provider pinning
+	mkdir -p $(DIST_VERSION)/apps/providers
+	cp -r src/leap/bitmask/bonafide/providers/* $(DIST_VERSION)/apps/providers/
 
 bundle_linux_gpg:
 	# TODO build it in a docker container!

@@ -162,7 +162,6 @@ def get_pinned_path(domain=None, extension='.json'):
         filename = domain.encode(sys.getfilesystemencoding()) + extension
 
     if STANDALONE:
-        # TODO: do the bundling part
         return os.path.join(here(), "..", "apps", "providers", filename)
 
     return pkg_resources.resource_filename(
