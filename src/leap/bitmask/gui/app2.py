@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# app.py
-# Copyright (C) 2016 LEAP Encryption Acess Project
+# app2.py
+# Copyright (C) 2016-2017 LEAP Encryption Acess Project
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,9 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Main entrypoint for the Bitmask Qt GUI.
-It just launches a webview browser that runs the local web-ui served by
-bitmaskd when the web service is running.
+This is an alternative entrypoint for Bitmask, based on pywebview.
 """
 
 import os
@@ -34,8 +32,12 @@ from multiprocessing import Process
 import webview
 import psutil
 
+from PyQt5.QtWidgets import QApplication
+
 from leap.bitmask.core.launcher import run_bitmaskd, pid
 from leap.common.config import get_path_prefix
+
+from leap.bitmask.gui.systray import WithTrayIcon
 
 
 DEBUG = os.environ.get("DEBUG", False)
@@ -48,6 +50,40 @@ PROCNAME = 'bitmask-app'
 qApp = None
 bitmaskd = None
 browser = None
+
+
+class Systray(WithTrayIcon):
+
+    def closeFromSystray(self):
+        print "SYSTRAY CLOSE"
+        global browser
+        print "browser is", browser
+        self.user_closed = True
+        if browser:
+            print 'closing browser window'
+            browser.shutdown()
+            self.close()
+        self.close()
+
+    def closeEvent(self, event):
+        print "CLOSE EVENT"
+        global browser
+        print "browser is", browser
+        if self.user_closed:
+            print "bye!"
+            sys.exit()
+        else:
+            event.ignore()
+	
+
+
+def launch_systray():
+    global qApp
+    qApp = QApplication([])
+    qApp.setQuitOnLastWindowClosed(True)
+
+    systray = Systray()
+    systray.setupSysTray()
 
 
 class BrowserWindow(object):
@@ -81,13 +117,17 @@ class BrowserWindow(object):
         self.closing = False
 
         webview.create_window('Bitmask', self.url)
+        
 
     def loadPage(self, web_page):
         self.load(url)
 
     def shutdown(self, *args):
+        print "SHUTDOWN from browser window..."
         if self.closing:
             return
+
+        # TODO -- close only if closed from systray!!
         self.closing = True
         global bitmaskd
         bitmaskd.join()
@@ -98,6 +138,10 @@ class BrowserWindow(object):
             os.kill(pidno, signal.SIGTERM)
         print('[bitmask] shutting down gui...')
 
+    def cleanup(self):
+        # TODO get path!!!!!!! -----------
+        os.remove('/Users/admin/Library/Preferences/leap/bitmasd.pid')
+
 
 def launch_gui():
     global bitmaskd
@@ -107,7 +151,9 @@ def launch_gui():
     bitmaskd.start()
 
     try:
+        launch_systray()
         browser = BrowserWindow(None)
+        sys.exit(qApp.exec_())
     except NoAuthToken as e:
         print('ERROR: ' + e.message)
         sys.exit(1)
@@ -141,6 +187,7 @@ def start_app():
         pass
 
     launch_gui()
+
 
 
 class NoAuthToken(Exception):

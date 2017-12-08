@@ -34,8 +34,6 @@ from multiprocessing import Process
 from leap.bitmask.core.launcher import run_bitmaskd, pid
 from leap.bitmask.gui import app_rc
 from leap.common.config import get_path_prefix
-from leap.common.events import client as leap_events
-from leap.common.events import catalog
 
 if platform.system() == 'Windows':
     from multiprocessing import freeze_support
@@ -51,7 +49,6 @@ else:
     from PyQt5.QtGui import QPixmap
     from PyQt5.QtWidgets import QAction
     from PyQt5.QtWidgets import QMenu
-    from PyQt5.QtWidgets import QSystemTrayIcon
     from PyQt5.QtWidgets import QDialog
     from PyQt5.QtWidgets import QMessageBox
 
@@ -61,6 +58,8 @@ else:
     except ImportError:
         from PyQt5.QtWebEngineWidgets import QWebEngineView as QWebView
         from PyQt5.QtWebEngineWidgets import QWebEngineSettings as QWebSettings
+
+from .systray import WithTrayIcon
 
 
 IS_WIN = platform.system() == "Windows"
@@ -73,92 +72,6 @@ qApp = None
 bitmaskd = None
 browser = None
 
-# TODO do switch based on theme
-
-TRAY_ICONS = (
-    ':/black/22/wait.png',
-    ':/black/22/on.png',
-    ':/black/22/off.png')
-
-
-class WithTrayIcon(QDialog):
-
-    user_closed = False
-
-    def setupSysTray(self):
-        self._createIcons()
-        self._createActions()
-        self._createTrayIcon()
-        self.trayIcon.activated.connect(self.iconActivated)
-        self.setVPNStatus('off')
-        self.setUpEventListener()
-        self.trayIcon.show()
-
-    def setVPNStatus(self, status):
-        seticon = self.trayIcon.setIcon
-        settip = self.trayIcon.setToolTip
-        # XXX this is an oversimplification, see #9131
-        # the simple state for failure is off too, for now.
-        if status == 'off':
-            seticon(self.ICON_OFF)
-            settip('VPN: Off')
-        elif status == 'on':
-            seticon(self.ICON_ON)
-            settip('VPN: On')
-        elif status == 'starting':
-            seticon(self.ICON_WAIT)
-            settip('VPN: Starting')
-        elif status == 'stopping':
-            seticon(self.ICON_WAIT)
-            settip('VPN: Stopping')
-
-    def setUpEventListener(self):
-        leap_events.register(
-            catalog.VPN_STATUS_CHANGED,
-            self._handle_vpn_event)
-
-    def _handle_vpn_event(self, *args):
-        status = None
-        if len(args) > 1:
-            status = args[1]
-            self.setVPNStatus(status.lower())
-
-    def _createIcons(self):
-        self.ICON_WAIT = QIcon(QPixmap(TRAY_ICONS[0]))
-        self.ICON_ON = QIcon(QPixmap(TRAY_ICONS[1]))
-        self.ICON_OFF = QIcon(QPixmap(TRAY_ICONS[2]))
-
-    def _createActions(self):
-        self.quitAction = QAction(
-            "&Quit", self,
-            triggered=self.closeFromSystray)
-
-    def iconActivated(self, reason):
-        # can use .Trigger also for single click
-        if reason in (QSystemTrayIcon.DoubleClick, ):
-            self.showNormal()
-
-    def closeFromSystray(self):
-        self.user_closed = True
-        self.close()
-
-    def _createTrayIcon(self):
-        self.trayIconMenu = QMenu(self)
-        self.trayIconMenu.addAction(self.quitAction)
-        self.trayIcon = QSystemTrayIcon(self)
-        self.trayIcon.setContextMenu(self.trayIconMenu)
-
-    def closeEvent(self, event):
-        if self.trayIcon.isVisible() and not self.user_closed:
-            QMessageBox.information(
-                self, "Bitmask",
-                "Bitmask will minimize to the system tray. "
-                "You can choose 'Quit' from the menu with a "
-                "right click on the icon, and restore the window "
-                "with a double click.")
-        self.hide()
-        if not self.user_closed:
-            event.ignore()
 
 
 class BrowserWindow(QWebView, WithTrayIcon):
@@ -213,8 +126,9 @@ class BrowserWindow(QWebView, WithTrayIcon):
 
     def loadPage(self, web_page):
         try:
-            self.settings().setAttribute(
-                QWebSettings.DeveloperExtrasEnabled, True)
+            if os.environ.get('DEBUG'):
+                self.settings().setAttribute(
+	            QWebSettings.DeveloperExtrasEnabled, True)
         except Exception:
             pass
 
@@ -329,6 +243,7 @@ def launch_gui():
     timer.start(500)
 
     browser.show()
+        
     sys.exit(qApp.exec_())
 
 

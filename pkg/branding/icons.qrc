@@ -9,5 +9,8 @@
     <file>white/22/on.png</file>
     <file>white/22/question.png</file>
     <file>white/22/wait.png</file>
+    <file>mac/on.png</file>
+    <file>mac/off.png</file>
+    <file>mac/wait.png</file>
   </qresource>
 </RCC>
