@@ -78,6 +78,9 @@ doc:
 bundle_in_virtualenv:
 	pkg/build_bundle_with_venv.sh
 
+bundle_in_virtualenv_osx:
+	pkg/build_osx_bundle_with_venv.sh
+
 docker_container:
 	cd pkg/docker_bundle && docker build -t mybundle .
 

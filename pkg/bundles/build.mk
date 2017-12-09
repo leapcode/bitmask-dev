@@ -3,7 +3,7 @@
 OSX_RES = dist/Bitmask.app/Contents/Resources
 OSX_CON = dist/Bitmask.app/Contents/MacOS
 OSX_CERT = "Developer ID Installer: LEAP Encryption Access Project"
-
+BUILD_RELEASE?=no
 
 default:
 	echo "enter 'make bundle or make bundle_osx'"
@@ -81,7 +81,12 @@ bundle_osx_missing:
 
 bundle_osx_pkg:
 	pkg/osx/quickpkg --output dist/Bitmask-$(NEXT_VERSION)_pre.pkg --scripts pkg/osx/scripts/ dist/Bitmask.app/
-	productsign --sign $(OSX_CERT) dist/Bitmask-$(NEXT_VERSION)_pre.pkg dist/Bitmask-$(NEXT_VERSION).pkg
+	@if [ $(BUILD_RELEASE) = no ]; then\
+		echo "[!] BUILD_RELEASE=no, skipping signature";\
+	else\
+		echo "[+] Signing the bundle";\
+		productsign --sign $(OSX_CERT) dist/Bitmask-$(NEXT_VERSION)_pre.pkg dist/Bitmask-$(NEXT_VERSION).pkg;\
+	fi
 
 
 bundle_linux: bundle bundle_linux_gpg bundle_linux_vpn bundle_linux_helpers
