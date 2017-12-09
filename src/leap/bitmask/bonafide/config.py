@@ -195,7 +195,6 @@ class Provider(object):
         self._provider_config = None
 
         self.first_bootstrap = defer.Deferred()
-        self.stuck_bootstrap = None
 
         is_configured = self.is_configured()
         if not cert_path and is_configured:
@@ -394,19 +393,13 @@ class Provider(object):
         # UNAUTHENTICATED if we try to get the services
         # See: # https://leap.se/code/issues/7906
 
-        def further_bootstrap_needs_auth(ignored):
-            self.log.warn('Cannot download services config yet, need auth')
-            pending_deferred = defer.Deferred()
-            self.stuck_bootstrap = pending_deferred
-            return defer.succeed('ok for now')
-
         uri, met, path = self._get_configs_download_params()
         d = httpRequest(
             self._http._agent, uri, method=met, saveto=path)
         d.addCallback(lambda _: self._load_provider_json())
         d.addCallback(
             lambda _: self._get_config_for_all_services(session=None))
-        d.addErrback(further_bootstrap_needs_auth)
+        d.addErrback(lambda _: 'ok for now')
         return d
 
     def download_services_config_with_auth(self, session):
@@ -415,19 +408,12 @@ class Provider(object):
             self._load_provider_configs()
             return True
 
-        def complete_bootstrapping(ignored):
-            if self.stuck_bootstrap:
-                d = self._get_config_for_all_services(session)
-                d.addCallback(lambda _:
-                              self.stuck_bootstrap.callback('continue!'))
-                return d
-
         self._load_provider_json()
         uri, met, path = self._get_configs_download_params()
 
         d = session.fetch_provider_configs(uri, path, met)
         d.addCallback(verify_provider_configs)
-        d.addCallback(complete_bootstrapping)
+        d.addCallback(lambda _: self._get_config_for_all_services(session))
         return d
 
     def _get_configs_download_params(self):
