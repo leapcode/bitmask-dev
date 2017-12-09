@@ -43,12 +43,15 @@ if IS_WIN:
     excludes = ['PyQt5']
 elif IS_MAC:
     hiddenimports.extend(['pywebview', 'pyobjc'])
-    excludes = ['PyQt5', 'IPython', 'PySide']
+    hiddenimports.extend(
+        ['PyQt5.QtCore', 'PyQt5.QtGui', 'PyQt5.QtWidgets',
+         'leap.bitmask.gui.icons_rc'])
+    excludes = ['IPython', 'PySide']
 else:
     hiddenimports.extend(
         ['PyQt5.QtCore', 'PyQt5.QtGui', 'PyQt5.QtWebEngine',
          'leap.bitmask.gui.icons_rc'])
-    excludes = ['PySide']
+    excludes = ['IPython', 'PySide']
 
 
 VENV = os.environ.get('VIRTUAL_ENV', '')
