@@ -11,6 +11,11 @@ Features
 - `#9074 <https://0xacab.org/leap/bitmask-dev/issues/9074>`_: pin provider ca certs.
 - Set a windows title, so that Bitmask windows can be programmatically manipulated.
 
+Bugfixes
+~~~~~~~~
+- `#9171 <https://0xacab.org/leap/bitmask-dev/issues/9171>`_: fix a bug in bootstrap that avoided more than one user to login.
+
+
 Misc
 ~~~~
 - Configure travis build for OSX.
