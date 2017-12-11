@@ -42,15 +42,15 @@ from leap.common.config import get_path_prefix
 from leap.bitmask.keymanager import KeyNotFound
 
 try:
-    from pixelated.adapter.mailstore import LeapMailStore
-    from pixelated.application import SingleUserServicesFactory
-    from pixelated.application import UserAgentMode
-    from pixelated.application import start_site
-    from pixelated.bitmask_libraries.smtp import LeapSMTPConfig
-    from pixelated.config.sessions import SessionCache
-    from pixelated.config import services
-    from pixelated.resources import set_static_folder
-    from pixelated.resources.root_resource import RootResource
+    from leap.pixelated.adapter.mailstore import LeapMailStore
+    from leap.pixelated.application import SingleUserServicesFactory
+    from leap.pixelated.application import UserAgentMode
+    from leap.pixelated.application import start_site
+    from leap.pixelated.bitmask_libraries.smtp import LeapSMTPConfig
+    from leap.pixelated.config.sessions import SessionCache
+    from leap.pixelated.config import services
+    from leap.pixelated.resources import set_static_folder
+    from leap.pixelated.resources.root_resource import RootResource
     import leap.pixelated_www
     HAS_PIXELATED = True
 

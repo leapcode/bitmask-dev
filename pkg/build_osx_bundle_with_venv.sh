@@ -37,6 +37,8 @@ $VIRTUAL_ENV/bin/pip install -r pkg/requirements-osx.pip
 make dev-gui
 make dev-mail
 
+# TODO -- pixelated check for gpg needs to be patched.
+
 # $VIRTUAL_ENV/bin/pip uninstall --yes leap.bitmask
 # $VIRTUAL_ENV/bin/python setup.py sdist bdist_wheel --universal
 

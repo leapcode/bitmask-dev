@@ -44,8 +44,9 @@ if IS_WIN:
 elif IS_MAC:
     hiddenimports.extend(['pywebview', 'pyobjc'])
     hiddenimports.extend(
-        ['PyQt5.QtCore', 'PyQt5.QtGui', 'PyQt5.QtWidgets',
+        ['PyQt5.QtWidgets', 'PyQt5.QtCore',
          'leap.bitmask.gui.icons_rc'])
+    print "Added PyQt5 to the venv"
     excludes = ['IPython', 'PySide']
 else:
     hiddenimports.extend(
@@ -64,7 +65,8 @@ else:
 
 a = Analysis(ENTRYPOINT,
              pathex=[
-	         '/usr/lib/python2.7/dist-packages/'],
+	         '/usr/lib/python2.7/dist-packages/',
+	         '/usr/local/lib/python2.7/site-packages/'],
              binaries=None,
              datas=None,
              hiddenimports=hiddenimports,
