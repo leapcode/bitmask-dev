@@ -48,6 +48,29 @@ var bitmask = function(){
         api_token = window.location.hash.replace('#', '')
     }
 
+    // If the script is running from a Firefox (or Thunderbird) extension, get
+    // the api_token from ~/.config/leap/authtoken, and also set the api_url.
+    if (window.location.protocol === "chrome:") {
+        // Use the correct URL for the API.
+        api_url = 'http://localhost:7070/API/';
+
+        // Now fetch the token file and set api_token.
+        Components.utils.import("resource://gre/modules/osfile.jsm")
+
+        let tokenPath = OS.Path.join(OS.Constants.Path.homeDir, ".config", "leap", "authtoken")
+        let decoder = new TextDecoder();
+
+        setInterval(function get_token_file() {
+          let promise = OS.File.read(tokenPath);
+          promise = promise.then(array => {
+            api_token = decoder.decode(array);
+          }, ex => {
+            api_token = null;
+          });
+          return get_token_file;
+        }(), 3000);
+    }
+
     function call(command) {
         var url = api_url  + command.slice(0, 3).join('/');
         var data = JSON.stringify(command.slice(3));
@@ -131,6 +154,13 @@ var bitmask = function(){
              */
             stop: function() {
                 return call(['core', 'stop']);
+            },
+
+            /**
+             * Get bitmaskd status
+             */
+            status: function() {
+                return call(['core', 'status']);
             }
         },
 
