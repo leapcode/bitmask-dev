@@ -105,3 +105,9 @@ bundle_upload:
 
 bundle_clean:
 	rm -rf "dist" "build"
+
+bundle_headless:
+	pyinstaller -y pkg/pyinst/headless.spec
+	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/_scrypt.so $(HEADLESS_DIST)
+	cp src/leap/bitmask/core/bitmaskd.tac $(HEADLESS_DIST)
+	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/common/cacert.pem $(HEADLESS_DIST)/
