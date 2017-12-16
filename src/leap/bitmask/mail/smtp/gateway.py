@@ -38,7 +38,7 @@ from zope.interface import implementer
 from twisted.cred.portal import Portal, IRealm
 from twisted.mail import smtp
 from twisted.mail.imap4 import LOGINCredentials, PLAINCredentials
-from twisted.internet import defer, protocol
+from twisted.internet import protocol
 from twisted.logger import Logger
 
 from leap.common.check import leap_assert_type
@@ -47,9 +47,6 @@ from leap.bitmask.mail import errors
 from leap.bitmask.mail.cred import LocalSoledadTokenChecker
 from leap.bitmask.mail.utils import validate_address
 from leap.bitmask.mail.rfc3156 import RFC3156CompliantGenerator
-from leap.bitmask.mail.outgoing.service import outgoingFactory
-from leap.bitmask.mail.smtp.bounces import bouncerFactory
-from leap.bitmask.keymanager.errors import KeyNotFound
 
 # replace email generator with a RFC 3156 compliant one.
 generator.Generator = RFC3156CompliantGenerator
@@ -62,81 +59,30 @@ class LocalSMTPRealm(object):
 
     _encoding = 'utf-8'
 
-    def __init__(self, keymanager_sessions, soledad_sessions, sendmail_opts,
-                 encrypted_only=False):
-        """
-        :param keymanager_sessions: a dict-like object, containing instances
-                                 of a Keymanager objects, indexed by
-                                 userid.
-        """
-        self._keymanager_sessions = keymanager_sessions
-        self._soledad_sessions = soledad_sessions
-        self._sendmail_opts = sendmail_opts
+    def __init__(self, outgoing_sessions, encrypted_only=False):
+        self._outgoing_sessions = outgoing_sessions
         self.encrypted_only = encrypted_only
 
     def requestAvatar(self, avatarId, mind, *interfaces):
+        if smtp.IMessageDelivery not in interfaces:
+            raise NotImplementedError(self, interfaces)
 
         if isinstance(avatarId, str):
             avatarId = avatarId.decode(self._encoding)
 
-        def gotKeymanagerAndSoledad(result):
-            keymanager, soledad = result
-            d = bouncerFactory(soledad)
-            d.addCallback(lambda bouncer: (keymanager, soledad, bouncer))
-            return d
+        outgoing = self.lookupOutgoingInstance(avatarId)
+        avatar = SMTPDelivery(avatarId, self.encrypted_only, outgoing)
+        return (smtp.IMessageDelivery, avatar,
+                getattr(avatar, 'logout', lambda: None))
 
-        def getMessageDelivery(result):
-            keymanager, soledad, bouncer = result
-            # TODO use IMessageDeliveryFactory instead ?
-            # it could reuse the connections.
-            if smtp.IMessageDelivery in interfaces:
-                userid = avatarId
-                opts = self.getSendingOpts(userid)
-
-                outgoing = outgoingFactory(
-                    userid, keymanager, opts, bouncer=bouncer)
-                avatar = SMTPDelivery(userid, keymanager, self.encrypted_only,
-                                      outgoing)
-
-                return (smtp.IMessageDelivery, avatar,
-                        getattr(avatar, 'logout', lambda: None))
-
-            raise NotImplementedError(self, interfaces)
-
-        d1 = self.lookupKeymanagerInstance(avatarId)
-        d2 = self.lookupSoledadInstance(avatarId)
-        d = defer.gatherResults([d1, d2])
-        d.addCallback(gotKeymanagerAndSoledad)
-        d.addCallback(getMessageDelivery)
-        return d
-
-    def lookupKeymanagerInstance(self, userid):
+    def lookupOutgoingInstance(self, userid):
         try:
-            keymanager = self._keymanager_sessions[userid]
+            outgoing = self._outgoing_sessions[userid]
         except:
             raise errors.AuthenticationError(
-                'No keymanager session found for user %s. Is it authenticated?'
+                'No outgoing session found for user %s. Is it authenticated?'
                 % userid)
-        # XXX this should return the instance after whenReady callback
-        return defer.succeed(keymanager)
-
-    def lookupSoledadInstance(self, userid):
-        try:
-            soledad = self._soledad_sessions[userid]
-        except:
-            raise errors.AuthenticationError(
-                'No soledad session found for user %s. Is it authenticated?'
-                % userid)
-        # XXX this should return the instance after whenReady callback
-        return defer.succeed(soledad)
-
-    def getSendingOpts(self, userid):
-        try:
-            opts = self._sendmail_opts[userid]
-        except KeyError:
-            raise errors.ConfigurationError(
-                'No sendingMail options found for user %s' % userid)
-        return opts
+        return outgoing
 
 
 class SMTPTokenChecker(LocalSoledadTokenChecker):
@@ -155,11 +101,9 @@ class LEAPInitMixin(object):
     A Mixin that takes care of initialization of all the data needed to access
     LEAP sessions.
     """
-    def __init__(self, soledad_sessions, keymanager_sessions, sendmail_opts,
+    def __init__(self, outgoing_sessions, soledad_sessions,
                  encrypted_only=False):
-        realm = LocalSMTPRealm(
-            keymanager_sessions, soledad_sessions, sendmail_opts,
-            encrypted_only)
+        realm = LocalSMTPRealm(outgoing_sessions, encrypted_only)
         portal = Portal(realm)
 
         checker = SMTPTokenChecker(soledad_sessions)
@@ -177,12 +121,9 @@ class LocalSMTPServer(smtp.ESMTP, LEAPInitMixin):
 
     # TODO: implement Queue using twisted.mail.mail.MailService
 
-    def __init__(self, soledads, keyms, sendmailopts, *args, **kw):
-        encrypted_only = kw.pop('encrypted_only', False)
-
-        LEAPInitMixin.__init__(self, soledads, keyms, sendmailopts,
-                               encrypted_only)
-        smtp.ESMTP.__init__(self, *args, **kw)
+    def __init__(self, outgoings, soledads, encrypted_only=False):
+        LEAPInitMixin.__init__(self, outgoings, soledads, encrypted_only)
+        smtp.ESMTP.__init__(self)
 
 
 # TODO implement retries -- see smtp.SenderMixin
@@ -196,17 +137,14 @@ class SMTPFactory(protocol.ServerFactory):
     timeout = 600
     encrypted_only = False
 
-    def __init__(self, soledad_sessions, keymanager_sessions, sendmail_opts,
-                 deferred=None, retries=3):
-
+    def __init__(self, outgoing_sessions, soledad_sessions, deferred=None,
+                 retries=3):
+        self._outgoing_sessions = outgoing_sessions
         self._soledad_sessions = soledad_sessions
-        self._keymanager_sessions = keymanager_sessions
-        self._sendmail_opts = sendmail_opts
 
     def buildProtocol(self, addr):
-        p = self.protocol(
-            self._soledad_sessions, self._keymanager_sessions,
-            self._sendmail_opts, encrypted_only=self.encrypted_only)
+        p = self.protocol(self._outgoing_sessions, self._soledad_sessions,
+                          encrypted_only=self.encrypted_only)
         p.factory = self
         p.host = LOCAL_FQDN
         p.challengers = {"LOGIN": LOGINCredentials, "PLAIN": PLAINCredentials}
@@ -226,14 +164,12 @@ class SMTPDelivery(object):
 
     log = Logger()
 
-    def __init__(self, userid, keymanager, encrypted_only, outgoing_mail):
+    def __init__(self, userid, encrypted_only, outgoing_mail):
         """
         Initialize the SMTP delivery object.
 
         :param userid: The user currently logged in
         :type userid: unicode
-        :param keymanager: A Key Manager from where to get recipients' public
-                           keys.
         :param encrypted_only: Whether the SMTP gateway should send unencrypted
                                mail or not.
         :type encrypted_only: bool
@@ -241,8 +177,7 @@ class SMTPDelivery(object):
         :type outgoing_mail: leap.bitmask.mail.outgoing.service.OutgoingMail
         """
         self._userid = userid
-        self._outgoing_mail = outgoing_mail
-        self._km = keymanager
+        self._outgoing = outgoing_mail
         self._encrypted_only = encrypted_only
         self._origin = None
 
@@ -297,32 +232,28 @@ class SMTPDelivery(object):
         # try to find recipient's public key
         address = validate_address(user.dest.addrstr)
 
-        # verify if recipient key is available in keyring
-        def found(_):
-            self.log.debug('Accepting mail for %s...' % user.dest.addrstr)
-            emit_async(catalog.SMTP_RECIPIENT_ACCEPTED_ENCRYPTED,
-                       self._userid, user.dest.addrstr)
-
-        def not_found(failure):
-            failure.trap(KeyNotFound)
-
-            # if key was not found, check config to see if will send anyway
-            if self._encrypted_only:
+        def verify_if_can_encrypt_for_recipient(can_encrypt):
+            if can_encrypt:
+                self.log.debug('Accepting mail for %s...' % user.dest.addrstr)
+                emit_async(catalog.SMTP_RECIPIENT_ACCEPTED_ENCRYPTED,
+                           self._userid, user.dest.addrstr)
+            elif self._encrypted_only:
                 emit_async(catalog.SMTP_RECIPIENT_REJECTED, self._userid,
                            user.dest.addrstr)
                 raise smtp.SMTPBadRcpt(user.dest.addrstr)
-            self.log.warn(
-                'Warning: will send an unencrypted message (because '
-                '"encrypted_only" is set to False).')
-            emit_async(
-                catalog.SMTP_RECIPIENT_ACCEPTED_UNENCRYPTED,
-                self._userid, user.dest.addrstr)
+            else:
+                self.log.warn(
+                    'Warning: will send an unencrypted message (because '
+                    '"encrypted_only" is set to False).')
+                emit_async(
+                    catalog.SMTP_RECIPIENT_ACCEPTED_UNENCRYPTED,
+                    self._userid, user.dest.addrstr)
 
         def encrypt_func(_):
-            return lambda: EncryptedMessage(user, self._outgoing_mail)
+            return lambda: EncryptedMessage(user, self._outgoing)
 
-        d = self._km.get_key(address)
-        d.addCallbacks(found, not_found)
+        d = self._outgoing.can_encrypt_for(address)
+        d.addCallback(verify_if_can_encrypt_for_recipient)
         d.addCallback(encrypt_func)
         return d
 
@@ -379,7 +310,7 @@ class EncryptedMessage(object):
 
         self._user = user
         self._lines = []
-        self._outgoing_mail = outgoing_mail
+        self._outgoing = outgoing_mail
 
     def lineReceived(self, line):
         """
@@ -402,7 +333,7 @@ class EncryptedMessage(object):
         self._lines.append('')  # add a trailing newline
         raw_mail = '\r\n'.join(self._lines)
 
-        return self._outgoing_mail.send_message(raw_mail, self._user)
+        return self._outgoing.send_message(raw_mail, self._user)
 
     def connectionLost(self):
         """

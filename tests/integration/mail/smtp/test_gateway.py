@@ -29,6 +29,7 @@ from twisted.test import proto_helpers
 from mock import Mock
 
 from leap.bitmask.keymanager import openpgp, errors
+from leap.bitmask.mail.outgoing.service import OutgoingMail
 from leap.bitmask.mail.testing import KeyManagerWithSoledadTestCase
 from leap.bitmask.mail.testing import ADDRESS, ADDRESS_2
 from leap.bitmask.mail.testing.smtp import getSMTPFactory, TEST_USER
@@ -91,7 +92,8 @@ class TestSmtpGateway(KeyManagerWithSoledadTestCase):
                         '354 Continue']
 
         user = TEST_USER
-        proto = getSMTPFactory({user: None}, {user: self.km}, {user: None})
+        proto = getSMTPFactory({user: OutgoingMail(user, self.km)},
+                               {user: None})
         transport = proto_helpers.StringTransport()
         proto.makeConnection(transport)
         reply = ""
@@ -117,7 +119,7 @@ class TestSmtpGateway(KeyManagerWithSoledadTestCase):
             return_value=fail(errors.KeyNotFound()))
         user = TEST_USER
         proto = getSMTPFactory(
-            {user: None}, {user: self.km}, {user: None},
+            {user: OutgoingMail(user, self.km)}, {user: None},
             encrypted_only=True)
         transport = proto_helpers.StringTransport()
         proto.makeConnection(transport)
@@ -147,7 +149,8 @@ class TestSmtpGateway(KeyManagerWithSoledadTestCase):
         self.km._fetch_keys_from_server_and_store_local = Mock(
             return_value=fail(errors.KeyNotFound()))
         user = TEST_USER
-        proto = getSMTPFactory({user: None}, {user: self.km}, {user: None})
+        proto = getSMTPFactory({user: OutgoingMail(user, self.km)},
+                               {user: None})
         transport = proto_helpers.StringTransport()
         proto.makeConnection(transport)
         yield self.getReply(self.EMAIL_DATA[0] + '\r\n', proto, transport)

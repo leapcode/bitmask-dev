@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # mail_services.py
-# Copyright (C) 2016 LEAP Encryption Acess Project
+# Copyright (C) 2016-2017 LEAP Encryption Acess Project
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -43,6 +43,7 @@ try:
     from leap.bitmask.keymanager import KeyManager
     from leap.bitmask.keymanager.errors import KeyNotFound
     from leap.bitmask.keymanager.validation import ValidationLevels
+    from leap.bitmask.mail import errors
     from leap.bitmask.mail.constants import INBOX_NAME
     from leap.bitmask.mail.mail import Account
     from leap.bitmask.mail.imap import service as imap_service
@@ -50,6 +51,9 @@ try:
     from leap.bitmask.mail.incoming.service import IncomingMail
     from leap.bitmask.mail.incoming.service import INCOMING_CHECK_PERIOD
     from leap.bitmask.mail.utils import first
+    from leap.bitmask.mail.outgoing.service import OutgoingMail
+    from leap.bitmask.mail.outgoing.sender import SMTPSender
+    from leap.bitmask.mail.smtp.bounces import bouncerFactory
     from leap.soledad.client.api import Soledad
     HAS_MAIL = True
 except ImportError:
@@ -482,7 +486,7 @@ class StandardMailService(service.MultiService, HookableService):
         self._basedir = basedir
         self._soledad_sessions = {}
         self._keymanager_sessions = {}
-        self._sendmail_opts = {}
+        self._outgoing_sessions = {}
         self._service_tokens = {}
         self._mixnet_enabled = mixnet_enabled
         super(StandardMailService, self).__init__()
@@ -490,9 +494,8 @@ class StandardMailService(service.MultiService, HookableService):
 
     def initializeChildrenServices(self):
         self.addService(IMAPService(self._soledad_sessions))
-        self.addService(SMTPService(
-            self._soledad_sessions, self._keymanager_sessions,
-            self._sendmail_opts))
+        self.addService(SMTPService(self._outgoing_sessions,
+                                    self._soledad_sessions))
         # TODO adapt the service to receive soledad/keymanager sessions object.
         # See also the TODO before IncomingMailService.startInstance
         self.addService(IncomingMailService(self))
@@ -506,20 +509,19 @@ class StandardMailService(service.MultiService, HookableService):
         super(StandardMailService, self).stopService()
 
     def startInstance(self, userid, soledad, keymanager):
-        username, provider = userid.split('@')
 
         self._soledad_sessions[userid] = soledad
         self._keymanager_sessions[userid] = keymanager
-
-        sendmail_opts = _get_sendmail_opts(self._basedir, provider, username)
-        self._sendmail_opts[userid] = sendmail_opts
 
         def registerToken(token):
             self._service_tokens[userid] = token
             return token
 
         incoming = self.getServiceNamed('incoming_mail')
-        d = incoming.startInstance(userid)
+        d = bouncerFactory(soledad)
+        d.addCallback(self._create_outgoing_service, userid, keymanager,
+                      soledad)
+        d.addCallback(lambda _: incoming.startInstance(userid))
         d.addCallback(
             lambda _: soledad.get_or_create_service_token('mail_auth'))
         d.addCallback(registerToken)
@@ -527,6 +529,22 @@ class StandardMailService(service.MultiService, HookableService):
         d.addCallback(
             self._maybe_start_pixelated, userid, soledad, keymanager)
         return d
+
+    def _create_outgoing_service(self, bouncer, userid, keymanager, soledad):
+        outgoing = OutgoingMail(userid, keymanager, bouncer)
+
+        username, provider = userid.split('@')
+        key = _get_smtp_client_cert_path(self._basedir, provider, username)
+        prov = _get_provider_for_service('smtp', self._basedir, provider)
+        hostname = prov.hostname
+        port = prov.port
+        if not os.path.isfile(key):
+            raise errors.ConfigurationError(
+                'No valid SMTP certificate could be found for %s!' % userid)
+        smtp_sender = SMTPSender(userid, key, hostname, port)
+        outgoing.add_sender(smtp_sender)
+
+        self._outgoing_sessions[userid] = outgoing
 
     # hooks
 
@@ -745,13 +763,12 @@ class SMTPService(service.Service):
     name = 'smtp'
     log = Logger()
 
-    def __init__(self, soledad_sessions, keymanager_sessions, sendmail_opts,
+    def __init__(self, outgoing_sessions, soledad_sessions,
                  basedir=DEFAULT_BASEDIR):
 
         self._basedir = os.path.expanduser(basedir)
+        self._outgoing_sessions = outgoing_sessions
         self._soledad_sessions = soledad_sessions
-        self._keymanager_sessions = keymanager_sessions
-        self._sendmail_opts = sendmail_opts
         self._port = None
         self._factory = None
         super(SMTPService, self).__init__()
@@ -762,9 +779,8 @@ class SMTPService(service.Service):
             return
         self.log.info('starting smtp service')
         port, factory = smtp_service.run_service(
+            self._outgoing_sessions,
             self._soledad_sessions,
-            self._keymanager_sessions,
-            self._sendmail_opts,
             factory=self._factory)
         self._port = port
         self._factory = factory
@@ -846,6 +862,7 @@ class IncomingMailService(service.MultiService):
             self.log.debug('Setting Incoming Mail Service for %s' % userid)
             incoming_mail.setName(userid)
             self.addService(incoming_mail)
+            return incoming_mail
 
         def setStatusOn(res):
             self._set_status(userid, "on")
@@ -882,24 +899,11 @@ SERVICES = ('soledad', 'smtp', 'vpn')
 Provider = namedtuple(
     'Provider', ['hostname', 'ip_address', 'location', 'port'])
 
-SendmailOpts = namedtuple(
-    'SendmailOpts', ['cert', 'key', 'hostname', 'port'])
-
 
 def _get_ca_cert_path(basedir, provider):
     path = os.path.join(
         basedir, 'providers', provider, 'keys', 'ca', 'cacert.pem')
     return path
-
-
-def _get_sendmail_opts(basedir, provider, username):
-    cert = _get_smtp_client_cert_path(basedir, provider, username)
-    key = cert
-    prov = _get_provider_for_service('smtp', basedir, provider)
-    hostname = prov.hostname
-    port = prov.port
-    opts = SendmailOpts(cert, key, hostname, port)
-    return opts
 
 
 def _get_smtp_client_cert_path(basedir, provider, username):

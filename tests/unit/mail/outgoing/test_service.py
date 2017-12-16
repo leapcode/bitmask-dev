@@ -36,7 +36,6 @@ class TestService(unittest.TestCase):
     def test_send_error_bounces_if_bouncer_is_provided(self):
         bouncer = MagicMock()
         outgoing_mail = OutgoingMail(self.from_address, self.keymanager,
-                                     self.cert, self.key, self.host, self.port,
                                      bouncer)
 
         failure = Failure(exc_value=Exception())
@@ -48,7 +47,6 @@ class TestService(unittest.TestCase):
     def test_send_error_raises_exception_if_there_is_no_bouncer(self):
         bouncer = None
         outgoing_mail = OutgoingMail(self.from_address, self.keymanager,
-                                     self.cert, self.key, self.host, self.port,
                                      bouncer)
 
         failure = Failure(exc_value=Exception('smtp error'))

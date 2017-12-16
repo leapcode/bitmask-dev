@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # outgoing/service.py
-# Copyright (C) 2013-2015 LEAP
+# Copyright (C) 2013-2017 LEAP
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@ OutgoingMail module.
 The OutgoingMail class allows to send mail, and encrypts/signs it if needed.
 """
 
-import os.path
 import re
 from StringIO import StringIO
 from copy import deepcopy
@@ -31,19 +30,14 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from OpenSSL import SSL
-
 from twisted.mail import smtp
-from twisted.internet import reactor
 from twisted.internet import defer
+from twisted.python.failure import Failure
 from twisted.logger import Logger
-from twisted.protocols.amp import ssl
 
 from leap.common.check import leap_assert_type, leap_assert
 from leap.common.events import emit_async, catalog
-from leap.bitmask import __version__
 from leap.bitmask.keymanager.errors import KeyNotFound, KeyAddressMismatch
-from leap.bitmask.mail import errors
 from leap.bitmask.mail.utils import validate_address
 from leap.bitmask.mail.rfc3156 import MultipartEncrypted
 from leap.bitmask.mail.rfc3156 import MultipartSigned
@@ -57,39 +51,6 @@ from leap.bitmask.mail.rfc3156 import PGPEncrypted
 #     of IService
 
 
-class SSLContextFactory(ssl.ClientContextFactory):
-    def __init__(self, cert, key):
-        self.cert = cert
-        self.key = key
-
-    def getContext(self):
-        # FIXME -- we should use sslv23 to allow for tlsv1.2
-        # and, if possible, explicitely disable sslv3 clientside.
-        # Servers should avoid sslv3
-        self.method = SSL.TLSv1_METHOD  # SSLv23_METHOD
-        ctx = ssl.ClientContextFactory.getContext(self)
-        ctx.use_certificate_file(self.cert)
-        ctx.use_privatekey_file(self.key)
-        return ctx
-
-
-def outgoingFactory(userid, keymanager, opts, check_cert=True, bouncer=None):
-
-    cert = unicode(opts.cert)
-    key = unicode(opts.key)
-    hostname = str(opts.hostname)
-    port = opts.port
-
-    if check_cert:
-        if not os.path.isfile(cert):
-            raise errors.ConfigurationError(
-                'No valid SMTP certificate could be found for %s!' % userid)
-
-    return OutgoingMail(
-        str(userid), keymanager, cert, key, hostname, port,
-        bouncer)
-
-
 class OutgoingMail(object):
     """
     Sends Outgoing Mail, encrypting and signing if needed.
@@ -97,8 +58,7 @@ class OutgoingMail(object):
 
     log = Logger()
 
-    def __init__(self, from_address, keymanager, cert, key, host, port,
-                 bouncer=None):
+    def __init__(self, from_address, keymanager, bouncer=None):
         """
         Initialize the outgoing mail service.
 
@@ -106,39 +66,25 @@ class OutgoingMail(object):
         :type from_address: str
         :param keymanager: A KeyManager for retrieving recipient's keys.
         :type keymanager: leap.common.keymanager.KeyManager
-        :param cert: The client certificate for SSL authentication.
-        :type cert: str
-        :param key: The client private key for SSL authentication.
-        :type key: str
-        :param host: The hostname of the remote SMTP server.
-        :type host: str
-        :param port: The port of the remote SMTP server.
-        :type port: int
         """
 
         # assert params
-        leap_assert_type(from_address, str)
+        leap_assert_type(from_address, (str, unicode))
         leap_assert('@' in from_address)
 
         # XXX it can be a zope.proxy too
         # leap_assert_type(keymanager, KeyManager)
 
-        leap_assert_type(host, str)
-        leap_assert(host != '')
-        leap_assert_type(port, int)
-        leap_assert(port is not 0)
-        leap_assert_type(cert, basestring)
-        leap_assert(cert != '')
-        leap_assert_type(key, basestring)
-        leap_assert(key != '')
-
-        self._port = port
-        self._host = host
-        self._key = key
-        self._cert = cert
         self._from_address = from_address
         self._keymanager = keymanager
         self._bouncer = bouncer
+        self._senders = []
+
+    def add_sender(self, sender):
+        """
+        Add an ISender to the outgoing service
+        """
+        self._senders.append(sender)
 
     def send_message(self, raw, recipient):
         """
@@ -151,19 +97,26 @@ class OutgoingMail(object):
         :return: a deferred which delivers the message when fired
         """
         d = self._maybe_encrypt_and_sign(raw, recipient)
-        d.addCallback(self._route_msg, raw)
+        d.addCallback(self._route_msg, recipient, raw)
         d.addErrback(self.sendError, raw)
         return d
 
-    def sendSuccess(self, smtp_sender_result):
+    def can_encrypt_for(self, recipient):
+        def cb(_):
+            return True
+
+        def eb(failure):
+            failure.trap(KeyNotFound)
+            return False
+
+        d = self._keymanager.get_key(recipient)
+        d.addCallbacks(cb, eb)
+        return d
+
+    def sendSuccess(self, dest_addrstr):
         """
         Callback for a successful send.
-
-        :param smtp_sender_result: The result from the ESMTPSender from
-                                   _route_msg
-        :type smtp_sender_result: tuple(int, list(tuple))
         """
-        dest_addrstr = smtp_sender_result[1][0][0]
         fromaddr = self._from_address
         self.log.info('Message sent from %s to %s' % (fromaddr, dest_addrstr))
         emit_async(catalog.SMTP_SEND_MESSAGE_SUCCESS,
@@ -197,7 +150,7 @@ class OutgoingMail(object):
         else:
             failure.raiseException()
 
-    def _route_msg(self, encrypt_and_sign_result, raw):
+    def _route_msg(self, encrypt_and_sign_result, recipient, raw):
         """
         Sends the msg using the ESMTPSenderFactory.
 
@@ -206,32 +159,24 @@ class OutgoingMail(object):
         :type encrypt_and_sign_result: tuple
         """
         message, recipient = encrypt_and_sign_result
-        self.log.info(
-            'Connecting to SMTP server %s:%s' % (self._host, self._port))
         msg = message.as_string(False)
 
-        # we construct a defer to pass to the ESMTPSenderFactory
-        d = defer.Deferred()
-        d.addCallback(self.sendSuccess)
-        d.addErrback(self.sendError, raw)
-        # we don't pass an ssl context factory to the ESMTPSenderFactory
-        # because ssl will be handled by reactor.connectSSL() below.
-        factory = smtp.ESMTPSenderFactory(
-            "",  # username is blank, no client auth here
-            "",  # password is blank, no client auth here
-            self._from_address,
-            recipient.dest.addrstr,
-            StringIO(msg),
-            d,
-            heloFallback=True,
-            requireAuthentication=False,
-            requireTransportSecurity=True)
-        factory.domain = bytes('leap.bitmask.mail-' + __version__)
+        d = None
+        for sender in self._senders:
+            if sender.can_send(recipient.dest.addrstr):
+                self.log.debug('Sending message to %s with: %s'
+                               % (recipient, str(sender)))
+                d = sender.send(recipient, msg)
+                break
+
+        if d is None:
+            return self.sendError(Failure(), raw)
+
         emit_async(catalog.SMTP_SEND_MESSAGE_START,
                    self._from_address, recipient.dest.addrstr)
-        reactor.connectSSL(
-            self._host, self._port, factory,
-            contextFactory=SSLContextFactory(self._cert, self._key))
+        d.addCallback(self.sendSuccess)
+        d.addErrback(self.sendError, raw)
+        return d
 
     def _maybe_encrypt_and_sign(self, raw, recipient, fetch_remote=True):
         """

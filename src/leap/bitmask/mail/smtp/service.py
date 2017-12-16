@@ -31,16 +31,15 @@ log = Logger()
 SMTP_PORT = 2013
 
 
-def run_service(soledad_sessions, keymanager_sessions, sendmail_opts,
-                port=SMTP_PORT, factory=None):
+def run_service(outgoing_sessions, soledad_sessions, port=SMTP_PORT,
+                factory=None):
     """
     Main entry point to run the service from the client.
 
+    :param outgoing_sessions: a dict-like object, containing instances
+                              of outgoing, indexed by userid.
     :param soledad_sessions: a dict-like object, containing instances
                              of a Store (soledad instances), indexed by userid.
-    :param keymanager_sessions: a dict-like object, containing instances
-                                of Keymanager, indexed by userid.
-    :param sendmail_opts: a dict-like object of sendmailOptions.
     :param factory: a factory for the protocol that will listen in the given
                     port
 
@@ -49,8 +48,7 @@ def run_service(soledad_sessions, keymanager_sessions, sendmail_opts,
     :rtype: tuple
     """
     if not factory:
-        factory = SMTPFactory(soledad_sessions, keymanager_sessions,
-                              sendmail_opts)
+        factory = SMTPFactory(outgoing_sessions, soledad_sessions)
 
     try:
         interface = "localhost"

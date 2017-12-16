@@ -32,6 +32,7 @@ from mock import Mock
 
 from leap.bitmask.mail.rfc3156 import RFC3156CompliantGenerator
 from leap.bitmask.mail.outgoing.service import OutgoingMail
+from leap.bitmask.mail.outgoing.sender import SMTPSender
 from leap.bitmask.mail.testing import ADDRESS, ADDRESS_2, PUBLIC_KEY_2
 from leap.bitmask.mail.testing import KeyManagerWithSoledadTestCase
 from leap.bitmask.mail.testing.smtp import getSMTPFactory
@@ -75,9 +76,9 @@ class TestOutgoingMail(KeyManagerWithSoledadTestCase):
         self.opts = opts
 
         def init_outgoing_and_proto(_):
-            self.outgoing_mail = OutgoingMail(
-                self.fromAddr, self.km, opts.cert,
-                opts.key, opts.hostname, opts.port)
+            self.outgoing = OutgoingMail(self.fromAddr, self.km)
+            self.outgoing.add_sender(
+                SMTPSender(self.fromAddr, opts.key, opts.hostname, opts.port))
 
             user = TEST_USER
 
@@ -101,7 +102,7 @@ class TestOutgoingMail(KeyManagerWithSoledadTestCase):
                 decrypted,
                 'Decrypted text does not contain the original text.')
 
-        d = self.outgoing_mail._maybe_encrypt_and_sign(self.raw, self.dest)
+        d = self.outgoing._maybe_encrypt_and_sign(self.raw, self.dest)
         d.addCallback(self._assert_encrypted)
         d.addCallback(lambda message: self.km.decrypt(
             message.get_payload(1).get_payload(), ADDRESS))
@@ -122,7 +123,7 @@ class TestOutgoingMail(KeyManagerWithSoledadTestCase):
             self.assertTrue(ADDRESS_2 in signkey.address,
                             "Verification failed")
 
-        d = self.outgoing_mail._maybe_encrypt_and_sign(self.raw, self.dest)
+        d = self.outgoing._maybe_encrypt_and_sign(self.raw, self.dest)
         d.addCallback(self._assert_encrypted)
         d.addCallback(lambda message: self.km.decrypt(
             message.get_payload(1).get_payload(), ADDRESS, verify=ADDRESS_2))
@@ -139,9 +140,7 @@ class TestOutgoingMail(KeyManagerWithSoledadTestCase):
             return_value=fail(errors.KeyNotFound()))
         recipient = User('ihavenopubkey@nonleap.se',
                          'gateway.leap.se', self.proto, ADDRESS)
-        self.outgoing_mail = OutgoingMail(
-            self.fromAddr, self.km, self.opts.cert, self.opts.key,
-            self.opts.hostname, self.opts.port)
+        self.outgoing = OutgoingMail(self.fromAddr, self.km)
 
         def check_signed(res):
             message, _ = res
@@ -187,13 +186,13 @@ class TestOutgoingMail(KeyManagerWithSoledadTestCase):
             return d
 
         # TODO shouldn't depend on private method on this test
-        d = self.outgoing_mail._maybe_encrypt_and_sign(self.raw, recipient)
+        d = self.outgoing._maybe_encrypt_and_sign(self.raw, recipient)
         d.addCallback(check_signed)
         d.addCallback(verify)
         return d
 
     def test_attach_key(self):
-        d = self.outgoing_mail._maybe_encrypt_and_sign(self.raw, self.dest)
+        d = self.outgoing._maybe_encrypt_and_sign(self.raw, self.dest)
         d.addCallback(self._assert_encrypted)
         d.addCallback(self._check_headers, self.lines[:4])
         d.addCallback(lambda message: self.km.decrypt(
@@ -209,7 +208,7 @@ class TestOutgoingMail(KeyManagerWithSoledadTestCase):
         raw = '\r\n'.join(lines)
         dest = User(unknown_address, 'gateway.leap.se', self.proto, ADDRESS_2)
 
-        d = self.outgoing_mail._maybe_encrypt_and_sign(
+        d = self.outgoing._maybe_encrypt_and_sign(
             raw, dest, fetch_remote=False)
         d.addCallback(lambda (message, _):
                       self._check_headers(message, lines[:4]))
