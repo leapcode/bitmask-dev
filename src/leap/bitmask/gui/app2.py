@@ -140,13 +140,16 @@ class BrowserWindow(object):
                 pidno = int(f.read())
             print('[bitmask] terminating bitmaskd...')
             os.kill(pidno, signal.SIGTERM)
+        self.cleanup()
         print('[bitmask] shutting down gui...')
 
     def cleanup(self):
-        # TODO get path-----------------------------------
-        os.remove('/Users/' + getpass.getuser() +
-                  '/Library/Preferences/leap/bitmasd.pid')
-        # ------------------------------------------------
+        base = os.path.join(get_path_prefix(), 'leap')
+        token = os.path.join(base, 'authtoken')
+        pid = os.path.join(base, 'bitmaskd.pid')
+        for _f in [token, pid]:
+            if os.path.isfile(_f):
+                os.unlink(_f)
 
 
 def launch_gui():
