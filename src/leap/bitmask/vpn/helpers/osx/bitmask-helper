@@ -60,7 +60,7 @@ from functools import partial
 import daemon
 import re
 
-VERSION = "1"
+VERSION = "2"
 SCRIPT = "bitmask-helper"
 NAMESERVER = "10.42.0.1"
 BITMASK_ANCHOR = "com.apple/250.BitmaskFirewall"
@@ -123,6 +123,9 @@ CAT = '/bin/cat'
 
 UID = os.getuid()
 SERVER_ADDRESS = '/var/run/bitmask-helper.socket'
+
+
+cmd_lock = threading.Lock()
 
 
 #
@@ -189,16 +192,14 @@ def handle_command(sock):
     }
 
     cmd_call = cmd_dict.get(command, None)
-    # syslog.syslog(syslog.LOG_WARNING, 'call: %s' % (str(cmd_call)))
+    cmd_lock.acquire()
+
     try:
         if cmd_call:
-            # syslog.syslog(
-            #    syslog.LOG_WARNING, 'GOT "%s"' % (command))
             cmd, args = cmd_call
             if args:
                 cmd = partial(cmd, *args)
 
-            # TODO Use a MUTEX in here
             result = cmd()
             syslog.syslog(syslog.LOG_WARNING, "%s result: %s" % (
                 command, str(result)))
@@ -217,6 +218,7 @@ def handle_command(sock):
         syslog.syslog(
             syslog.LOG_WARNING, "error executing function %r" % (exc))
     finally:
+        cmd_lock.release()
         sock.close()
 
 #
