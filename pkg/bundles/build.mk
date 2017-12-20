@@ -70,6 +70,8 @@ bundle_osx_missing:
 	mv dist/Bitmask.app/Contents/MacOS/bitmask $(OSX_CON)/bitmask-app
 	cp pkg/osx/bitmask-wrapper $(OSX_CON)/bitmask
 	mkdir -p $(OSX_RES)/bitmask-helper
+	mkdir -p $(OSX_RES)/../apps/providers
+	cp -r $(DIST_VERSION)/apps/providers/* $(OSX_RES)/../apps/providers
 	cp -r $(DIST_VERSION)/apps/helpers/bitmask-helper $(OSX_RES)/bitmask-helper/
 	cp -r $(DIST_VERSION)/apps/helpers/bitmask.pf.conf $(OSX_RES)/bitmask-helper/
 	cp -r $(DIST_VERSION)/apps/helpers/daemon/daemon.py $(OSX_RES)/bitmask-helper/
