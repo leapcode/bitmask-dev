@@ -54,26 +54,20 @@ PROCNAME = 'bitmask-app'
 
 qApp = None
 bitmaskd = None
-browser = None
 
 
 class Systray(WithTrayIcon):
 
+    browser = None
+
     def closeFromSystray(self):
-        print "SYSTRAY CLOSE"
-        global browser
-        print "browser is", browser
         self.user_closed = True
-        if browser:
-            print 'closing browser window'
-            browser.shutdown()
+        if self.browser:
+            self.browser.shutdown()
             self.close()
         self.close()
 
     def closeEvent(self, event):
-        print "CLOSE EVENT"
-        global browser
-        print "browser is", browser
         if self.user_closed:
             print "bye!"
             sys.exit()
@@ -85,9 +79,9 @@ def launch_systray():
     global qApp
     qApp = QApplication([])
     qApp.setQuitOnLastWindowClosed(True)
-
     systray = Systray()
     systray.setupSysTray()
+    return systray
 
 
 class BrowserWindow(object):
@@ -121,29 +115,29 @@ class BrowserWindow(object):
         self.url = url
         self.closing = False
 
+    def create_window(self):
+        # blocks. So this should be the last action you do during launch.
         webview.create_window('Bitmask', self.url)
 
     def loadPage(self, web_page):
         self.load(url)
 
     def shutdown(self, *args):
-        print "SHUTDOWN from browser window..."
+        global bitmaskd
         if self.closing:
             return
-
-        # TODO -- close only if closed from systray!!
         self.closing = True
-        global bitmaskd
         bitmaskd.join()
         if os.path.isfile(pid):
             with open(pid) as f:
                 pidno = int(f.read())
-            print('[bitmask] terminating bitmaskd...')
+            print('[bitmask] terminating bitmaskd')
             os.kill(pidno, signal.SIGTERM)
         self.cleanup()
-        print('[bitmask] shutting down gui...')
+        print('[bitmask] shutting down gui')
 
     def cleanup(self):
+        print('[bitmask] cleaning up files')
         base = os.path.join(get_path_prefix(), 'leap')
         token = os.path.join(base, 'authtoken')
         pid = os.path.join(base, 'bitmaskd.pid')
@@ -154,15 +148,35 @@ class BrowserWindow(object):
 
 def launch_gui():
     global bitmaskd
-    global browser
 
     bitmaskd = Process(target=run_bitmaskd)
     bitmaskd.start()
 
+    # there are some tricky movements here to synchronize
+    # the different closing events:
+
+    # 1. bitmask off button: proper way, does shutdown via js.
+    # 2. systray quit: calls browser.shutdown() via reference.
+    # 3. browser window close: has to call browser.shutdown() explicitely.
+
     try:
-        launch_systray()
+        systray = launch_systray()
         browser = BrowserWindow(None)
+        systray.browser = browser
+        browser.create_window()
+
+        # here control is passed
+        # to the pywebview event loop...
+
+        # case 2.
+        if not browser.closing:
+            browser.shutdown()
+        systray.browser = None
+
+        # close systray if closed from cases 1. or 2.
+        systray.closeFromSystray()
         sys.exit(qApp.exec_())
+
     except NoAuthToken as e:
         print('ERROR: ' + e.message)
         sys.exit(1)
