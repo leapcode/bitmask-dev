@@ -20,6 +20,14 @@
 This is a privileged helper script for safely running certain commands as root.
 It should only be called by the Bitmask application.
 
+Expected paths:
+
+  When installed by distro path:
+    /usr/sbin/bitmask-root
+
+  When installed by bundle or from git:
+    /usr/local/sbin/bitmask-root
+
 USAGE:
   bitmask-root firewall stop
   bitmask-root firewall start [restart] GATEWAY1 GATEWAY2 ...
