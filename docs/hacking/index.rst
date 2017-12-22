@@ -45,6 +45,10 @@ You probably want to add `sleep 9000` to allow debuggin on the docker container.
   make package_in_docker
 
 Look at the ``Makefile`` to see the command that it's actually used.
+
+If you want to run an specific test, you can do it like this::
+
+  gitlab-runner exec docker --env BITMASK_INVITE_CODE=xxx e2e_tests
   
 .. _`gitlab's repositories`: https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh
 
