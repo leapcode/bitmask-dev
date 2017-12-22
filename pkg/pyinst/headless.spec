@@ -16,6 +16,7 @@ if IS_MAC:
 
 hiddenimports = [
      'appdirs',
+     'cython',
      'scrypt._scrypt',
      'scrypt', 'zope.interface', 'zope.proxy',
      'pysqlcipher', 'service_identity',

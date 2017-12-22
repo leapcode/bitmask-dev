@@ -2,6 +2,7 @@ DIST=dist/bitmask
 HEADLESS_DIST=dist/bitmask-nox
 NEXT_VERSION = $(shell cat pkg/next-version)
 DIST_VERSION = dist/bitmask-$(NEXT_VERSION)/
+HEADLESS_DIST_VERSION = dist/bitmask-nox-$(NEXT_VERSION)/
 
 BITMASK_ROOT = src/leap/bitmask/vpn/helpers/linux/bitmask-root
 POLKIT_POLICY = src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.policy

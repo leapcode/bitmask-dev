@@ -120,3 +120,13 @@ bundle_headless:
 	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/_scrypt.so $(HEADLESS_DIST)
 	cp src/leap/bitmask/core/bitmaskd.tac $(HEADLESS_DIST)
 	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/common/cacert.pem $(HEADLESS_DIST)/
+	mkdir -p $(HEADLESS_DIST)/leap/soledad/client/_db
+	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/soledad/client/_db/dbschema.sql $(HEADLESS_DIST)/leap/soledad/client/_db/
+	echo `git describe` > $(HEADLESS_DIST)/version
+	mv $(HEADLESS_DIST) _bundlelib && mkdir $(HEADLESS_DIST_VERSION) && mv _bundlelib $(HEADLESS_DIST_VERSION)lib/
+	ln $(HEADLESS_DIST_VERSION)lib/bitmask-nox $(HEADLESS_DIST_VERSION)lib/bitmask
+	mkdir -p $(HEADLESS_DIST_VERSION)apps/mail
+	test -f /usr/bin/gpg1 && cp /usr/bin/gpg1 $(HEADLESS_DIST_VERSION)apps/mail/gpg || cp /usr/bin/gpg $(HEADLESS_DIST_VERSION)apps/mail/gpg
+	cd pkg/launcher && make
+	cp release-notes.rst $(HEADLESS_DIST_VERSION)
+	cp pkg/launcher/bitmask $(HEADLESS_DIST_VERSION)
