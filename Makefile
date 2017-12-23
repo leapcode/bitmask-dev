@@ -44,9 +44,13 @@ uninstall:
 test:
 	tox
 
-test_e2e: install_helpers
+test_e2e_mail: install_helpers
 	tests/e2e/e2e-test-mail.sh
+
+test_e2e_vpn: install_helpers
 	tests/e2e/e2e-test-vpn.sh
+
+test_e2e_conditional_downloads: install_helpers
 	tests/e2e/conditional_downloads.py
 
 test_functional_setup:

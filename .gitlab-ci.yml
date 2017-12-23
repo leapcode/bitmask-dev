@@ -52,7 +52,7 @@ bitmask_latest_bundle:
   tags:
     - linux
 
-e2e_tests:
+e2e_test_mail:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
   stage: e2e
   allow_failure: true
@@ -65,15 +65,47 @@ e2e_tests:
     - make dev-latest-backend
     - mkdir -p /root/.config/leap/
     - make install_helpers
-    - make test_e2e
+    - make test_e2e_mail
+  tags:
+    - linux
+
+e2e_test_vpn:
+  image: 0xacab.org:4567/leap/bitmask-dev:latest
+  stage: e2e
+  allow_failure: true
+  dependencies:
+      - linux_test
+  script:
+    - dpkg -l tox gnupg1 haveged  > /dev/null || apt-get -y --no-install-recommends install tox gnupg1 haveged
+    - tox -e py27-dev --notest
+    - source .tox/py27-dev/bin/activate
+    - make dev-latest-backend
+    - mkdir -p /root/.config/leap/
+    - make install_helpers
+    - make test_e2e_vpn
+  tags:
+    - linux
+
+e2e_test_conditional_downloads:
+  image: 0xacab.org:4567/leap/bitmask-dev:latest
+  stage: e2e
+  allow_failure: true
+  dependencies:
+      - linux_test
+  script:
+    - dpkg -l tox gnupg1 haveged  > /dev/null || apt-get -y --no-install-recommends install tox gnupg1 haveged
+    - tox -e py27-dev --notest
+    - source .tox/py27-dev/bin/activate
+    - make dev-latest-backend
+    - mkdir -p /root/.config/leap/
+    - make install_helpers
+    - make test_e2e_conditional_downloads
   tags:
     - linux
 
 functional_tests:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
   stage: functional
-  dependencies:
-      - e2e_tests
   before_script:
     - dpkg -l tox > /dev/null || apt-get -y --no-install-recommends install tox
     - tox -e py27-dev --notest
