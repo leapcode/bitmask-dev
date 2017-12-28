@@ -167,7 +167,7 @@ build_docker_image:
        python -c "import sys, json; print json.load(sys.stdin)[1]['sha']")
   script:
     - >
-      if git diff $LAST_COMMIT HEAD --name-only | egrep '(tests/docker|.gitlab)'; then
+      if git diff $LAST_COMMIT HEAD --name-only | egrep '(tests/docker|.gitlab)' || [ "$CI_JOB_MANUAL" == "true" ] ; then
         if [ "$CI_COMMIT_REF_SLUG" == "master" ]
         then
           TAG='latest'
