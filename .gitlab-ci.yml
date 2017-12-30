@@ -1,19 +1,13 @@
 ---
 stages:
   - test
-  - e2e
-  - functional
-  - bundle
-#  - test_bundle
-  - build_ui
-  - package
+  - publish
 
 variables:
   DOCKER_DRIVER: overlay
 
 # Cache gems in between stages for this pipeline only
 cache:
-  key: "$CI_PIPELINE_ID"
   paths:
     - .tox/py27-dev
 
@@ -40,7 +34,7 @@ osx_test:
 
 bitmask_latest_bundle:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
-  stage: bundle
+  stage: publish
   script:
     - pkg/build_bundle_with_venv.sh
     - mv "dist/bitmask-`cat pkg/next-version`" .
@@ -54,10 +48,7 @@ bitmask_latest_bundle:
 
 e2e_test_mail:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
-  stage: e2e
-  allow_failure: true
-  dependencies:
-      - linux_test
+  stage: test
   script:
     - dpkg -l tox gnupg1 haveged  > /dev/null || apt-get -y --no-install-recommends install tox gnupg1 haveged
     - tox -e py27-dev --notest
@@ -71,10 +62,8 @@ e2e_test_mail:
 
 e2e_test_vpn:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
-  stage: e2e
+  stage: test
   allow_failure: true
-  dependencies:
-      - linux_test
   script:
     - dpkg -l tox gnupg1 haveged  > /dev/null || apt-get -y --no-install-recommends install tox gnupg1 haveged
     - tox -e py27-dev --notest
@@ -88,10 +77,8 @@ e2e_test_vpn:
 
 e2e_test_conditional_downloads:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
-  stage: e2e
+  stage: test
   allow_failure: true
-  dependencies:
-      - linux_test
   script:
     - dpkg -l tox gnupg1 haveged  > /dev/null || apt-get -y --no-install-recommends install tox gnupg1 haveged
     - tox -e py27-dev --notest
@@ -105,7 +92,7 @@ e2e_test_conditional_downloads:
 
 functional_tests:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
-  stage: functional
+  stage: test
   before_script:
     - dpkg -l tox > /dev/null || apt-get -y --no-install-recommends install tox
     - tox -e py27-dev --notest
@@ -128,8 +115,6 @@ functional_tests:
 #  image: 0xacab.org:4567/leap/bitmask-dev:latest
 #  stage: test_bundle
 #  allow_failure: true
-#  dependencies:
-#    - bitmask_latest_bundle
 #  script:
 #    - TEST_MODE='bundle_ci' make test_functional
 #  artifacts:
@@ -143,7 +128,7 @@ functional_tests:
 
 build_ui:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
-  stage: build_ui
+  stage: test
   script:
     - cd ui && make dev-build
   tags:
@@ -154,7 +139,7 @@ build_ui:
 
 build_docker_image:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
-  stage: test
+  stage: publish
   services:
     - docker:dind
   tags:
@@ -182,7 +167,11 @@ build_docker_image:
       fi
 
 .job_template: &job_definition
-  stage: package
+  stage: publish
+  # Only build packages for https://0xacab.org/leap/bitmask-dev, not
+  # for forks
+  only:
+    - /.*@leap\/bitmask-dev/
   image: "0xacab.org:4567/leap/gitlab-buildpackage:build_${DIST}_${ARCH}"
   script:
     - "pwd; git describe"
