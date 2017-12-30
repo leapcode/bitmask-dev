@@ -51,6 +51,7 @@ import socket
 import syslog
 import subprocess
 import sys
+import stat
 import traceback
 
 cmdcheck = subprocess.check_output
@@ -147,6 +148,18 @@ PARAM_FORMATS = {
     "UNIXSOCKET": lambda s: s == "unix",
     "UID": lambda s: re.match("^[a-zA-Z0-9]+$", s)
 }
+
+# Determine Qubes OS version, if any
+if os.path.isdir("/etc/qubes"):
+    QUBES_CFG = "/rw/config/"
+    QUBES_IPHOOK = QUBES_CFG + "qubes-ip-change-hook"
+    QUBES_FW_SCRIPT = QUBES_CFG + "qubes-firewall-user-script"
+    if subprocess.call([IPTABLES, "--list", "QBS-FORWARD"]) == 0:
+        QUBES_VER = 4
+    else:
+        QUBES_VER = 3
+else:
+    QUBES_VER = 0
 
 
 DEBUG = os.getenv("DEBUG")
@@ -705,6 +718,24 @@ def firewall_start(args):
     # reject all other ipv4 sent over the default device
     ip4tables("--append", BITMASK_CHAIN, "-o",
               default_device, "--jump", "REJECT")
+
+    # On Qubes OS, add anti-leak rules for proxyVM qubes-firewall.service
+    # Must stay on 'top' of chain!
+    if QUBES_VER >= 3 and not os.access(QUBES_FW_SCRIPT, os.X_OK):
+        with open(QUBES_FW_SCRIPT, mode="w") as qfile:
+            qfile.write("#!/bin/sh\n")
+            qfile.write("# Anti-leak rules installed by bitmask.\n")
+            qfile.write("iptables --insert FORWARD -i eth0 -j DROP\n")
+            qfile.write("iptables --insert FORWARD -o eth0 -j DROP\n")
+            qfile.write("ip6tables --insert FORWARD -i eth0 -j DROP\n")
+            qfile.write("ip6tables --insert FORWARD -o eth0 -j DROP\n")
+        os.chmod(QUBES_FW_SCRIPT, stat.S_IRWXU)
+        if not os.path.exists(QUBES_IPHOOK):
+            os.symlink(QUBES_FW_SCRIPT, QUBES_IPHOOK)
+        if QUBES_VER = 4:
+            run(QUBES_FW_SCRIPT)
+        elif QUBES_VER = 3:
+            run("systemctl", ["restart", "qubes-firewall.service"])
 
 
 def firewall_stop():
