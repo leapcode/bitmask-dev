@@ -150,6 +150,7 @@ PARAM_FORMATS = {
 }
 
 # Determine Qubes OS version, if any
+QUBES_PROXY = os.path.exists("/var/run/qubes/this-is-proxyvm")
 if os.path.isdir("/etc/qubes"):
     QUBES_CFG = "/rw/config/"
     QUBES_IPHOOK = QUBES_CFG + "qubes-ip-change-hook"
@@ -159,6 +160,7 @@ if os.path.isdir("/etc/qubes"):
     else:
         QUBES_VER = 3
 else:
+    # not a Qubes system
     QUBES_VER = 0
 
 
@@ -639,25 +641,33 @@ def firewall_start(args):
     # route all ipv4 DNS over VPN
     # (note: NAT does not work with ipv6 until kernel 3.7)
     enable_ip_forwarding()
-    # allow dns to localhost
-    ip4tables("-t", "nat", "--append", BITMASK_CHAIN, "--protocol", "udp",
-              "--dest", "127.0.1.1,127.0.0.1,127.0.0.53", "--dport", "53",
-              "--jump", "ACCEPT")
-    # rewrite all outgoing packets to use VPN DNS server
-    # (DNS does sometimes use TCP!)
-    ip4tables("-t", "nat", "--append", BITMASK_CHAIN_NAT_OUT, "-p", "udp",
-              "--dport", "53", "--jump", "DNAT", "--to", NAMESERVER+":53")
-    ip4tables("-t", "nat", "--append", BITMASK_CHAIN_NAT_OUT, "-p", "tcp",
-              "--dport", "53", "--jump", "DNAT", "--to", NAMESERVER+":53")
-    # enable masquerading, so that DNS packets rewritten by DNAT will
-    # have the correct source IPs. Apply masquerade only to the NAMESERVER,
-    # we don't want to apply it to the localhost dns resolver.
-    ip4tables("-t", "nat", "--append", BITMASK_CHAIN_NAT_POST,
-              "--dest", NAMESERVER,
-              "--protocol", "udp", "--dport", "53", "--jump", "MASQUERADE")
-    ip4tables("-t", "nat", "--append", BITMASK_CHAIN_NAT_POST,
-              "--dest", NAMESERVER,
-              "--protocol", "tcp", "--dport", "53", "--jump", "MASQUERADE")
+    if QUBES_PROXY and QUBES_VER >= 3:
+        # rewrite DNS packets for VPN DNS; Qubes preconfigures masquerade
+        ip4tables("-t", "nat", "--flush", "PR-QBS")
+        ip4tables("-t", "nat", "--append", "PR-QBS", "-p", "udp",
+                  "--dport", "53", "--jump", "DNAT", "--to", NAMESERVER+":53")
+        ip4tables("-t", "nat", "--append", "PR-QBS", "-p", "tcp",
+                  "--dport", "53", "--jump", "DNAT", "--to", NAMESERVER+":53")
+    else:
+        # allow dns to localhost
+        ip4tables("-t", "nat", "--append", BITMASK_CHAIN, "--protocol", "udp",
+                  "--dest", "127.0.1.1,127.0.0.1,127.0.0.53", "--dport", "53",
+                  "--jump", "ACCEPT")
+        # rewrite all outgoing packets to use VPN DNS server
+        # (DNS does sometimes use TCP!)
+        ip4tables("-t", "nat", "--append", BITMASK_CHAIN_NAT_OUT, "-p", "udp",
+                  "--dport", "53", "--jump", "DNAT", "--to", NAMESERVER+":53")
+        ip4tables("-t", "nat", "--append", BITMASK_CHAIN_NAT_OUT, "-p", "tcp",
+                  "--dport", "53", "--jump", "DNAT", "--to", NAMESERVER+":53")
+        # enable masquerading, so that DNS packets rewritten by DNAT will
+        # have the correct source IPs. Apply masquerade only to the NAMESERVER,
+        # we don't want to apply it to the localhost dns resolver.
+        ip4tables("-t", "nat", "--append", BITMASK_CHAIN_NAT_POST,
+                  "--dest", NAMESERVER,
+                  "--protocol", "udp", "--dport", "53", "--jump", "MASQUERADE")
+        ip4tables("-t", "nat", "--append", BITMASK_CHAIN_NAT_POST,
+                  "--dest", NAMESERVER,
+                  "--protocol", "tcp", "--dport", "53", "--jump", "MASQUERADE")
 
     # allow local network traffic
     if local_network_ipv4:
@@ -721,20 +731,24 @@ def firewall_start(args):
 
     # On Qubes OS, add anti-leak rules for proxyVM qubes-firewall.service
     # Must stay on 'top' of chain!
-    if QUBES_VER >= 3 and not os.access(QUBES_FW_SCRIPT, os.X_OK):
+    if QUBES_PROXY and QUBES_VER >= 3 and run("grep", \
+        "installed\ by\ " + SCRIPT, QUBES_FW_SCRIPT, exitcode=True) != 0:
         with open(QUBES_FW_SCRIPT, mode="w") as qfile:
             qfile.write("#!/bin/sh\n")
-            qfile.write("# Anti-leak rules installed by bitmask.\n")
+            qfile.write("# Anti-leak rules installed by " + SCRIPT + " " \
+            + VERSION + "\n")
             qfile.write("iptables --insert FORWARD -i eth0 -j DROP\n")
             qfile.write("iptables --insert FORWARD -o eth0 -j DROP\n")
             qfile.write("ip6tables --insert FORWARD -i eth0 -j DROP\n")
             qfile.write("ip6tables --insert FORWARD -o eth0 -j DROP\n")
+            qfile.write("iptables --insert INPUT -i tun+ -j DROP\n")
+            qfile.write("ip6tables --insert INPUT -i tun+ -j DROP\n")
         os.chmod(QUBES_FW_SCRIPT, stat.S_IRWXU)
         if not os.path.exists(QUBES_IPHOOK):
             os.symlink(QUBES_FW_SCRIPT, QUBES_IPHOOK)
-        if QUBES_VER = 4:
+        if QUBES_VER == 4:
             run(QUBES_FW_SCRIPT)
-        elif QUBES_VER = 3:
+        elif QUBES_VER == 3:
             run("systemctl", ["restart", "qubes-firewall.service"])
 
 
