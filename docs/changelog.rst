@@ -16,9 +16,9 @@ Bugfixes
 ~~~~~~~~
 - `#9171 <https://0xacab.org/leap/bitmask-dev/issues/9171>`_: fix a bug in bootstrap that avoided more than one user to login.
 
-
 Misc
 ~~~~
+- Speedup stages on CI.
 - Configure travis build for OSX.
 - Add tox to the docker image; install it on every job.
 - Build openvpn with iproute2 option for bundles.
