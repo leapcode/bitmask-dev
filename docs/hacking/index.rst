@@ -48,7 +48,10 @@ Look at the ``Makefile`` to see the command that it's actually used.
 
 If you want to run an specific test, you can do it like this::
 
-  gitlab-runner exec docker --env BITMASK_INVITE_CODE=xxx e2e_tests
+  gitlab-runner exec docker --docker-privileged --env BITMASK_INVITE_CODE=xxx e2e_test_vpn
+
+If you have a bad uplink, you might want to add ``--docker-pull-policy=if-not-present`` to that invocation.
+
   
 .. _`gitlab's repositories`: https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh
 
