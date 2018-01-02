@@ -45,6 +45,7 @@ from leap.common.config import get_path_prefix
 from leap.bitmask.gui.systray import WithTrayIcon
 from leap.bitmask.gui.housekeeping import cleanup, terminate, reset_authtoken
 from leap.bitmask.gui.housekeeping import get_authenticated_url
+from leap.bitmask.gui.housekeeping import NoAuthTokenError
 
 
 DEBUG = os.environ.get("DEBUG", False)
@@ -151,7 +152,7 @@ def launch_gui():
         systray.closeFromSystray()
         sys.exit(qApp.exec_())
 
-    except NoAuthToken as e:
+    except NoAuthTokenError as e:
         print('ERROR: ' + e.message)
         sys.exit(1)
 
@@ -178,10 +179,6 @@ def start_app():
 
     reset_authtoken()
     launch_gui()
-
-
-class NoAuthToken(Exception):
-    pass
 
 
 if __name__ == "__main__":

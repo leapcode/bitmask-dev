@@ -25,7 +25,6 @@ import os
 import platform
 import signal
 import sys
-import time
 import webbrowser
 
 from functools import partial
@@ -33,12 +32,12 @@ from multiprocessing import Process
 
 from leap.bitmask.core.launcher import run_bitmaskd, pid
 from leap.bitmask.gui import app_rc
+from leap.bitmask.gui.systray import WithTrayIcon
+from leap.bitmask.gui.housekeeping import cleanup, terminate, reset_authtoken
+from leap.bitmask.gui.housekeeping import get_authenticated_url
+from leap.bitmask.gui.housekeeping import NoAuthTokenError
 from leap.common.config import get_path_prefix
 
-from .housekeeping import cleanup, terminate, reset_authtoken
-from .housekeeping import get_authenticated_url
-
-from .systray import WithTrayIcon
 
 if platform.system() == 'Windows':
     from multiprocessing import freeze_support
@@ -57,12 +56,9 @@ else:
     from PyQt5.QtWidgets import QDialog
     from PyQt5.QtWidgets import QMessageBox
 
-    try:
-        from PyQt5.QtWebKitWidgets import QWebView
-        from PyQt5.QtWebKit import QWebSettings
-    except ImportError:
-        from PyQt5.QtWebEngineWidgets import QWebEngineView as QWebView
-        from PyQt5.QtWebEngineWidgets import QWebEngineSettings as QWebSettings
+    from PyQt5.QtWebEngineWidgets import QWebEngineView as QWebView
+    from PyQt5.QtWebEngineWidgets import QWebEngineSettings as QWebSettings
+    from PyQt5.QtWebChannel import QWebChannel
 
 IS_WIN = platform.system() == "Windows"
 DEBUG = os.environ.get("DEBUG", False)
@@ -90,8 +86,10 @@ class BrowserWindow(QWebView, WithTrayIcon):
 
     def __init__(self, *args, **kw):
         url = kw.pop('url', None)
+        first = False
         if not url:
             url = get_authenticated_url()
+            first = True
         self.url = url
         self.closing = False
 
@@ -100,9 +98,13 @@ class BrowserWindow(QWebView, WithTrayIcon):
         self.bitmask_browser = NewPageConnector(self) if first else None
         self.loadPage(self.url)
 
-        self.proxy = AppProxy(self) if first else None
-        self.frame.addToJavaScriptWindowObject(
-            "bitmaskApp", self.proxy)
+        self.bridge = AppBridge(self) if first else None
+
+        if self.bridge is not None:
+            print "[+] registering python<->js bridge"
+            channel = QWebChannel(self)
+            channel.registerObject("bitmaskApp", self.bridge)
+            self.page().setWebChannel(channel)
 
         icon = QtGui.QIcon()
         icon.addPixmap(
@@ -111,26 +113,10 @@ class BrowserWindow(QWebView, WithTrayIcon):
         self.setWindowIcon(icon)
 
     def loadPage(self, web_page):
-        try:
-            if os.environ.get('DEBUG'):
-                self.settings().setAttribute(
-                    QWebSettings.DeveloperExtrasEnabled, True)
-        except Exception:
-            pass
-
-        if os.environ.get('DEBUG'):
-            self.inspector = QWebInspector(self)
-            self.inspector.setPage(self.page())
-            self.inspector.show()
-
         if os.path.isabs(web_page):
             web_page = os.path.relpath(web_page)
 
         url = QtCore.QUrl(web_page)
-        # TODO -- port this to QWebEngine
-        self.frame = self.page().mainFrame()
-        self.frame.addToJavaScriptWindowObject(
-            "bitmaskBrowser", self.bitmask_browser)
         self.load(url)
 
     def shutdown(self, *args):
@@ -138,10 +124,12 @@ class BrowserWindow(QWebView, WithTrayIcon):
         if self.closing:
             return
         self.closing = True
+
         bitmaskd.join()
         terminate(pid)
         cleanup()
         print('[bitmask] shutting down gui...')
+
         try:
             self.stop()
             try:
@@ -157,11 +145,11 @@ class BrowserWindow(QWebView, WithTrayIcon):
             sys.exit(1)
 
 
-class AppProxy(QObject):
+class AppBridge(QObject):
 
     @pyqtSlot()
     def shutdown(self):
-        """To be exposed from the js bridge"""
+        print "[+] shutdown called from js"
         global browser
         if browser:
             browser.user_closed = True
@@ -171,8 +159,8 @@ class AppProxy(QObject):
     def openSystemBrowser(self, url):
         webbrowser.open(url)
 
-
 pixbrowser = None
+closing = False
 
 
 class NewPageConnector(QObject):
@@ -185,12 +173,17 @@ class NewPageConnector(QObject):
 
 
 def _handle_kill(*args, **kw):
+    global pixbrowser
+    global closing
+    if closing:
+        sys.exit()
     win = kw.get('win')
     if win:
+        win.user_closed = True
         QtCore.QTimer.singleShot(0, win.close)
-    global pixbrowser
     if pixbrowser:
         QtCore.QTimer.singleShot(0, pixbrowser.close)
+    closing = True
 
 
 def launch_gui():
@@ -206,7 +199,7 @@ def launch_gui():
     qApp = QApplication([])
     try:
         browser = BrowserWindow(None)
-    except NoAuthToken as e:
+    except NoAuthTokenError as e:
         print('ERROR: ' + e.message)
         sys.exit(1)
 
@@ -237,6 +230,9 @@ def start_app():
     # Allow the frozen binary in the bundle double as the cli entrypoint
     # Why have only a user interface when you can have two?
 
+    if DEBUG:
+        os.environ.setdefault('QTWEBENGINE_REMOTE_DEBUGGING', '8081')
+
     if platform.system() == 'Windows':
         # In windows, there are some args added to the invocation
         # by PyInstaller, I guess...
@@ -256,9 +252,6 @@ def start_app():
     reset_authtoken()
     launch_gui()
 
-
-class NoAuthToken(Exception):
-    pass
 
 
 if __name__ == "__main__":

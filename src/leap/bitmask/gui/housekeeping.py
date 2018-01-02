@@ -1,6 +1,12 @@
 import os
+import signal
+import time
 
 from leap.common.config import get_path_prefix
+
+
+class NoAuthTokenError(Exception):
+    pass
 
 def get_authenticated_url():
     url = "http://localhost:7070"
@@ -12,7 +18,7 @@ def get_authenticated_url():
             # because touching the token file is one of the first
             # things the backend does, and this BrowserWindow
             # should be called *right after* launching the backend.
-            raise NoAuthToken(
+            raise NoAuthTokenError(
                 'No authentication token found!')
         time.sleep(0.1)
         waiting -= 1
