@@ -35,6 +35,9 @@ from leap.bitmask.core.launcher import run_bitmaskd, pid
 from leap.bitmask.gui import app_rc
 from leap.common.config import get_path_prefix
 
+from .housekeeping import cleanup, terminate, reset_authtoken
+from .housekeeping import get_authenticated_url
+
 from .systray import WithTrayIcon
 
 if platform.system() == 'Windows':
@@ -87,24 +90,8 @@ class BrowserWindow(QWebView, WithTrayIcon):
 
     def __init__(self, *args, **kw):
         url = kw.pop('url', None)
-        first = False
         if not url:
-            url = "http://localhost:7070"
-            path = os.path.join(get_path_prefix(), 'leap', 'authtoken')
-            waiting = 20
-            while not os.path.isfile(path):
-                if waiting == 0:
-                    # If we arrive here, something really messed up happened,
-                    # because touching the token file is one of the first
-                    # things the backend does, and this BrowserWindow
-                    # should be called *right after* launching the backend.
-                    raise NoAuthToken(
-                        'No authentication token found!')
-                time.sleep(0.1)
-                waiting -= 1
-            token = open(path).read().strip()
-            url += '#' + token
-            first = True
+            url = get_authenticated_url()
         self.url = url
         self.closing = False
 
@@ -147,16 +134,13 @@ class BrowserWindow(QWebView, WithTrayIcon):
         self.load(url)
 
     def shutdown(self, *args):
+        global bitmaskd
         if self.closing:
             return
         self.closing = True
-        global bitmaskd
         bitmaskd.join()
-        if os.path.isfile(pid):
-            with open(pid) as f:
-                pidno = int(f.read())
-            print('[bitmask] terminating bitmaskd...')
-            os.kill(pidno, signal.SIGTERM)
+        terminate(pid)
+        cleanup()
         print('[bitmask] shutting down gui...')
         try:
             self.stop()
@@ -269,12 +253,7 @@ def start_app():
         from leap.bitmask.cli import bitmask_cli
         return bitmask_cli.main()
 
-    prev_auth = os.path.join(get_path_prefix(), 'leap', 'authtoken')
-    try:
-        os.remove(prev_auth)
-    except OSError:
-        pass
-
+    reset_authtoken()
     launch_gui()
 
 
