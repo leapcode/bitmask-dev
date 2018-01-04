@@ -34,8 +34,6 @@ VENV = os.environ.get('VIRTUAL_ENV', '')
 ENTRYPOINT = ['../../src/leap/bitmask/core/launcher.py']
 
 a = Analysis(ENTRYPOINT,
-             pathex=[
-	         '/usr/lib/python2.7/dist-packages/'],
              binaries=None,
              datas=None,
              hiddenimports=hiddenimports,
