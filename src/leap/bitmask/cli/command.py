@@ -166,15 +166,15 @@ class Command(object):
             print(json.dumps(obj, indent=2))
         elif not obj['error']:
             if 'result' not in obj:
-                print (Fore.RED + 'ERROR: malformed response, expected'
-                       ' obj["result"]' + Fore.RESET)
+                print(Fore.RED + 'ERROR: malformed response, expected'
+                      ' obj["result"]' + Fore.RESET)
             elif obj['result'] is None:
-                print (Fore.RED + 'ERROR: empty response. Check logs.' +
-                       Fore.RESET)
+                print(Fore.RED + 'ERROR: empty response. Check logs.' +
+                      Fore.RESET)
             else:
                 return printer(obj['result'])
         else:
-            print Fore.RED + 'ERROR: ' + '%s' % obj['error'] + Fore.RESET
+            print(Fore.RED + 'ERROR: ' + '%s' % obj['error'] + Fore.RESET)
 
     def _timeout_handler(self, failure, errb):
         if failure.trap(ZmqRequestTimeoutError) == ZmqRequestTimeoutError:

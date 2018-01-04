@@ -61,7 +61,7 @@ def delete_old_authtoken():
 
 def start_app():
     if not commands.getoutput('which chromium'):
-        print ('[!] Cannot find chromium installed in the system!')
+        print('[!] Cannot find chromium installed in the system!')
         sys.exit(1)
     delete_old_authtoken()
     bitmaskd = Process(target=run_bitmaskd)

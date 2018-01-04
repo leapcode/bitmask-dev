@@ -8,6 +8,7 @@ from leap.common.config import get_path_prefix
 class NoAuthTokenError(Exception):
     pass
 
+
 def get_authenticated_url():
     url = "http://localhost:7070"
     path = os.path.join(get_path_prefix(), 'leap', 'authtoken')
@@ -26,6 +27,7 @@ def get_authenticated_url():
     url += '#' + token
     return url
 
+
 def terminate(pid):
     if os.path.isfile(pid):
         with open(pid) as f:
@@ -33,12 +35,14 @@ def terminate(pid):
         print('[bitmask] terminating bitmaskd...')
         os.kill(pidno, signal.SIGTERM)
 
+
 def reset_authtoken():
     prev_auth = os.path.join(get_path_prefix(), 'leap', 'authtoken')
     try:
         os.remove(prev_auth)
     except OSError:
         pass
+
 
 def cleanup():
     print('[bitmask] cleaning up files')

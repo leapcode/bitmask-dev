@@ -120,7 +120,6 @@ class BrowserWindow(object):
         print('[bitmask] shutting down gui')
 
 
-
 def launch_gui():
     global bitmaskd
 

@@ -152,8 +152,8 @@ def execute():
             timeout=0.1, printer=_null_printer,
             errb=lambda: cli.start(args))
     except Exception, e:
-        print (Fore.RED + "ERROR: " + Fore.RESET +
-               "%s" % str(e))
+        print(Fore.RED + "ERROR: " + Fore.RESET +
+              "%s" % str(e))
         defer.returnValue('')
 
     cli.data = []
