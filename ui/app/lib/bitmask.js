@@ -404,7 +404,7 @@ var bitmask = function(){
              * @return {Promise<{'secured': bool}>} Returns the status of the email
              */
             msg_status: function(uid, mbox, message_id) {
-                return call(['mail', 'msg_status', mbox, message_id]);
+                return call(['mail', 'msg_status', uid, mbox, message_id]);
             },
 
             /**
