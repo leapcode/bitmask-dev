@@ -170,7 +170,8 @@ build_docker_image:
   # Only build packages for https://0xacab.org/leap/bitmask-dev, not
   # for forks
   only:
-    - /.*@leap\/bitmask-dev/
+    - master@leap/bitmask-dev
+    - tags@leap/bitmask-dev
   image: "0xacab.org:4567/leap/gitlab-buildpackage:build_${DIST}_${ARCH}"
   script:
     - "pwd; git describe"
