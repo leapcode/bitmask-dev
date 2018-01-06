@@ -63,7 +63,6 @@ e2e_test_mail:
 e2e_test_vpn:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
   stage: test
-  allow_failure: true
   script:
     - dpkg -l tox gnupg1 haveged  > /dev/null || apt-get -y --no-install-recommends install tox gnupg1 haveged
     - tox -e py27-dev --notest
