@@ -8,7 +8,7 @@ RUN apt-get update && \
   apt-get -y install --no-install-recommends \
   build-essential tox libpython-dev \
   libsqlcipher-dev libssl-dev libffi-dev \
-  python-pyqt5 python-pyqt5.qtwebkit \
+  python-pyqt5 python-pyqt5.qtwebengine \
   nodejs npm mocha \
   git swaks uuid-runtime \
   openvpn policykit-1 lxpolkit \
