@@ -33,7 +33,7 @@ osx_test:
     - osx
 
 bitmask_latest_bundle:
-  image: 0xacab.org:4567/leap/bitmask-dev:latest
+  image: 0xacab.org:4567/leap/docker/bitmask-bundler:latest
   stage: publish
   script:
     - pkg/build_bundle_with_venv.sh
@@ -166,7 +166,7 @@ build_docker_image:
       fi
 
 build_docker_bundle_image:
-  image: 0xacab.org:4567/leap/bitmask-bundler:latest
+  image: 0xacab.org:4567/leap/docker/bitmask-bundler:latest
   stage: publish
   services:
     - docker:dind
