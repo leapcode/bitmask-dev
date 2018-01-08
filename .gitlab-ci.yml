@@ -165,6 +165,35 @@ build_docker_image:
         docker push ${CI_REGISTRY_IMAGE}:${TAG}
       fi
 
+build_docker_bundle_image:
+  image: 0xacab.org:4567/leap/bitmask-bundler:latest
+  stage: publish
+  services:
+    - docker:dind
+  tags:
+    - docker-in-docker
+  only:
+    - branches@leap/bitmask-dev
+  before_script:
+     - >
+       export LAST_COMMIT=$(curl -s --header "PRIVATE-TOKEN: ${LEAP_CODE_O_MATIC_PRIVATE_TOKEN}" https://0xacab.org/api/v4/projects/574/pipelines |
+       python -c "import sys, json; print json.load(sys.stdin)[1]['sha']")
+  script:
+    - >
+      if git diff $LAST_COMMIT HEAD --name-only | egrep '(pkg/docker_bundle|.gitlab)' || [ "$CI_JOB_MANUAL" == "true" ] ; then
+        if [ "$CI_COMMIT_REF_SLUG" == "master" ]
+        then
+          TAG='latest'
+        else
+          TAG="$CI_COMMIT_REF_SLUG"
+        fi
+        docker --version
+        docker info
+        docker login -u gitlab-ci-token -e sysdev@leap.se -p $CI_JOB_TOKEN $CI_REGISTRY
+        docker build -t ${CI_REGISTRY_IMAGE}:${TAG} pkg/docker_bundle
+        docker push ${CI_REGISTRY_IMAGE}:${TAG}
+      fi
+
 .job_template: &job_definition
   stage: publish
   # Only build packages for https://0xacab.org/leap/bitmask-dev, not
