@@ -37,3 +37,24 @@ You can list all the configured locations using the CLI::
   demo.bitmask.net      [US] Seattle, WA (UTC-7)
 
 This manual override functionality will be exposed through the UI and the CLI in release ``0.11``.
+
+Autostart
+---------
+Autostart is not implemented yet in the 0.10 versions of Bitmask, but you can probably use 
+a systemd script to launch vpn. If you have the latest master installed from a debian package::
+
+  [Unit]
+  Description=Bitmask VPN
+  Documentation=https://bitmask.net/en/help
+
+  [Service]
+  Type=oneshot
+  WorkingDirectory=/var/run/bitmask
+
+  ExecStart=bitmaskctl vpn start demo.bitmask.net
+  ExecStop=bitmaskctl vpn stop
+
+  RemainAfterExit=yes
+
+  [Install]
+  WantedBy=default.target
