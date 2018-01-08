@@ -38,6 +38,25 @@ You can list all the configured locations using the CLI::
 
 This manual override functionality will be exposed through the UI and the CLI in release ``0.11``.
 
+Gateway failures
+-----------------------------------
+
+If Bitmask VPN fails to connect to one gateway it will try with the next
+following gateway selection order.
+
+In case of connection loss Bitmask will keep trying to connect to each of the
+gateways again and again until the connection comes back. When the connection
+is back Bitmask will connect to the gateway that was trying at the moment.
+In practice after a reconnection the gateway that Bitmask gets connected is
+practically random.
+
+Turning the VPN down and up again after a reconnection ensures that Bitmask
+will try again the first gateway.
+
+In the future Bitmask should become more in control of the reconnect process,
+that currently is handled by openvpn, and detect reconnections to select the
+gateways better.
+
 Autostart
 ---------
 Autostart is not implemented yet in the 0.10 versions of Bitmask, but you can probably use 

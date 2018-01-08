@@ -10,6 +10,7 @@ Features
 - `#8217 <https://0xacab.org/leap/bitmask-dev/issues/8217>`_: renew OpenPGP keys before they expire.
 - `#9074 <https://0xacab.org/leap/bitmask-dev/issues/9074>`_: pin provider ca certs.
 - `#6914 <https://0xacab.org/leap/bitmask-dev/issues/6914>`_: expose an API to retrive message status.
+- `#9188 <https://0xacab.org/leap/bitmask-dev/issues/9188>`_: try other gateways if the main one fails.
 - Set a windows title, so that Bitmask windows can be programmatically manipulated.
 
 Bugfixes
