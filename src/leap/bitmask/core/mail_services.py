@@ -930,12 +930,14 @@ def _get_config_for_service(service, basedir, provider):
         return config
 
 
-def _pick_server(config, strategy=first):
+def _pick_server(config, strategy=None):
     """
     Picks a server from a list of possible choices.
     The service files have a  <describe>.
-    This implementation just picks the FIRST available server.
+    The default implementation just picks the FIRST available server.
     """
+    if strategy is None:
+        strategy = first
     servers = config['hosts'].keys()
     choice = config['hosts'][strategy(servers)]
     return choice
