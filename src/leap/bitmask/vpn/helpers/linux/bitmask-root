@@ -628,7 +628,7 @@ def firewall_start(args):
     enable_ip_forwarding()
     # allow dns to localhost
     ip4tables("-t", "nat", "--append", BITMASK_CHAIN, "--protocol", "udp",
-              "--dest", "127.0.1.1,127.0.0.1", "--dport", "53",
+              "--dest", "127.0.1.1,127.0.0.1,127.0.0.53", "--dport", "53",
               "--jump", "ACCEPT")
     # rewrite all outgoing packets to use VPN DNS server
     # (DNS does sometimes use TCP!)
@@ -637,10 +637,13 @@ def firewall_start(args):
     ip4tables("-t", "nat", "--append", BITMASK_CHAIN_NAT_OUT, "-p", "tcp",
               "--dport", "53", "--jump", "DNAT", "--to", NAMESERVER+":53")
     # enable masquerading, so that DNS packets rewritten by DNAT will
-    # have the correct source IPs
+    # have the correct source IPs. Apply masquerade only to the NAMESERVER,
+    # we don't want to apply it to the localhost dns resolver.
     ip4tables("-t", "nat", "--append", BITMASK_CHAIN_NAT_POST,
+              "--dest", NAMESERVER,
               "--protocol", "udp", "--dport", "53", "--jump", "MASQUERADE")
     ip4tables("-t", "nat", "--append", BITMASK_CHAIN_NAT_POST,
+              "--dest", NAMESERVER,
               "--protocol", "tcp", "--dport", "53", "--jump", "MASQUERADE")
 
     # allow local network traffic

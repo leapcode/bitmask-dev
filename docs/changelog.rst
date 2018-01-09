@@ -19,6 +19,7 @@ Bugfixes
 - `#9191 <https://0xacab.org/leap/bitmask-dev/issues/9191>`_: workaround for missing libs needed for qtwebengine.
 - `#9171 <https://0xacab.org/leap/bitmask-dev/issues/9171>`_: fix a bug in bootstrap that avoided more than one user to login.
 - `#9165 <https://0xacab.org/leap/bitmask-dev/issues/9165>`_: deprecate pyqt5-webkit, use qtwebengine instead.
+- `#9137 <https://0xacab.org/leap/bitmask-dev/issues/9137>`_: fix issues with dns resolution with systemd-resolved (mostly ubuntu 17.10).
 
 Misc
 ~~~~
