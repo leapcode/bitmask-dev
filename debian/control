@@ -82,7 +82,7 @@ Package: bitmask-qt
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends},
          python-pyqt5,
-         python-pyqt5.qtwebkit,
+         python-pyqt5.qtwebengine,
          bitmask-js, bitmask-core
 Provides: leap.bitmask.gui
 Description: Bitmask desktop client (qt5) to access LEAP Services
