@@ -86,17 +86,17 @@ bundle_in_virtualenv:
 bundle_in_virtualenv_osx:
 	pkg/build_osx_bundle_with_venv.sh
 
-docker_container:
-	cd pkg/docker_bundle && docker build -t mybundle .
-
 package_in_docker:
 	# needs docker_ce and gitlab-runner from upstream
 	gitlab-runner exec docker package:amd64_stretch
 
+bundler_image:
+	cd pkg/docker_bundle && docker build -t local_bundler .
+
 bundle_in_docker:
 	# needs a docker container called 'mybundle', created with 'make docker_container'
 	rm -rf $(DIST_VERSION) bitmaskbuild
-	cat pkg/docker_build | docker run -i -v ~/leap/bitmask-dev:/dist -w /dist -u `id -u` -e REPO="$(REPO)" -e BRANCH="$(BRANCH)" mybundle bash
+	cat pkg/docker_build | docker run -i -v ~/leap/bitmask-dev:/dist -w /dist -u `id -u` -e REPO="$(REPO)" -e BRANCH="$(BRANCH)" local_bundler bash
 	mkdir -p dist/
 	cp -r bitmaskbuild/$(DIST_VERSION) dist/
 	rm -rf bitmaskbuild
