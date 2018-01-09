@@ -11,10 +11,12 @@ Features
 - `#9074 <https://0xacab.org/leap/bitmask-dev/issues/9074>`_: pin provider ca certs.
 - `#6914 <https://0xacab.org/leap/bitmask-dev/issues/6914>`_: expose an API to retrive message status.
 - `#9188 <https://0xacab.org/leap/bitmask-dev/issues/9188>`_: try other gateways if the main one fails.
+- `#9125 <https://0xacab.org/leap/bitmask-dev/issues/9125>`_: port to use qtwebengine for rendering UI.
 - Set a windows title, so that Bitmask windows can be programmatically manipulated.
 
 Bugfixes
 ~~~~~~~~
+- `#9191 <https://0xacab.org/leap/bitmask-dev/issues/9191>`_: workaround for missing libs needed for qtwebengine.
 - `#9171 <https://0xacab.org/leap/bitmask-dev/issues/9171>`_: fix a bug in bootstrap that avoided more than one user to login.
 - `#9165 <https://0xacab.org/leap/bitmask-dev/issues/9165>`_: deprecate pyqt5-webkit, use qtwebengine instead.
 

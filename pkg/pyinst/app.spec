@@ -50,9 +50,10 @@ elif IS_MAC:
     excludes = ['IPython', 'PySide']
 else:
     hiddenimports.extend(
-        ['PyQt5.QtCore', 'PyQt5.QtGui', 'PyQt5.QtWebEngine',
+        ['PyQt5.QtCore', 'PyQt5.QtGui', 'PyQt5.QtWebEngineWidgets',
          'leap.bitmask.gui.icons_rc'])
-    excludes = ['IPython', 'PySide']
+    excludes = ['IPython', 'PySide', 
+                'PyQt5.QtPrintSupport', 'PyQt5.QtNetwork.py']
 
 
 VENV = os.environ.get('VIRTUAL_ENV', '')

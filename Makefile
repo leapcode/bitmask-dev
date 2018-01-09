@@ -94,7 +94,7 @@ bundler_image:
 	cd pkg/docker_bundle && docker build -t local_bundler .
 
 bundle_in_docker:
-	# needs a docker container called 'mybundle', created with 'make docker_container'
+	# needs a docker container called 'local_bundler', created with 'make bundler_image'
 	rm -rf $(DIST_VERSION) bitmaskbuild
 	cat pkg/docker_build | docker run -i -v ~/leap/bitmask-dev:/dist -w /dist -u `id -u` -e REPO="$(REPO)" -e BRANCH="$(BRANCH)" local_bundler bash
 	mkdir -p dist/

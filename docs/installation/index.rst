@@ -78,7 +78,7 @@ packaging takes place::
 To ensure a repeatable system-wide environment, you can build those bundles from
 within a docker container. First you need to create the container::
 
-  make docker_container
+  make bundler_image
 
 and then you can launch the above script inside that container::
 

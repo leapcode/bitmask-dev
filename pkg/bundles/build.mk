@@ -49,6 +49,9 @@ bundle_linux_helpers:
 	cp src/leap/bitmask/vpn/helpers/linux/bitmask-root $(DIST_VERSION)/apps/helpers/
 	cp src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.bundle.policy $(DIST_VERSION)/apps/helpers/
 	cp /usr/lib/x86_64-linux-gnu/mesa/libGL.so.1.2.0 $(DIST_VERSION)/lib/libGL.so.1 || echo "libGL version not found"
+	# workaround for https://github.com/pyinstaller/pyinstaller/issues/2737
+	cp /usr/lib/x86_64-linux-gnu/nss/libsoftokn3.so $(DIST_VERSION)/lib/ || echo "libsoftokn3 not found"
+	cp /usr/lib/x86_64-linux-gnu/nss/libfreeblpriv3.so $(DIST_VERSION)/lib/ || echo "libfreeblpriv3 not found"
 
 
 bundle_osx_helpers:
