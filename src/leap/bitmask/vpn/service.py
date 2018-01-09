@@ -264,8 +264,11 @@ class VPNService(HookableService):
         ca_path = os.path.join(prefix, "ca", "cacert.pem")
 
         if not os.path.isfile(cert_path):
-            raise ImproperlyConfigured(
-                'Cannot find client certificate. Please get one')
+            gotcert = yield self.do_get_cert('ignored@%s' % provider)
+            if gotcert['get_cert'] != 'ok':
+                raise ImproperlyConfigured(
+                    'Cannot find client certificate. Please get one')
+
         if not os.path.isfile(ca_path):
             raise ImproperlyConfigured(
                 'Cannot find provider certificate. '
