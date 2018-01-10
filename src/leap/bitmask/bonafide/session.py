@@ -17,6 +17,7 @@
 """
 LEAP Session management.
 """
+from twisted.cred.credentials import IAnonymous, IUsernamePassword
 from twisted.internet import defer, reactor
 from twisted.logger import Logger
 
@@ -47,7 +48,6 @@ class Session(object):
     log = Logger()
 
     def __init__(self, credentials, api, provider_cert):
-        # TODO check if an anonymous credentials is passed.
         # TODO move provider_cert to api object.
         # On creation, it should be able to retrieve all the info it needs
         # (calling bootstrap).
@@ -56,9 +56,12 @@ class Session(object):
         # and a "autoconfig" attribute passed on initialization.
         # TODO get a file-descriptor for password if not in credentials
         # TODO merge self._request with config.Provider._http_request ?
-
-        self.username = credentials.username
-        self.password = credentials.password
+        if IAnonymous.providedBy(credentials):
+            self.username = None
+            self.password = None
+        elif IUsernamePassword.providedBy(credentials):
+            self.username = credentials.username
+            self.password = credentials.password
         self._provider_cert = provider_cert
         self._api = api
         self._initialize_session()
@@ -86,7 +89,10 @@ class Session(object):
 
     @property
     def is_authenticated(self):
-        return self._srp_auth.srp_user.authenticated()
+        if self.username is None:
+            return False
+        else:
+            return self._srp_auth.srp_user.authenticated()
 
     @defer.inlineCallbacks
     def authenticate(self):
@@ -133,8 +139,8 @@ class Session(object):
         met = self._api.get_update_user_method()
         params = self._srp_password.get_password_params(
             self.username, password)
-        update = yield self._request(self._agent, uri, values=params,
-                                     method=met)
+        yield self._request(self._agent, uri, values=params,
+                            method=met)
         self.password = password
         self._srp_auth = _srp.SRPAuthMechanism(self.username, password)
         defer.returnValue(OK)
@@ -153,16 +159,12 @@ class Session(object):
     # User certificates
 
     def get_vpn_cert(self):
-        # TODO pass it to the provider object so that it can save it in the
-        # right path.
         uri = self._api.get_vpn_cert_uri()
         met = self._api.get_vpn_cert_method()
         return self._request(self._agent, uri, method=met)
 
     @_auth_required
     def get_smtp_cert(self):
-        # TODO pass it to the provider object so that it can save it in the
-        # right path.
         uri = self._api.get_smtp_cert_uri()
         met = self._api.get_smtp_cert_method()
         return self._request(self._agent, uri, method=met)
@@ -198,7 +200,7 @@ class Session(object):
 
     @defer.inlineCallbacks
     def fetch_provider_configs(self, uri, path, method='GET'):
-        config = yield self._request(
+        yield self._request(
             self._agent, uri, method=method, saveto=path)
         defer.returnValue('ok')
 

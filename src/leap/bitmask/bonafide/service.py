@@ -131,12 +131,12 @@ class BonafideService(HookableService):
     def do_provider_list(self, seeded=False):
         return self._bonafide.do_provider_list(seeded)
 
-    def do_get_vpn_cert(self, username):
+    def do_get_vpn_cert(self, username, anonymous=False):
         if not username:
             return defer.fail(
                 RuntimeError('No username, cannot get VPN cert.'))
 
-        d = self._bonafide.do_get_vpn_cert(username)
+        d = self._bonafide.do_get_vpn_cert(username, anonymous=anonymous)
         d.addCallback(lambda response: (username, response))
         return d
 

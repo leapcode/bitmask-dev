@@ -31,13 +31,15 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.x509 import load_pem_x509_certificate
 from urlparse import urlparse
 
+from twisted.cred.credentials import Anonymous
 from twisted.internet import defer
 from twisted.logger import Logger
 from twisted.web.client import downloadPage
 
 from leap.bitmask.bonafide._http import httpRequest
-from leap.bitmask.bonafide.provider import Discovery
 from leap.bitmask.bonafide.errors import NotConfiguredError, NetworkError
+from leap.bitmask.bonafide.provider import Discovery
+from leap.bitmask.bonafide.session import Session
 from leap.bitmask.util import here, STANDALONE
 
 from leap.common.check import leap_assert
@@ -266,6 +268,10 @@ class Provider(object):
         self.log.debug('Bootstrapping provider %s' % domain)
 
         def first_bootstrap_done(ignored):
+            if self._allows_anonymous:
+                # we continue bootstrapping, we do not
+                # need to wait for authentication.
+                return
             try:
                 self.first_bootstrap.callback('got config')
             except defer.AlreadyCalledError:
@@ -281,6 +287,14 @@ class Provider(object):
         d.addCallbacks(first_bootstrap_done, first_bootstrap_error)
         d.addCallback(self.maybe_download_services_config)
         self.ongoing_bootstrap = d
+
+    def _allows_anonymous(self):
+        try:
+            anon = self._provider_config.get(
+                'service').get('allows_anonymous')
+        except ValueError:
+            anon = False
+        return anon
 
     def callWhenMainConfigReady(self, cb, *args, **kw):
         d = self.first_bootstrap
@@ -388,10 +402,15 @@ class Provider(object):
         return os.path.isfile(self._get_configs_path())
 
     def maybe_download_services_config(self, ignored):
-
         # TODO --- currently, some providers (mail.bitmask.net) raise 401
         # UNAUTHENTICATED if we try to get the services
         # See: # https://leap.se/code/issues/7906
+
+        def first_bootstrap_done(ignored):
+            try:
+                self.first_bootstrap.callback('got config')
+            except defer.AlreadyCalledError:
+                pass
 
         uri, met, path = self._get_configs_download_params()
         d = httpRequest(
@@ -399,6 +418,7 @@ class Provider(object):
         d.addCallback(lambda _: self._load_provider_json())
         d.addCallback(
             lambda _: self._get_config_for_all_services(session=None))
+        d.addCallback(first_bootstrap_done)
         d.addErrback(lambda _: 'ok for now')
         return d
 
@@ -499,6 +519,10 @@ class Provider(object):
             self._disco.netloc = parsed.netloc
 
     def _get_config_for_all_services(self, session):
+        if session is None:
+            provider_cert = self._get_ca_cert_path()
+            session = Session(Anonymous(), self.api_uri, provider_cert)
+
         services_dict = self._load_provider_configs()
         configs_path = self._get_configs_path()
         with open(configs_path) as jsonf:
@@ -510,12 +534,8 @@ class Provider(object):
                 for subservice in self.SERVICES_MAP[service]:
                     uri = base + str(services_dict[subservice])
                     path = self._get_service_config_path(subservice)
-                    if session:
-                        d = session.fetch_provider_configs(
-                            uri, path, method='GET')
-                    else:
-                        d = self._fetch_provider_configs_unauthenticated(
-                            uri, path, method='GET')
+                    d = session.fetch_provider_configs(
+                        uri, path, method='GET')
                     pending.append(d)
         return defer.gatherResults(pending)
 
@@ -524,11 +544,6 @@ class Provider(object):
         with open(configs_path) as jsonf:
             services_dict = Record(**json.load(jsonf)).services
         return services_dict
-
-    def _fetch_provider_configs_unauthenticated(self, uri, path):
-        self.log.info('Downloading config for %s...' % uri)
-        return httpRequest(
-            self._http._agent, uri, saveto=path)
 
 
 class Record(object):

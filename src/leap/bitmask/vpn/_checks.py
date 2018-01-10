@@ -17,14 +17,19 @@ class ImproperlyConfigured(Exception):
     pass
 
 
-def is_service_ready(provider):
+def get_failure_for(provider):
     if not _has_valid_cert(provider):
         raise ImproperlyConfigured('Missing VPN certificate')
-
     if IS_LINUX and not is_pkexec_in_system():
-        log.warn('System has no pkexec')
         raise NoPkexecAvailable()
 
+
+def is_service_ready(provider):
+    if not _has_valid_cert(provider):
+        return False
+    if IS_LINUX and not is_pkexec_in_system():
+        log.warn('System has no pkexec')
+        return False
     return True
 
 

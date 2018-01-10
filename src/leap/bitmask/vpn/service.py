@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # service.py
-# Copyright (C) 2015-2017 LEAP
+# Copyright (C) 2015-2018 LEAP
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@ from leap.bitmask.vpn._checks import (
     get_vpn_cert_path,
     cert_expires
 )
+
 from leap.bitmask.vpn import privilege, helpers
 from leap.common.config import get_path_prefix
 from leap.common.files import check_and_fix_urw_only
@@ -79,13 +80,22 @@ class VPNService(HookableService):
         except ValueError:
             self._loc = []
 
+        _autostart = self._cfg.get('autostart', False)
+        self._autostart = _autostart
+
+        _anonymous = self._cfg.get('anonymous', True)
+        self._anonymous_enabled = _anonymous
+
         if helpers.check() and self._firewall.is_up():
             self._firewall.stop()
 
     def startService(self):
-        # TODO this could trigger a check for validity of the certificates,
-        # etc.
+        # TODO trigger a check for validity of the certificates,
+        # and schedule a re-download if needed.
+        # TODO start a watchDog service (to push status events)
         super(VPNService, self).startService()
+        if self._autostart:
+            self.start_vpn()
 
     def stopService(self):
         try:
@@ -100,18 +110,21 @@ class VPNService(HookableService):
             exc = Exception('VPN already started')
             exc.expected = True
             raise exc
-        if not domain:
+        if domain is None:
             domain = self._read_last()
-            if not domain:
+            if domain is None:
                 exc = Exception("VPN can't start, a provider is needed")
                 exc.expected = True
                 raise exc
+
+        yield self._setup(domain)
         if not is_service_ready(domain):
-            exc = Exception("VPN is not ready")
+            exc = Exception('VPN is not ready')
             exc.expected = True
             raise exc
 
-        yield self._setup(domain)
+        # XXX we can signal status to frontend, use
+        # get_failure_for(provider) -- no polkit, etc.
 
         fw_ok = self._firewall.start()
         if not fw_ok:
@@ -177,7 +190,7 @@ class VPNService(HookableService):
         return ret
 
     @defer.inlineCallbacks
-    def do_get_cert(self, username):
+    def do_get_cert(self, username, anonymous=False):
         try:
             _, provider = username.split('@')
         except ValueError:
@@ -188,7 +201,8 @@ class VPNService(HookableService):
 
         # fetch vpn cert and store
         bonafide = self.parent.getServiceNamed("bonafide")
-        _, cert_str = yield bonafide.do_get_vpn_cert(username)
+        _, cert_str = yield bonafide.do_get_vpn_cert(
+             username, anonymous=anonymous)
 
         cert_path = get_vpn_cert_path(provider)
         cert_dir = os.path.dirname(cert_path)
@@ -242,32 +256,29 @@ class VPNService(HookableService):
         return self._cco
 
     @defer.inlineCallbacks
-    def _setup(self, provider):
+    def _setup(self, provider_id):
         """Set up ConfiguredTunnel for a specified provider.
 
         :param provider: the provider to use, e.g. 'demo.bitmask.net'
         :type provider: str"""
 
         bonafide = self.parent.getServiceNamed('bonafide')
-        config = yield bonafide.do_provider_read(provider, 'eip')
 
-        sorted_gateways = GatewaySelector(
-            config.gateways, config.locations,
-            preferred={'cc': self._cco, 'loc': self._loc}
-        ).select_gateways()
+        # bootstrap if not yet done
+        if provider_id not in bonafide.do_provider_list(seeded=False):
+            yield bonafide.do_provider_create(provider_id)
 
+        provider = yield bonafide.do_provider_read(provider_id)
+        config = yield bonafide.do_provider_read(provider_id, 'eip')
+
+        sorted_gateways = self._get_gateways(config)
         extra_flags = config.openvpn_configuration
-
-        prefix = os.path.join(
-            self._basepath, "leap", "providers", provider, "keys")
-        cert_path = key_path = os.path.join(prefix, "client", "openvpn.pem")
-        ca_path = os.path.join(prefix, "ca", "cacert.pem")
+        cert_path, ca_path = self._get_cert_paths(provider_id)
+        key_path = cert_path
+        anonvpn = self._has_anonvpn(provider)
 
         if not os.path.isfile(cert_path):
-            gotcert = yield self.do_get_cert('ignored@%s' % provider)
-            if gotcert['get_cert'] != 'ok':
-                raise ImproperlyConfigured(
-                    'Cannot find client certificate. Please get one')
+            yield self._maybe_get_anon_cert(anonvpn, provider_id)
 
         if not os.path.isfile(ca_path):
             raise ImproperlyConfigured(
@@ -277,8 +288,44 @@ class VPNService(HookableService):
         # TODO add remote ports, according to preferred sequence
         remotes = tuple([(ip, '443') for ip in sorted_gateways])
         self._tunnel = ConfiguredTunnel(
-            provider, remotes, cert_path, key_path, ca_path, extra_flags)
+            provider_id, remotes, cert_path, key_path, ca_path, extra_flags)
         self._firewall = FirewallManager(remotes)
+
+    def _get_gateways(self, config):
+        return GatewaySelector(
+            config.gateways, config.locations,
+            preferred={'cc': self._cco, 'loc': self._loc}
+        ).select_gateways()
+
+    def _get_cert_paths(self, provider_id):
+        prefix = os.path.join(
+            self._basepath, "leap", "providers", provider_id, "keys")
+        cert_path = os.path.join(prefix, "client", "openvpn.pem")
+        ca_path = os.path.join(prefix, "ca", "cacert.pem")
+        return cert_path, ca_path
+
+    def _has_anonvpn(self, provider):
+        try:
+            allows_anonymous = provider.get('service').get('allow_anonymous')
+        except (ValueError,):
+            allows_anonymous = False
+        return self._anonymous_enabled and allows_anonymous
+
+    @defer.inlineCallbacks
+    def _maybe_get_anon_cert(self, anonvpn, provider_id):
+        if anonvpn:
+            self.log.debug('Getting anon VPN cert')
+            gotcert = yield self.do_get_cert(
+                'anonymous@%s' % provider_id, anonymous=True)
+            if gotcert['get_cert'] != 'ok':
+                raise ImproperlyConfigured(
+                    '(anon) Could not get client certificate. '
+                    'Please get one')
+        else:
+            # this should instruct get_cert to get a session from bonafide
+            # if we are authenticated.
+            raise ImproperlyConfigured(
+                'Cannot find client certificate. Please get one')
 
     def _write_last(self, domain):
         path = os.path.join(self._basepath, self._last_vpn_path)

@@ -25,7 +25,8 @@ from leap.bitmask.bonafide.provider import Api
 from leap.bitmask.bonafide.session import Session, OK
 from leap.common.config import get_path_prefix
 
-from twisted.cred.credentials import UsernamePassword
+from twisted.cred.credentials import UsernamePassword, Anonymous
+from twisted.cred.checkers import ANONYMOUS
 from twisted.internet.defer import fail
 from twisted.logger import Logger
 
@@ -52,13 +53,16 @@ class BonafideProtocol(object):
         self._apis[provider.domain] = api
         return api
 
-    def _get_session(self, provider, full_id, password=""):
+    def _get_or_create_session(self, provider, full_id, password=""):
         if full_id in self._sessions:
             return self._sessions[full_id]
-
-        # TODO if password/username null, then pass AnonymousCreds
-        username, provider_id = config.get_username_and_provider(full_id)
-        credentials = UsernamePassword(username, password)
+        if full_id == ANONYMOUS:
+            credentials = Anonymous()
+            provider_id = provider.domain
+        else:
+            username, provider_id = config.get_username_and_provider(
+                full_id)
+            credentials = UsernamePassword(username, password)
         api = self._get_api(provider)
         provider_pem = config.get_ca_cert_path(_preffix, provider_id)
         session = Session(credentials, api, provider_pem)
@@ -90,7 +94,7 @@ class BonafideProtocol(object):
                 return user
 
         username, _ = config.get_username_and_provider(full_id)
-        session = self._get_session(provider, full_id, password)
+        session = self._get_or_create_session(provider, full_id, password)
         d = session.signup(username, password, invite)
         d.addCallback(return_user)
         d.addErrback(self._del_session_errback, full_id)
@@ -102,7 +106,7 @@ class BonafideProtocol(object):
         provider = config.Provider.get(provider_id, autoconf=autoconf)
 
         def maybe_finish_provider_bootstrap(result):
-            session = self._get_session(provider, full_id, password)
+            session = self._get_or_create_session(provider, full_id, password)
             d = provider.download_services_config_with_auth(session)
             d.addCallback(lambda _: result)
             return d
@@ -121,7 +125,7 @@ class BonafideProtocol(object):
 
         self.log.debug('AUTH for %s' % full_id)
 
-        session = self._get_session(provider, full_id, password)
+        session = self._get_or_create_session(provider, full_id, password)
         d = session.authenticate()
         d.addCallback(return_token_and_uuid, session)
         d.addErrback(self._del_session_errback, full_id)
@@ -171,7 +175,6 @@ class BonafideProtocol(object):
         return config.delete_provider(provider_id)
 
     def do_provider_list(self, seeded=False):
-        # TODO: seeded, we don't have pinned providers yet
         providers = config.list_providers()
         return [{"domain": p} for p in providers]
 
@@ -182,11 +185,17 @@ class BonafideProtocol(object):
         d = self._sessions[full_id].get_smtp_cert()
         return d
 
-    def do_get_vpn_cert(self, full_id):
-        if (full_id not in self._sessions or
-                not self._sessions[full_id].is_authenticated):
-            return fail(RuntimeError("There is no session for such user"))
-        d = self._sessions[full_id].get_vpn_cert()
+    def do_get_vpn_cert(self, full_id, anonymous=False):
+        if anonymous:
+            _, provider_id = full_id.split('@')
+            provider = config.Provider.get(provider_id, autoconf=True)
+            d = self._get_or_create_session(
+                provider, ANONYMOUS).get_vpn_cert()
+        else:
+            if (full_id not in self._sessions or
+                    not self._sessions[full_id].is_authenticated):
+                return fail(RuntimeError("There is no session for such user"))
+            d = self._sessions[full_id].get_vpn_cert()
         return d
 
     def do_update_user(self):
