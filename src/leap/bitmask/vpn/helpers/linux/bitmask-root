@@ -84,7 +84,10 @@ def get_no_group_name():
 
 VERSION = "8"
 SCRIPT = "bitmask-root"
-NAMESERVER = "10.42.0.1"
+NAMESERVER_TCP = "10.41.0.1"
+NAMESERVER_UDP = "10.42.0.1"
+# for the time being, we're hardcoding tcp on connection params.
+NAMESERVER = NAMESERVER_TCP
 BITMASK_CHAIN = "bitmask"
 BITMASK_CHAIN_NAT_OUT = "bitmask"
 BITMASK_CHAIN_NAT_POST = "bitmask_postrouting"
@@ -138,7 +141,7 @@ ALLOWED_FLAGS = {
 
 PARAM_FORMATS = {
     "NUMBER": lambda s: re.match("^\d+$", s),
-    "PROTO": lambda s: re.match("^(tcp|udp)$", s),
+    "PROTO": lambda s: re.match("^(tcp|udp|tcp4|udp4)$", s),
     "IP": lambda s: is_valid_address(s),
     "CIPHER": lambda s: re.match("^[A-Z0-9-]+$", s),
     "USER": lambda s: re.match(

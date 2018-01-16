@@ -12,6 +12,7 @@ Features
 - `#6914 <https://0xacab.org/leap/bitmask-dev/issues/6914>`_: expose an API to retreive message status.
 - `#9188 <https://0xacab.org/leap/bitmask-dev/issues/9188>`_: try other gateways if the main one fails.
 - `#9125 <https://0xacab.org/leap/bitmask-dev/issues/9125>`_: port to use qtwebengine for rendering UI.
+- `#9181 <https://0xacab.org/leap/bitmask-dev/issues/9181>`_: hardcode tcp4 in the vpn connection parameters.
 - Set a windows title, so that Bitmask windows can be programmatically manipulated.
 - Support anonymous vpn.
 

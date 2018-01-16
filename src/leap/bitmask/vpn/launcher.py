@@ -153,7 +153,8 @@ class VPNLauncher(object):
         gateways = remotes
 
         for ip, port in gateways:
-            args += ['--remote', ip, port, 'udp']
+            # we're hardcoding tcpv4 for now
+            args += ['--remote', ip, port, 'tcp4']
 
         args += [
             '--client',
