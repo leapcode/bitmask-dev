@@ -749,7 +749,7 @@ def firewall_start(args):
         if QUBES_VER == 4:
             run(QUBES_FW_SCRIPT)
         elif QUBES_VER == 3:
-            run("systemctl", ["restart", "qubes-firewall.service"])
+            run("systemctl", "restart", "qubes-firewall.service")
 
 
 def firewall_stop():
