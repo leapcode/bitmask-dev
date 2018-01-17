@@ -23,6 +23,7 @@ import json
 import os
 
 from twisted.internet import defer
+from twisted.internet.task import LoopingCall
 from twisted.logger import Logger
 
 from leap.bitmask.hooks import HookableService
@@ -39,6 +40,10 @@ from leap.bitmask.vpn._checks import (
 from leap.bitmask.vpn import privilege, helpers
 from leap.common.config import get_path_prefix
 from leap.common.files import check_and_fix_urw_only
+from leap.common.events import catalog, emit_async
+
+
+WATCHDOG_PERIOD = 30  # in seconds
 
 
 class ImproperlyConfigured(Exception):
@@ -88,6 +93,8 @@ class VPNService(HookableService):
 
         if helpers.check() and self._firewall.is_up():
             self._firewall.stop()
+
+        self.watchdog = LoopingCall(self.push_status)
 
     def startService(self):
         # TODO trigger a check for validity of the certificates,
@@ -144,6 +151,7 @@ class VPNService(HookableService):
         else:
             data = {'result': 'failed', 'error': '%r' % result}
 
+        self.watchdog.start(WATCHDOG_PERIOD)
         defer.returnValue(data)
 
     def stop_vpn(self):
@@ -159,7 +167,16 @@ class VPNService(HookableService):
         if not vpn_ok:
             raise Exception("Error stopping VPN")
 
+        self.watchdog.stop()
         return {'result': 'vpn stopped'}
+
+    def push_status(self):
+        try:
+            statusdict = self.do_status()
+            status = statusdict.get('status').upper()
+            emit_async(catalog.VPN_STATUS_CHANGED, status)
+        except ValueError:
+            pass
 
     def do_status(self):
         # TODO - add the current gateway and CC to the status
