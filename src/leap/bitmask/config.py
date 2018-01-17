@@ -96,4 +96,8 @@ class _ConfigurationSection(object):
         return self.config.get(self.section, option, default, boolean)
 
     def set(self, option, value):
+        if value is True:
+            value = 'true'
+        elif value is False:
+            value = 'false'
         return self.config.set(self.section, option, value)

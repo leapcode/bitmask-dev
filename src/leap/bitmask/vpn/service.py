@@ -19,6 +19,7 @@
 """
 VPN service declaration.
 """
+
 import json
 import os
 
@@ -38,6 +39,7 @@ from leap.bitmask.vpn._checks import (
 )
 
 from leap.bitmask.vpn import privilege, helpers
+from leap.bitmask.vpn import autostart
 from leap.common.config import get_path_prefix
 from leap.common.files import check_and_fix_urw_only
 from leap.common.events import catalog, emit_async
@@ -85,10 +87,10 @@ class VPNService(HookableService):
         except ValueError:
             self._loc = []
 
-        _autostart = self._cfg.get('autostart', False)
+        _autostart = self._cfg.get('autostart', False, boolean=True)
         self._autostart = _autostart
 
-        _anonymous = self._cfg.get('anonymous', True)
+        _anonymous = self._cfg.get('anonymous', True, boolean=True)
         self._anonymous_enabled = _anonymous
 
         if helpers.check() and self._firewall.is_up():
@@ -114,6 +116,7 @@ class VPNService(HookableService):
     @defer.inlineCallbacks
     def start_vpn(self, domain=None):
         self._cfg.set('autostart', True)
+        autostart.autostart_app('on')
         if self.do_status()['status'] == 'on':
             exc = Exception('VPN already started')
             exc.expected = True
@@ -152,25 +155,41 @@ class VPNService(HookableService):
         else:
             data = {'result': 'failed', 'error': '%r' % result}
 
-        self.watchdog.start(WATCHDOG_PERIOD)
+        if not self.watchdog.running:
+            self.watchdog.start(WATCHDOG_PERIOD)
         defer.returnValue(data)
 
     def stop_vpn(self, shutdown=False):
-        self._cfg.set('autostart', shutdown)
+        if shutdown:
+            if self._tunnel and self._tunnel.status.get('status') == 'on':
+                self._set_autostart('on')
+            else:
+                self._set_autostart('off')
+        else:
+            self._set_autostart('off')
+
         if self._firewall.is_up():
             fw_ok = self._firewall.stop()
             if not fw_ok:
-                self.log.error("Firewall: error stopping")
+                self.log.error('Firewall: error stopping')
 
         if not self._tunnel:
             return {'result': 'VPN was not running'}
 
         vpn_ok = self._tunnel.stop()
         if not vpn_ok:
-            raise Exception("Error stopping VPN")
+            raise Exception('Error stopping VPN')
 
         self.watchdog.stop()
         return {'result': 'vpn stopped'}
+
+    def _set_autostart(self, status):
+        if status.lower() == 'on':
+            self._cfg.set('autostart', True)
+            autostart.autostart_app('on')
+        elif status.lower() == 'off':
+            self._cfg.set('autostart', False)
+            autostart.autostart_app('off')
 
     def push_status(self):
         try:
@@ -221,7 +240,7 @@ class VPNService(HookableService):
         # fetch vpn cert and store
         bonafide = self.parent.getServiceNamed("bonafide")
         _, cert_str = yield bonafide.do_get_vpn_cert(
-             username, anonymous=anonymous)
+            username, anonymous=anonymous)
 
         cert_path = get_vpn_cert_path(provider)
         cert_dir = os.path.dirname(cert_path)
