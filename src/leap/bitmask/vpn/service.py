@@ -106,13 +106,14 @@ class VPNService(HookableService):
 
     def stopService(self):
         try:
-            self.stop_vpn()
+            self.stop_vpn(shutdown=True)
         except Exception as e:
             self.log.error('Error stopping vpn service... {0!r}'.format(e))
         super(VPNService, self).stopService()
 
     @defer.inlineCallbacks
     def start_vpn(self, domain=None):
+        self._cfg.set('autostart', True)
         if self.do_status()['status'] == 'on':
             exc = Exception('VPN already started')
             exc.expected = True
@@ -154,7 +155,8 @@ class VPNService(HookableService):
         self.watchdog.start(WATCHDOG_PERIOD)
         defer.returnValue(data)
 
-    def stop_vpn(self):
+    def stop_vpn(self, shutdown=False):
+        self._cfg.set('autostart', shutdown)
         if self._firewall.is_up():
             fw_ok = self._firewall.stop()
             if not fw_ok:
