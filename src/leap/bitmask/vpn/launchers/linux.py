@@ -201,7 +201,7 @@ class LinuxVPNLauncher(VPNLauncher):
         :type tries: int
         """
         if tries < TERMINATE_MAXTRIES:
-            if proc.transport.pid is None:
+            if proc.transport and proc.transport.pid is None:
                 deferred.callback(True)
                 return
             else:
