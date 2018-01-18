@@ -34,7 +34,10 @@ Terminal=false
                 with open(autostart_file, 'w') as f:
                     f.write(AUTOSTART)
             elif status == 'off':
-                os.unlink(autostart_file)
+                try:
+                    os.unlink(autostart_file)
+                except OSError:
+                    pass
 
 if IS_MAC:
 

@@ -116,6 +116,9 @@ export default class vpnSection extends React.Component {
         console.log('check()', error)
         if (error == "Missing VPN certificate") {
           this.renewCert()
+        }
+        if (error == 'nopolkit') {
+          this.setState({vpn: "nopolkit"})
         } else {
           this.setState({vpn: "failed", error: error})
         }
@@ -305,6 +308,16 @@ export default class vpnSection extends React.Component {
       case "disconnecting":
         button = <Button onClick={this.disconnect}>Cancel</Button>
         icon = "wait"
+        break
+      case "nopolkit":
+        info = "Missing authentication agent."
+        body = (
+          <div>
+            <p>Could not find a polkit authentication agent.
+            Please run one and try again.</p>
+          </div>
+        )
+        icon= "disabled"
         break
       case "failed":
         info = "Failed"

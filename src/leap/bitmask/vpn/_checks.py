@@ -18,10 +18,10 @@ class ImproperlyConfigured(Exception):
 
 
 def get_failure_for(provider):
-    if not _has_valid_cert(provider):
-        raise ImproperlyConfigured('Missing VPN certificate')
     if IS_LINUX and not is_pkexec_in_system():
         raise NoPkexecAvailable()
+    if not _has_valid_cert(provider):
+        raise ImproperlyConfigured('Missing VPN certificate')
 
 
 def is_service_ready(provider):
@@ -35,8 +35,11 @@ def is_service_ready(provider):
 
 def cert_expires(provider):
     path = get_vpn_cert_path(provider)
-    with open(path, 'r') as f:
-        cert = f.read()
+    try:
+        with open(path, 'r') as f:
+            cert = f.read()
+    except IOError:
+        return None
     _, to = get_cert_time_boundaries(cert)
     expiry_date = datetime.fromtimestamp(mktime(to))
     return expiry_date

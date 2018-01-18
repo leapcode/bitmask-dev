@@ -16,6 +16,7 @@ if IS_LINUX:
     from leap.bitmask.vpn.constants import OPENVPN_SYSTEM, OPENVPN_LOCAL
     from leap.bitmask.vpn.constants import POLKIT_SYSTEM, POLKIT_LOCAL
     from leap.bitmask.vpn.privilege import is_pkexec_in_system
+    from leap.bitmask.vpn.privilege import LinuxPolicyChecker
 
     def install():
         helper_from = _config.get_bitmask_helper_path()
@@ -40,6 +41,17 @@ if IS_LINUX:
         remove(POLKIT_LOCAL)
         remove(OPENVPN_LOCAL)
 
+    def privcheck(timeout=5):
+        has_pkexec = is_pkexec_in_system()
+        running = LinuxPolicyChecker.is_up()
+        if not running:
+            try:
+                LinuxPolicyChecker.get_usable_pkexec(timeout=timeout)
+                running = LinuxPolicyChecker.is_up()
+            except Exception:
+                running = False
+        return has_pkexec and running
+
     def check():
         helper = _is_up_to_date(_config.get_bitmask_helper_path(),
                                 BITMASK_ROOT_LOCAL,
@@ -51,7 +63,7 @@ if IS_LINUX:
                    _is_up_to_date(_config.get_bitmask_openvpn_path(),
                                   OPENVPN_LOCAL, ""))
 
-        return is_pkexec_in_system() and helper and polkit and openvpn
+        return helper and polkit and openvpn
 
     def _is_up_to_date(src, local, system):
         if src is None or not access(src, R_OK):
@@ -70,6 +82,9 @@ elif IS_MAC:
 
     def check():
         # XXX check if bitmask-helper is running
+        return True
+
+    def privcheck():
         return True
 
 

@@ -39,7 +39,7 @@ timestamp = time.strftime('%Y%m%d%H%M', now.timetuple())
 
 setup(
     name='leap.bitmask_js',
-    version='0.2.%s' % timestamp,
+    version='0.3.%s' % timestamp,
     description='Bitmask UI',
     long_description=long_description,
     author='LEAP Encrypted Access Project',

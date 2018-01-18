@@ -22,7 +22,6 @@ are operative under this client run.
 
 import commands
 import os
-import subprocess
 import psutil
 import time
 
@@ -30,8 +29,8 @@ from twisted.logger import Logger
 from twisted.python.procutils import which
 
 from leap.bitmask.util import STANDALONE, here
-
 from .constants import IS_LINUX
+from . import polkit
 
 log = Logger()
 
@@ -97,7 +96,7 @@ class LinuxPolicyChecker(object):
                 else self.LINUX_POLKIT_FILE)
 
     @classmethod
-    def maybe_pkexec(self):
+    def get_usable_pkexec(self, timeout=20):
         """
         Checks whether pkexec is available in the system, and
         returns the path if found.
@@ -117,20 +116,17 @@ class LinuxPolicyChecker(object):
             self.launch()
             seconds = 0
             while not self.is_up():
-                if seconds >= 20:
+                if seconds >= timeout:
                     log.warn('No polkit auth agent found. pkexec ' +
                              'will use its own auth agent.')
                     raise NoPolkitAuthAgentAvailable()
-
-                # XXX: sleep()!!!! we should do it the twisted way
                 time.sleep(1)
                 seconds += 1
 
-        pkexec_possibilities = which(self.PKEXEC_BIN)
-        if not pkexec_possibilities:
+        pkexec_choices = which(self.PKEXEC_BIN)
+        if not pkexec_choices:
             raise Exception("We couldn't find pkexec")
-
-        return pkexec_possibilities
+        return pkexec_choices
 
     @classmethod
     def launch(self):
@@ -138,17 +134,7 @@ class LinuxPolicyChecker(object):
         Tries to launch polkit agent.
         """
         if not self.is_up():
-            try:
-                # We need to quote the command because subprocess call
-                # will do "sh -c 'foo'", so if we do not quoute it we'll end
-                # up with a invocation to the python interpreter. And that
-                # is bad.
-                log.debug('Trying to launch polkit agent')
-                subprocess.call(
-                    ["python -m leap.bitmask.vpn.helpers.linux.polkit_agent"],
-                    shell=True)
-            except Exception:
-                log.failure('Error while launching vpn')
+            polkit.launch()
 
     @classmethod
     def is_up(self):
@@ -162,25 +148,12 @@ class LinuxPolicyChecker(object):
         # polkit-agent, it uses a polkit-agent within its own process so we
         # can't ps-grep a polkit process, we can ps-grep gnome-shell itself.
 
-        polkit_options = (
-            'polkit-gnome-authentication-agent-1',
-            'polkit-kde-authentication-agent-1',
-            'polkit-mate-authentication-agent-1',
-            'lxpolkit',
-            'lxsession',
-            'gnome-shell',
-            'gnome-flashback',
-            'fingerprint-polkit-agent',
-            'xfce-polkit',
-        )
-
-        is_running = False
+        running = False
         for proc in psutil.process_iter():
-            if any((polkit in proc.name() for polkit in polkit_options)):
-                is_running = True
+            if any((pk in proc.name() for pk in polkit.POLKIT_PROC_NAMES)):
+                running = True
                 break
-
-        return is_running
+        return running
 
 
 def is_pkexec_in_system():

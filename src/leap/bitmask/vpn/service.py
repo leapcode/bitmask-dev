@@ -40,6 +40,7 @@ from leap.bitmask.vpn._checks import (
 
 from leap.bitmask.vpn import privilege, helpers
 from leap.bitmask.vpn import autostart
+from leap.bitmask.vpn.constants import IS_LINUX
 from leap.common.config import get_path_prefix
 from leap.common.files import check_and_fix_urw_only
 from leap.common.events import catalog, emit_async
@@ -101,8 +102,8 @@ class VPNService(HookableService):
     def startService(self):
         # TODO trigger a check for validity of the certificates,
         # and schedule a re-download if needed.
-        # TODO start a watchDog service (to push status events)
         super(VPNService, self).startService()
+
         if self._autostart:
             self.start_vpn()
 
@@ -117,6 +118,7 @@ class VPNService(HookableService):
     def start_vpn(self, domain=None):
         self._cfg.set('autostart', True)
         autostart.autostart_app('on')
+
         if self.do_status()['status'] == 'on':
             exc = Exception('VPN already started')
             exc.expected = True
@@ -133,9 +135,6 @@ class VPNService(HookableService):
             exc = Exception('VPN is not ready')
             exc.expected = True
             raise exc
-
-        # XXX we can signal status to frontend, use
-        # get_failure_for(provider) -- no polkit, etc.
 
         fw_ok = self._firewall.start()
         if not fw_ok:
@@ -219,12 +218,21 @@ class VPNService(HookableService):
 
     def do_check(self, domain=None):
         """Check whether the VPN Service is properly configured,
-        and can be started"""
-        ret = {'installed': helpers.check()}
+        and can be started. This returns info about the helpers being
+        installed, a polkit agent being present, and optionally a valid
+        certificate present for a domain."""
+        hashelpers = helpers.check()
+        privcheck = helpers.privcheck(timeout=5)
+        ret = {'installed': hashelpers, 'privcheck': privcheck}
+        if not privcheck:
+            if IS_LINUX:
+                ret['error'] = 'nopolkit'
         if domain:
             ret['vpn_ready'] = is_service_ready(domain)
-            expiry = cert_expires(domain).strftime('%Y-%m-%dT%H:%M:%SZ')
-            ret['cert_expires'] = expiry
+            expiry = cert_expires(domain)
+            if expiry:
+                expiry_ts = expiry.strftime('%Y-%m-%dT%H:%M:%SZ')
+                ret['cert_expires'] = expiry_ts
         return ret
 
     @defer.inlineCallbacks

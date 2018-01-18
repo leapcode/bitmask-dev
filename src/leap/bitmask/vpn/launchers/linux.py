@@ -176,7 +176,7 @@ class LinuxVPNLauncher(VPNLauncher):
 
         if os.getuid() != 0:
             policyChecker = LinuxPolicyChecker()
-            pkexec = policyChecker.maybe_pkexec()
+            pkexec = policyChecker.get_usable_pkexec()
             if pkexec:
                 command.insert(0, first(pkexec))
 

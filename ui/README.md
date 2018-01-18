@@ -35,7 +35,7 @@ python package and installed in the virtualenv:
 
 In order to package for distribution:
 
-    make dist-build
+    make pydist-build
 
 NOTE: If you make changes to the asset files, like add or modify an image, you
       will need to stop then rerun `npm run watch` for the changes to take
