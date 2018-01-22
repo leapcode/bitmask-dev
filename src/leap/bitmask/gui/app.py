@@ -186,7 +186,7 @@ def _handle_kill(*args, **kw):
     closing = True
 
 
-def launch_gui():
+def launch_gui(with_window=True):
     global qApp
     global bitmaskd
     global browser
@@ -218,7 +218,8 @@ def launch_gui():
     timer.timeout.connect(lambda: None)
     timer.start(500)
 
-    browser.show()
+    if with_window:
+        browser.show()
 
     sys.exit(qApp.exec_())
 
@@ -250,7 +251,8 @@ def start_app():
         return bitmask_cli.main()
 
     reset_authtoken()
-    launch_gui()
+    with_window = '--nowindow' not in sys.argv
+    launch_gui(with_window)
 
 
 if __name__ == "__main__":
