@@ -40,16 +40,20 @@ else:
 
 
 # TODO do switch based on theme
+# TODO get also blocked icon
+# TODO get spinning motion
 
 
 if platform.system() == 'Darwin':
-    TRAY_ICONS = (':/mac/wait.png',
-                  ':/mac/on.png',
-                  ':/mac/off.png')
+    TRAY_ICONS = (':/white/64/wait.png',
+                  ':/white/64/on.png',
+                  ':/white/64/off.png',
+                  ':/white/64/blocked.png')
 else:
-    TRAY_ICONS = (':/black/22/wait.png',
-                  ':/black/22/on.png',
-                  ':/black/22/off.png')
+    TRAY_ICONS = (':/black/64/wait.png',
+                  ':/black/64/on.png',
+                  ':/black/64/off.png',
+                  ':/black/64/blocked.png')
 
 
 # TODO I think this does not need QDialog
@@ -100,6 +104,7 @@ class WithTrayIcon(QWidget):
         self.ICON_WAIT = QIcon(QPixmap(TRAY_ICONS[0]))
         self.ICON_ON = QIcon(QPixmap(TRAY_ICONS[1]))
         self.ICON_OFF = QIcon(QPixmap(TRAY_ICONS[2]))
+        self.ICON_BLOCKED = QIcon(QPixmap(TRAY_ICONS[3]))
 
     def _createActions(self):
         self.quitAction = QAction(
