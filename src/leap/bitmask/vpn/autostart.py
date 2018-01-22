@@ -41,8 +41,5 @@ Terminal=false
 
 if IS_MAC:
 
-    def autostart_app_on():
-        pass
-
-    def autostart_app_off():
+    def autostart_app(status):
         pass

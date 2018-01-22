@@ -216,13 +216,13 @@ class VPNService(HookableService):
             status['domain'] = self._read_last()
         return status
 
-    def do_check(self, domain=None):
+    def do_check(self, domain=None, timeout=1):
         """Check whether the VPN Service is properly configured,
         and can be started. This returns info about the helpers being
         installed, a polkit agent being present, and optionally a valid
         certificate present for a domain."""
         hashelpers = helpers.check()
-        privcheck = helpers.privcheck(timeout=5)
+        privcheck = helpers.privcheck(timeout=1)
         ret = {'installed': hashelpers, 'privcheck': privcheck}
         if not privcheck:
             if IS_LINUX:
@@ -323,7 +323,8 @@ class VPNService(HookableService):
         key_path = cert_path
         anonvpn = self._has_anonvpn(provider)
 
-        if not os.path.isfile(cert_path):
+        ready = self.do_check(provider_id).get('vpn_ready', False)
+        if not ready:
             yield self._maybe_get_anon_cert(anonvpn, provider_id)
 
         if not os.path.isfile(ca_path):

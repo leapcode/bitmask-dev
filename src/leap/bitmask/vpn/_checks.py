@@ -62,5 +62,4 @@ def _has_valid_cert(provider):
     if datetime.now() > expiry:
         log.warn("VPN cert expired for %s" % (provider,))
         return False
-
     return True
