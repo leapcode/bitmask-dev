@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # config.py
-# Copyright (C) 2015 LEAP
+# Copyright (C) 2015-2018 LEAP
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -53,6 +53,9 @@ if platform.system() == 'Windows':
     ENDPOINT = "tcp://127.0.0.1:5001"
 else:
     ENDPOINT = "ipc:///tmp/%s.sock" % APPNAME
+
+SERVICE = 'service'
+ALLOW_ANONYMOUS = 'allow_anonymous'
 
 
 def get_path_prefix(standalone=False):
@@ -268,7 +271,7 @@ class Provider(object):
         self.log.debug('Bootstrapping provider %s' % domain)
 
         def first_bootstrap_done(ignored):
-            if self._allows_anonymous:
+            if self._allows_anonymous():
                 # we continue bootstrapping, we do not
                 # need to wait for authentication.
                 return
@@ -289,9 +292,9 @@ class Provider(object):
         self.ongoing_bootstrap = d
 
     def _allows_anonymous(self):
+        config = self.config()
         try:
-            anon = self._provider_config.get(
-                'service').get('allows_anonymous')
+            anon = config.get(SERVICE).get(ALLOW_ANONYMOUS, False)
         except ValueError:
             anon = False
         return anon
