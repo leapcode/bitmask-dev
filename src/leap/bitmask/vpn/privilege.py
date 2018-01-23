@@ -147,6 +147,9 @@ class LinuxPolicyChecker(object):
         # Note that gnome-shell does not uses a separate process for the
         # polkit-agent, it uses a polkit-agent within its own process so we
         # can't ps-grep a polkit process, we can ps-grep gnome-shell itself.
+        if os.getuid() == 0:
+            # if you're running as root, it's your problem, not mine.
+            return True
 
         running = False
         for proc in psutil.process_iter():

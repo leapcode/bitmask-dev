@@ -62,7 +62,6 @@ if IS_LINUX:
         openvpn = (os.path.exists(OPENVPN_SYSTEM) or
                    _is_up_to_date(_config.get_bitmask_openvpn_path(),
                                   OPENVPN_LOCAL, ""))
-
         return helper and polkit and openvpn
 
     def _is_up_to_date(src, local, system):

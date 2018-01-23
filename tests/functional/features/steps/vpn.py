@@ -22,7 +22,7 @@ def apply_dns_workaround():
         resolv = commands.getoutput('cat /etc/resolv.conf')
         print("original resolv.conf: %s" % resolv)
         result = commands.getoutput(
-            'echo "nameserver 10.42.0.1" > /etc/resolv.conf')
+            'echo "nameserver 10.41.0.1" > /etc/resolv.conf')
         resolv2 = commands.getoutput('cat /etc/resolv.conf')
         print("changed resolv.conf: %s" % resolv2)
         print("Workaround OK")
