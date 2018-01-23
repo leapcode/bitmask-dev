@@ -315,7 +315,13 @@ class VPNService(HookableService):
             yield bonafide.do_provider_create(provider_id)
 
         provider = yield bonafide.do_provider_read(provider_id)
-        config = yield bonafide.do_provider_read(provider_id, 'eip')
+        try:
+            config = yield bonafide.do_provider_read(provider_id, 'eip')
+        except ValueError:
+            exc = Exception('Cannot find EIP section for provider %s. '
+                            'Is it fully bootstrapped?' % provider_id)
+            exc.expected = True
+            raise exc
 
         sorted_gateways = self._get_gateways(config)
         extra_flags = config.openvpn_configuration
@@ -324,7 +330,7 @@ class VPNService(HookableService):
         anonvpn = self._has_anonvpn(provider)
 
         ready = self.do_check(provider_id).get('vpn_ready', False)
-        if not ready:
+        if not ready and anonvpn:
             yield self._maybe_get_anon_cert(anonvpn, provider_id)
 
         if not os.path.isfile(ca_path):

@@ -20,7 +20,7 @@ Terminal=false
         Leave an autostart file in the user's autostart path.
 
         The bundle could in principle find its own path and add
-        the path to the bitmaskd binary in the Exec entry. 
+        the path to the bitmaskd binary in the Exec entry.
         But for now it's simpler to do autostart only for the debian packages
         or any other method that puts bitmask in the path.
         On the other hand, we want to reduce the modifications that the bundle

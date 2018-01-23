@@ -51,6 +51,10 @@ class Unchanged(Exception):
     pass
 
 
+class Forbidden(Exception):
+    pass
+
+
 # TODO this should be ported to use treq client.
 
 def httpRequest(agent, url, values=None, headers=None,
@@ -83,6 +87,8 @@ def httpRequest(agent, url, values=None, headers=None,
         log.debug("RESPONSE %s %s %s" % (method, response.code, url))
         if response.code == 204:
             d = defer.succeed('')
+        elif response.code == 401:
+            raise Forbidden()
         if saveto and mtime and response.code == 304:
             log.debug('304 (Not modified): %s' % url)
             raise Unchanged()
@@ -104,7 +110,7 @@ def httpRequest(agent, url, values=None, headers=None,
         return d
 
     def passthru(failure):
-        failure.trap(Unchanged)
+        failure.trap(Unchanged, Forbidden)
 
     d = agent.request(method, url, Headers(headers),
                       StringProducer(data) if data else None)
