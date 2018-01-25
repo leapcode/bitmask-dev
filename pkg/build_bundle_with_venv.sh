@@ -24,7 +24,9 @@ $VIRTUAL_ENV/bin/pip install appdirs packaging
 # qt-plugins instability in develop: see https://github.com/pyinstaller/pyinstaller/issues/1906
 # $VIRTUAL_ENV/bin/pip install -U pyinstaller==3.2.1
 # dev version
-$VIRTUAL_ENV/bin/pip install -U git+https://github.com/pyinstaller/pyinstaller.git
+# $VIRTUAL_ENV/bin/pip install -U git+https://github.com/pyinstaller/pyinstaller.git
+# try bjones WIP Qt5 branch
+$VIRTUAL_ENV/bin/pip install -U git+https://github.com/bjones1/pyinstaller.git@pyqt5_testing
 $VIRTUAL_ENV/bin/pip install zope.interface zope.proxy
 
 # fix for #8789
@@ -32,7 +34,7 @@ $VIRTUAL_ENV/bin/pip --no-cache-dir install pysqlcipher --install-option="--bund
 # FIXME pixelated needs some things but doesn't declare it
 $VIRTUAL_ENV/bin/pip install chardet
 # FIXME remove requests in pixelated fork, use treq instead
-$VIRTUAL_ENV/bin/pip install requests==2.11.1
+#$VIRTUAL_ENV/bin/pip install requests==2.11.1
 
 # Soledad version: for the Bitmask 0.10 bundles, let's pick published soledad.
 $VIRTUAL_ENV/bin/pip install -U leap.soledad
