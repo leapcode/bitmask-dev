@@ -56,9 +56,8 @@ if IS_LINUX:
         helper = _is_up_to_date(_config.get_bitmask_helper_path(),
                                 BITMASK_ROOT_LOCAL,
                                 BITMASK_ROOT_SYSTEM)
-        polkit = _is_up_to_date(_config.get_bitmask_polkit_policy_path(),
-                                POLKIT_LOCAL,
-                                POLKIT_SYSTEM)
+        polkit = (os.path.exists(POLKIT_LOCAL) or
+                  os.path.exists(POLKIT_SYSTEM))
         openvpn = (os.path.exists(OPENVPN_SYSTEM) or
                    _is_up_to_date(_config.get_bitmask_openvpn_path(),
                                   OPENVPN_LOCAL, ""))
