@@ -70,7 +70,7 @@ Description: Provides the core daemon for bitmask
 
 Package: bitmask-js
 Architecture: all
-Depends: ${misc:Depends}
+Depends: ${misc:Depends}, ${python:Depends}
 # Provides: leap.bitmask_js
 # this "provides" seems it's not parsed correctly
 Description: bitmask javascript library
@@ -106,8 +106,8 @@ Description: Bitmask core VPN daemon
 
 Package: bitmask-mail
 Architecture: all
-Depends: ${misc:Depends}, bitmask-core, gnupg1,
-         soledad-client, soledad-common
+Depends: ${misc:Depends}, ${python:Depends}, bitmask-core,
+         gnupg1, soledad-client, soledad-common
 # XXX can remove soledad-common after soledad 0.10.4 is released
 Recommends: xul-ext-bitmask
 Suggests: bitmask-mua
@@ -130,7 +130,7 @@ Description: Bitmask chromium launcher
 
 Package: bitmask-mua
 Architecture: all
-Depends: ${misc:Depends}, bitmask-mail,
+Depends: ${misc:Depends}, ${python:Depends}, bitmask-mail,
          python-whoosh, python-requests, python-chardet
 # XXX this depends on leap-pixelated, leap-pixelated-www
 Provides: leap.bitmask.mua
