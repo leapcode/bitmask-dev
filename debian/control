@@ -48,6 +48,7 @@ Depends:
   python-jsonschema (>= 0.7.0),
   python-zope.proxy,
   python-twisted-core (>= 14.0.2),
+  python-service-identity,
   python-leap-common
 Description: Provides the core daemon for bitmask
  The LEAP project aims to secure everyday communication.
