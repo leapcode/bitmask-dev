@@ -21,12 +21,14 @@ source "$VENV"/bin/activate
 echo "[+] Using venv in" $VIRTUAL_ENV
 
 $VIRTUAL_ENV/bin/pip install appdirs packaging
+# CHANGE THIS TO SELECT A DIFFERENT PYINSTALLER VERSION ------------------------------------------
 # qt-plugins instability in develop: see https://github.com/pyinstaller/pyinstaller/issues/1906
 # $VIRTUAL_ENV/bin/pip install -U pyinstaller==3.2.1
 # dev version
-# $VIRTUAL_ENV/bin/pip install -U git+https://github.com/pyinstaller/pyinstaller.git
+# $VIRTUAL_ENV/bin/pip install -U git+https://github.com/pyinstaller/pyinstaller.git@develop
 # try bjones WIP Qt5 branch
 $VIRTUAL_ENV/bin/pip install -U git+https://github.com/bjones1/pyinstaller.git@pyqt5_testing
+# ------------------------------------------------------------------------------------------------
 $VIRTUAL_ENV/bin/pip install zope.interface zope.proxy
 
 # fix for #8789
