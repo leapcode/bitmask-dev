@@ -4,7 +4,8 @@
 # It has diverged from the original, but it's because I don't want the clutter
 # of all the nodejs and friends inside a container for bundling -- kali.
 
-FROM ubuntu:17.10
+# Building on ubuntu 17.10 gives glibc version compat errors.
+FROM debian:stretch
 
 MAINTAINER LEAP Encryption Access Project <info@leap.se>
 LABEL Description="Image for building Bitmask bundle based on Ubuntu 17:04" Vendor="LEAP" Version="1.1"

@@ -32,8 +32,8 @@ bundle: bundle_clean
 bundle_linux_gpg:
 	# TODO build it in a docker container!
 	mkdir -p $(DIST_VERSION)/apps/mail
-	# this is /usr/bin/gpg1 in debian stretch 
-	cp /usr/bin/gpg $(DIST_VERSION)/apps/mail/gpg
+	# this is /usr/bin/gpg1 in debian stretch, gpg in ubuntu
+	cp /usr/bin/gpg1 $(DIST_VERSION)/apps/mail/gpg
 	# workaround for missing libreadline.so.6 in fresh ubuntu
 	patchelf --set-rpath '.' $(DIST_VERSION)/apps/mail/gpg
 	cp /lib/x86_64-linux-gnu/libusb-0.1.so.4 $(DIST_VERSION)/lib
