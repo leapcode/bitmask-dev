@@ -56,19 +56,19 @@ if IS_LINUX:
         return (
             is_pkexec_in_system() and
             _check_helper() and
-            _check_polkit() and
+            _check_polkit_file_exist() and
             _check_openvpn())
 
     def _check_helper():
         helper_path = _config.get_bitmask_helper_path()
-        if not access(helper_path, R_OK):
+        if not _exists_and_can_read(helper_path):
             return True
 
         helper_path_digest = digest(helper_path)
-        if (access(BITMASK_ROOT_SYSTEM, R_OK) and
+        if (_exists_and_can_read(BITMASK_ROOT_SYSTEM) and
                 helper_path_digest == digest(BITMASK_ROOT_SYSTEM)):
                 return True
-        if (access(BITMASK_ROOT_LOCAL, R_OK) and
+        if (_exists_and_can_read(BITMASK_ROOT_LOCAL) and
                 helper_path_digest == digest(BITMASK_ROOT_LOCAL)):
                 return True
 
@@ -80,22 +80,30 @@ if IS_LINUX:
 
         openvpn_path = _config.get_bitmask_openvpn_path()
         if openvpn_path is None:
+            # If there bitmask doesn't provide any openvpn binary (we are not
+            # in a bundle), reporting an error on check will trigger an attempt
+            # to install helpers that can not succeed.
+            # XXX: we need a better way to flag errors that can not be solved
+            # by installing helpers
             return True
 
         openvpn_path_digest = digest(openvpn_path)
-        if (access(OPENVPN_LOCAL, R_OK) and
+        if (_exists_and_can_read(OPENVPN_LOCAL) and
                 openvpn_path_digest == digest(OPENVPN_LOCAL)):
                 return True
 
         return False
 
-    def _check_polkit():
+    def _check_polkit_file_exist():
         # XXX: we are just checking if there is any policy file installed not
         # if it's valid or if it's the correct one that will be used.
         # (if LOCAL is used if /usr/local/sbin/bitmask-root is used and SYSTEM
         # if /usr/sbin/bitmask-root)
         return (os.path.exists(POLKIT_LOCAL) or
                 os.path.exists(POLKIT_SYSTEM))
+
+    def _exists_and_can_read(file_path):
+        return access(file_path, R_OK)
 
 
 elif IS_MAC:
