@@ -16,7 +16,7 @@ RUN apt update && apt upgrade -y
 RUN apt install -y --no-install-recommends \
   build-essential virtualenv libpython-dev \
   libsqlcipher-dev libssl-dev libffi-dev \
-  python-pyqt5 python-pyqt5.qtwebengine \
+  python-pyqt5 python-pyqt5.qtwebengine python-pyqt5.qtwebchannel \
   qttranslations5-l10n \
   libusb-0.1-4 patchelf wget \
   gnupg1 git
