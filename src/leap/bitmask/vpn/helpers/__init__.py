@@ -53,27 +53,49 @@ if IS_LINUX:
         return has_pkexec and running
 
     def check():
-        helper = _is_up_to_date(_config.get_bitmask_helper_path(),
-                                BITMASK_ROOT_LOCAL,
-                                BITMASK_ROOT_SYSTEM)
-        polkit = (os.path.exists(POLKIT_LOCAL) or
-                  os.path.exists(POLKIT_SYSTEM))
-        openvpn = (os.path.exists(OPENVPN_SYSTEM) or
-                   _is_up_to_date(_config.get_bitmask_openvpn_path(),
-                                  OPENVPN_LOCAL, ""))
-        return helper and polkit and openvpn
+        return (
+            is_pkexec_in_system() and
+            _check_helper() and
+            _check_polkit() and
+            _check_openvpn())
 
-    def _is_up_to_date(src, local, system):
-        if src is None or not access(src, R_OK):
+    def _check_helper():
+        helper_path = _config.get_bitmask_helper_path()
+        if not access(helper_path, R_OK):
             return True
 
-        src_digest = digest(src)
-        if access(system, R_OK) and src_digest == digest(system):
+        helper_path_digest = digest(helper_path)
+        if (access(BITMASK_ROOT_SYSTEM, R_OK) and
+                helper_path_digest == digest(BITMASK_ROOT_SYSTEM)):
                 return True
-        if access(local, R_OK) and src_digest == digest(local):
+        if (access(BITMASK_ROOT_LOCAL, R_OK) and
+                helper_path_digest == digest(BITMASK_ROOT_LOCAL)):
                 return True
 
         return False
+
+    def _check_openvpn():
+        if os.path.exists(OPENVPN_SYSTEM):
+            return True
+
+        openvpn_path = _config.get_bitmask_openvpn_path()
+        if openvpn_path is None:
+            return True
+
+        openvpn_path_digest = digest(openvpn_path)
+        if (access(OPENVPN_LOCAL, R_OK) and
+                openvpn_path_digest == digest(OPENVPN_LOCAL)):
+                return True
+
+        return False
+
+    def _check_polkit():
+        # XXX: we are just checking if there is any policy file installed not
+        # if it's valid or if it's the correct one that will be used.
+        # (if LOCAL is used if /usr/local/sbin/bitmask-root is used and SYSTEM
+        # if /usr/sbin/bitmask-root)
+        return (os.path.exists(POLKIT_LOCAL) or
+                os.path.exists(POLKIT_SYSTEM))
 
 
 elif IS_MAC:
