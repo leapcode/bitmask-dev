@@ -62,7 +62,6 @@ GENERAL COMMANDS:
 OPTIONAL ARGUMENTS:
 
   --json     print the raw json (useful for scripting)
-
 '''
     epilog = ("Use 'bitmaskctl <command> help' to learn more "
               "about each command.")

@@ -223,6 +223,19 @@ def launch_gui(with_window=True):
 
     sys.exit(qApp.exec_())
 
+usage = '''bitmask [<args>]
+
+Launches the Bitmask GUI.
+
+OPTIONAL ARGUMENTS:
+
+  --nowindow   does not launch the main window, only the systray.
+
+SEE ALSO:
+
+  bitmaskctl   controls bitmask daemon from the command line.   
+'''
+
 
 def start_app():
     from leap.bitmask.util import STANDALONE
@@ -242,13 +255,18 @@ def start_app():
         MIN_ARGS = 1
 
     # DEBUG ====================================
-    if STANDALONE and len(sys.argv) > MIN_ARGS:
-        if sys.argv[1] == 'bitmask_helpers':
-            from leap.bitmask.vpn.helpers import main
-            return main()
+    if len(sys.argv) > MIN_ARGS:
+        if STANDALONE:
+            if sys.argv[1] == 'bitmask_helpers':
+                from leap.bitmask.vpn.helpers import main
+                return main()
 
-        from leap.bitmask.cli import bitmask_cli
-        return bitmask_cli.main()
+            from leap.bitmask.cli import bitmask_cli
+            return bitmask_cli.main()
+        else:
+            if sys.argv[1] == '--help' or sys.argv[1] == 'help':
+                print(usage)
+                sys.exit()
 
     reset_authtoken()
     with_window = '--nowindow' not in sys.argv
