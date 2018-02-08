@@ -46,7 +46,11 @@ except ImportError as exc:
 backend = flags.BACKEND
 
 if backend == 'default':
-    from leap.bitmask.core import mail_services
+    try:
+        from leap.bitmask.core import mail_services
+        HAS_MAIL = True
+    except ImportError:
+        HAS_MAIL = False
     from leap.bitmask.bonafide.service import BonafideService
 elif backend == 'dummy':
     from leap.bitmask.core.dummy import mail_services
@@ -98,10 +102,10 @@ class BitmaskBackend(configurable.ConfigurableService):
         on_start(self.init_bonafide)
         on_start(self.init_sessions)
 
-        if self._enabled('mail'):
+        if HAS_MAIL and self._enabled('mail'):
             on_start(self._init_mail_services)
 
-        if self._enabled('vpn'):
+        if HAS_VPN and self._enabled('vpn'):
             on_start(self._init_vpn)
 
         if self._enabled('zmq'):
