@@ -7,9 +7,12 @@ import platform
 
 def dummy_imports():
     import service
-    import uuid_map
-    import mail_services
     import dispatcher
+    try:
+        import uuid_map
+        import mail_services
+    except ImportError:
+        pass
 
 
 APPNAME = "bitmask.core"
