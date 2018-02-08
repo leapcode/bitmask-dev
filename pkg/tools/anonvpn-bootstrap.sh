@@ -1,11 +1,11 @@
 #!/bin/bash
 #######################################
-# Bootstrap a bitmask-dev environment #
+# Bootstrap an anonvpn environment    #
 #######################################
 
 set -e
 
-APT_DEPS="build-essential python-pip python-dev python-virtualenv libsqlcipher-dev libssl-dev libffi-dev haveged python-pyqt5 python-pyqt5.qtwebengine gnupg1 openvpn"
+APT_DEPS="build-essential python-pip python-dev python-virtualenv libssl-dev libffi-dev openvpn"
 
 function add_pew_to_environment()
 {
@@ -27,7 +27,7 @@ function apt_install()
 
 function init_pew()
 {
-  pew ls | grep bitmask || echo '[+] creating new bitmask virtualenv...' && pew new -d bitmask
+  pew ls | grep anonvpn || echo '[+] creating new anonvpn virtualenv...' && pew new -d anonvpn
 }
 
 function clone_repo()
@@ -38,9 +38,8 @@ function clone_repo()
 
 function install_deps()
 {
-  cd ~/leap/bitmask-dev && pew in bitmask pip install -U -r pkg/requirements-dev.pip
-  cd ~/leap/bitmask-dev && pew in bitmask pip install -U -r pkg/requirements-testing.pip
-  cd ~/leap/bitmask-dev && pew in bitmask make dev-all
+  cd ~/leap/bitmask-dev && pew in anonvpn pip install -U -r pkg/requirements-dev.pip
+  cd ~/leap/bitmask-dev && pew in anonvpn make dev-backend
 }
 
 apt_install
