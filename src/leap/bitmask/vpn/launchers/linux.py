@@ -205,7 +205,7 @@ class LinuxVPNLauncher(VPNLauncher):
                 deferred.callback(True)
                 return
             else:
-                self.log.debug('Process did not die, waiting...')
+                log.debug('Process did not die, waiting...')
 
             tries += 1
             reactor.callLater(
