@@ -66,6 +66,7 @@ DOWNLOAD_URL = DOWNLOAD_BASE % VERSION
 
 # Entry points
 gui_launcher = 'bitmask=leap.bitmask.gui.app:start_app'
+anonvpn = 'bitmask_anonvpn=leap.bitmask.gui.anonvpn:start_app'
 chrome_launcher = 'bitmask_chromium=leap.bitmask.chrome.chromeapp:start_app'
 bitmask_cli = 'bitmaskctl=leap.bitmask.cli.bitmask_cli:main'
 bitmask_helpers = 'bitmask_helpers=leap.bitmask.vpn.helpers:main'
@@ -96,6 +97,7 @@ setup(
     entry_points={
         'console_scripts': [
             gui_launcher,
+            anonvpn,
             chrome_launcher,
             bitmask_cli,
             bitmaskd,
