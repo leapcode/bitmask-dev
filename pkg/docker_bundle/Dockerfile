@@ -16,7 +16,8 @@ RUN apt update && apt upgrade -y
 RUN apt install -y --no-install-recommends \
   build-essential virtualenv libpython-dev \
   libsqlcipher-dev libssl-dev libffi-dev \
-  python-pyqt5 python-pyqt5.qtwebengine python-pyqt5.qtwebchannel libqt5webengine-data \
+  python-pyqt5 python-pyqt5.qtwebkit \
+  libqt5printsupport5 \
   qttranslations5-l10n libgl1-mesa-glx \
   libusb-0.1-4 patchelf wget \
-  gnupg1 git
+  gnupg1 git libgl1-mesa-glx

@@ -39,6 +39,8 @@ from leap.bitmask.gui.housekeeping import NoAuthTokenError
 from leap.common.config import get_path_prefix
 
 
+HAS_WEBENGINE=False
+
 if platform.system() == 'Windows':
     from multiprocessing import freeze_support
     from PySide import QtCore, QtGui
@@ -56,9 +58,15 @@ else:
     from PyQt5.QtWidgets import QDialog
     from PyQt5.QtWidgets import QMessageBox
 
-    from PyQt5.QtWebEngineWidgets import QWebEngineView as QWebView
-    from PyQt5.QtWebEngineWidgets import QWebEngineSettings as QWebSettings
-    from PyQt5.QtWebChannel import QWebChannel
+    try:
+        from PyQt5.QtWebEngineWidgets import QWebEngineView as QWebView
+        from PyQt5.QtWebEngineWidgets import QWebEngineSettings as QWebSettings
+        from PyQt5.QtWebChannel import QWebChannel
+        HAS_WEBENGINE=True
+    except ImportError:
+        from PyQt5.QtWebKitWidgets import QWebView
+        from PyQt5.QtWebKit import QWebSettings
+
 
 IS_WIN = platform.system() == "Windows"
 DEBUG = os.environ.get("DEBUG", False)
@@ -100,7 +108,7 @@ class BrowserWindow(QWebView, WithTrayIcon):
 
         self.bridge = AppBridge(self) if first else None
 
-        if self.bridge is not None:
+        if self.bridge is not None and HAS_WEBENGINE:
             print "[+] registering python<->js bridge"
             channel = QWebChannel(self)
             channel.registerObject("bitmaskApp", self.bridge)

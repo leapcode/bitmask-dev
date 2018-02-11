@@ -27,7 +27,7 @@ $VIRTUAL_ENV/bin/pip install appdirs packaging
 # dev version
 # $VIRTUAL_ENV/bin/pip install -U git+https://github.com/pyinstaller/pyinstaller.git@develop
 # try bjones WIP Qt5 branch
-$VIRTUAL_ENV/bin/pip install -U git+https://github.com/bjones1/pyinstaller.git@pyqt5_testing
+$VIRTUAL_ENV/bin/pip install -U git+https://github.com/bjones1/pyinstaller.git@pyqt5_fix
 # ------------------------------------------------------------------------------------------------
 $VIRTUAL_ENV/bin/pip install zope.interface zope.proxy
 

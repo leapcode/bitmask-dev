@@ -50,13 +50,14 @@ bundle_linux_helpers:
 	cp src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.bundle.policy $(DIST_VERSION)/apps/helpers/
 	# now we copy some missing qt stuff... this might be fixed by pyinstaller at some point
 	# this is "/mesa/libGL.so" in ubuntu
-	cp /usr/lib/x86_64-linux-gnu/libGL.so.1 $(DIST_VERSION)/lib/libGL.so.1 || echo "libGL version not found"
+	ls -la /usr/lib/x86_64-linux-gnu/libGL.so.1.2.0
+	cp /usr/lib/x86_64-linux-gnu/libGL.so.1.2.0 $(DIST_VERSION)/lib/libGL.so.1 || echo "Cannot copy libGL"
 	# workaround for https://github.com/pyinstaller/pyinstaller/issues/2737
-	cp /usr/lib/x86_64-linux-gnu/nss/libsoftokn3.so $(DIST_VERSION)/lib/ || echo "libsoftokn3 not found"
-	cp /usr/lib/x86_64-linux-gnu/nss/libfreeblpriv3.so $(DIST_VERSION)/lib/ || echo "libfreeblpriv3 not found"
-	cp /usr/lib/x86_64-linux-gnu/qt5/libexec/QtWebEngineProcess $(DIST_VERSION)/lib/ || echo "QtWebEngineProcess not found"
-	cp /usr/share/qt5/resources/icudtl.dat $(DIST_VERSION)/lib/ || echo "icudtl.dat not found"
-	cp /usr/share/qt5/resources/qtwebengine_resources.pak $(DIST_VERSION)/lib/ || echo "qtwebengine_resources.pak not found"
+	#cp /usr/lib/x86_64-linux-gnu/nss/libsoftokn3.so $(DIST_VERSION)/lib/ || echo "libsoftokn3 not found"
+	#cp /usr/lib/x86_64-linux-gnu/nss/libfreeblpriv3.so $(DIST_VERSION)/lib/ || echo "libfreeblpriv3 not found"
+	#cp /usr/lib/x86_64-linux-gnu/qt5/libexec/QtWebEngineProcess $(DIST_VERSION)/lib/ || echo "QtWebEngineProcess not found"
+	#cp /usr/share/qt5/resources/icudtl.dat $(DIST_VERSION)/lib/ || echo "icudtl.dat not found"
+	#cp /usr/share/qt5/resources/qtwebengine_resources.pak $(DIST_VERSION)/lib/ || echo "qtwebengine_resources.pak not found"
 
 
 bundle_osx_helpers:
