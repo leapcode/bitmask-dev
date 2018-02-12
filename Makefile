@@ -91,12 +91,19 @@ package_in_docker:
 	gitlab-runner exec docker package:amd64_stretch
 
 bundler_image:
-	cd pkg/docker_bundle && docker build -t local_bundler .
+	cd pkg/docker_bundleapt && make bundler
 
 bundle_in_docker:
-	# needs a docker container called 'local_bundler', created with 'make bundler_image'
 	rm -rf $(DIST_VERSION) bitmaskbuild
 	cat pkg/docker_build | docker run -i -v ~/leap/bitmask-dev:/dist -w /dist -u `id -u` -e REPO="$(REPO)" -e BRANCH="$(BRANCH)" local_bundler bash
+	mkdir -p dist/
+	cp -r bitmaskbuild/$(DIST_VERSION) dist/
+	rm -rf bitmaskbuild
+
+bundle_in_docker_apt:
+	# needs a docker container called 'bitmask-bundler-apt', created with 'make bundler_image'
+	rm -rf $(DIST_VERSION) bitmaskbuild
+	cat pkg/docker_build_apt | docker run -i -v ~/leap/bitmask-dev:/dist -w /dist -u `id -u` -e REPO="$(REPO)" -e BRANCH="$(BRANCH)" bitmask-bundler-apt bash
 	mkdir -p dist/
 	cp -r bitmaskbuild/$(DIST_VERSION) dist/
 	rm -rf bitmaskbuild

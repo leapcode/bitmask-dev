@@ -1,0 +1,13 @@
+# This script gets executed inside the docker-bundler-apt image.
+# (no virtualenv, so all the dependencies must be already installed in the image).
+
+: ${REPO:="https://github.com/leapcode/bitmask-dev"}
+: ${BRANCH:="master"}
+
+RELEASE=bitmask-`cat pkg/next-version`
+echo "[+] CLONING REPO from $REPO [$BRANCH]"
+git clone $REPO bitmaskbuild
+cd bitmaskbuild
+git checkout $BRANCH
+mkdir -p dist/
+VIRTUAL_ENV=/usr/local make bundle
