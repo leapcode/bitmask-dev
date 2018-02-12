@@ -103,10 +103,7 @@ bundle_in_docker:
 bundle_in_docker_apt:
 	# needs a docker container called 'bitmask-bundler-apt', created with 'make bundler_image'
 	rm -rf $(DIST_VERSION) bitmaskbuild
-	cat pkg/docker_build_apt | docker run -i -v ~/leap/bitmask-dev:/dist -w /dist -u `id -u` -e REPO="$(REPO)" -e BRANCH="$(BRANCH)" bitmask-bundler-apt bash
-	mkdir -p dist/
-	cp -r bitmaskbuild/$(DIST_VERSION) dist/
-	rm -rf bitmaskbuild
+	cat pkg/docker_build_apt | docker run -i -v /srv/bitmask-builds:/dist -w /dist -u `id -u` -e REPO="$(REPO)" -e BRANCH="$(BRANCH)" bitmask-bundler-apt bash
 
 upload:
 	python setup.py sdist bdist_wheel --universal upload --sign -i kali@leap.se -r pypi

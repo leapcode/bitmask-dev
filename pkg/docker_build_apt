@@ -4,10 +4,13 @@
 : ${REPO:="https://github.com/leapcode/bitmask-dev"}
 : ${BRANCH:="master"}
 
+cd /src/leap/bitmask-dev
 RELEASE=bitmask-`cat pkg/next-version`
+cd /src/leap/
 echo "[+] CLONING REPO from $REPO [$BRANCH]"
 git clone $REPO bitmaskbuild
 cd bitmaskbuild
 git checkout $BRANCH
 mkdir -p dist/
 VIRTUAL_ENV=/usr/local make bundle
+cp -r dist/* /dist
