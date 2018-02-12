@@ -11,6 +11,7 @@ echo "[+] CLONING REPO from $REPO [$BRANCH]"
 git clone $REPO bitmaskbuild
 cd bitmaskbuild
 git checkout $BRANCH
+git fetch --tags
 mkdir -p dist/
-VIRTUAL_ENV=/usr/local make bundle
+VIRTUAL_ENV=/usr/local make bundle_linux
 cp -r dist/* /dist
