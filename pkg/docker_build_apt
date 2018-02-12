@@ -6,7 +6,7 @@
 
 cd /src/leap/bitmask-dev
 RELEASE=bitmask-`cat pkg/next-version`
-cd /src/leap/
+cd $HOME
 echo "[+] CLONING REPO from $REPO [$BRANCH]"
 git clone $REPO bitmaskbuild
 cd bitmaskbuild
