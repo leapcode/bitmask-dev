@@ -179,7 +179,8 @@ class VPNService(HookableService):
         if not vpn_ok:
             raise Exception('Error stopping VPN')
 
-        self.watchdog.stop()
+        if self.watchdog.running:
+            self.watchdog.stop()
         return {'result': 'vpn stopped'}
 
     def _set_autostart(self, status):
