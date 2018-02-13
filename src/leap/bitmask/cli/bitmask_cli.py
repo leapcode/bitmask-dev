@@ -146,10 +146,18 @@ def execute():
     cli.data = ['core', 'version']
     args = None if '--noverbose' in sys.argv else ['--verbose']
 
+    def status_timeout(args):
+        raise RuntimeError('bitmaskd is not running')
+    
+    if 'status' in sys.arv:
+        timeout_fun = status_timeout
+    else:
+        timeout_fun = cli.start
+
     try:
         yield cli._send(
             timeout=0.1, printer=_null_printer,
-            errb=lambda: cli.start(args))
+            errb=lambda: timeout_fun(args))
     except Exception, e:
         print(Fore.RED + "ERROR: " + Fore.RESET +
               "%s" % str(e))
