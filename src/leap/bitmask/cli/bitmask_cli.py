@@ -148,7 +148,7 @@ def execute():
 
     def status_timeout(args):
         raise RuntimeError('bitmaskd is not running')
-    
+
     if 'status' in sys.arv:
         timeout_fun = status_timeout
     else:

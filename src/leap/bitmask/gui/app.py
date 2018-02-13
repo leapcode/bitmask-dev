@@ -39,7 +39,7 @@ from leap.bitmask.gui.housekeeping import NoAuthTokenError
 from leap.common.config import get_path_prefix
 
 
-HAS_WEBENGINE=False
+HAS_WEBENGINE = False
 
 if platform.system() == 'Windows':
     from multiprocessing import freeze_support
@@ -62,7 +62,7 @@ else:
         from PyQt5.QtWebEngineWidgets import QWebEngineView as QWebView
         from PyQt5.QtWebEngineWidgets import QWebEngineSettings as QWebSettings
         from PyQt5.QtWebChannel import QWebChannel
-        HAS_WEBENGINE=True
+        HAS_WEBENGINE = True
     except ImportError:
         from PyQt5.QtWebKitWidgets import QWebView
         from PyQt5.QtWebKit import QWebSettings
@@ -167,6 +167,7 @@ class AppBridge(QObject):
     def openSystemBrowser(self, url):
         webbrowser.open(url)
 
+
 pixbrowser = None
 closing = False
 
@@ -231,6 +232,7 @@ def launch_gui(with_window=True):
 
     sys.exit(qApp.exec_())
 
+
 usage = '''bitmask [<args>]
 
 Launches the Bitmask GUI.
@@ -241,7 +243,7 @@ OPTIONAL ARGUMENTS:
 
 SEE ALSO:
 
-  bitmaskctl   controls bitmask daemon from the command line.   
+  bitmaskctl   controls bitmask daemon from the command line.
 '''
 
 

@@ -67,10 +67,10 @@ if IS_LINUX:
         helper_path_digest = digest(helper_path)
         if (_exists_and_can_read(BITMASK_ROOT_SYSTEM) and
                 helper_path_digest == digest(BITMASK_ROOT_SYSTEM)):
-                return True
+            return True
         if (_exists_and_can_read(BITMASK_ROOT_LOCAL) and
                 helper_path_digest == digest(BITMASK_ROOT_LOCAL)):
-                return True
+            return True
 
         return False
 
@@ -91,7 +91,7 @@ if IS_LINUX:
         openvpn_path_digest = digest(openvpn_path)
         if (_exists_and_can_read(OPENVPN_LOCAL) and
                 openvpn_path_digest == digest(OPENVPN_LOCAL)):
-                return True
+            return True
 
         return False
 

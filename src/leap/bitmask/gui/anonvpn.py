@@ -55,6 +55,7 @@ def launch_gui():
         gui = 'bitmask-systray'
     subprocess.call([gui])
 
+
 def start_app():
     global bitmaskd
 
