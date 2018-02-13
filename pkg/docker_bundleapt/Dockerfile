@@ -6,7 +6,9 @@ LABEL Description="Image for building Bitmask bundle based on python:2.7-slim-st
 RUN apt update && apt upgrade -y
 RUN pip install -U pip
 
-# Install bitmask-dev build deps --------------------------------
+# Install bitmask-dev build deps,
+# plus some dependencies needed by bitmask-systray too,
+# so that we can reuse the bundler image.
 RUN apt install -y --no-install-recommends \
   build-essential virtualenv libpython-dev \
   libsqlcipher-dev libssl-dev libffi-dev \
@@ -15,8 +17,8 @@ RUN apt install -y --no-install-recommends \
   libqt5printsupport5 \
   qttranslations5-l10n libgl1-mesa-glx \
   libusb-0.1-4 patchelf wget \
-  gnupg1 git libgl1-mesa-glx
-
+  gnupg1 git libgl1-mesa-glx \
+  libappindicator3-dev libgtk-3-dev golang
 
 # Pyinstaller custom versions
 #ARG PYINSTALLER_TAG=v3.2
