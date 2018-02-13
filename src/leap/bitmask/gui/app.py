@@ -36,6 +36,7 @@ from leap.bitmask.gui.systray import WithTrayIcon
 from leap.bitmask.gui.housekeeping import cleanup, terminate, reset_authtoken
 from leap.bitmask.gui.housekeeping import get_authenticated_url
 from leap.bitmask.gui.housekeeping import NoAuthTokenError
+from leap.bitmask.gui.housekeeping import check_stale_pidfile
 from leap.common.config import get_path_prefix
 
 
@@ -195,16 +196,21 @@ def _handle_kill(*args, **kw):
     closing = True
 
 
+def launch_backend():
+    global bitmaskd
+    check_stale_pidfile()
+    bitmaskd = Process(target=run_bitmaskd)
+    bitmaskd.start()
+
+
 def launch_gui(with_window=True):
     global qApp
-    global bitmaskd
     global browser
 
     if IS_WIN:
         freeze_support()
-    bitmaskd = Process(target=run_bitmaskd)
-    bitmaskd.start()
 
+    launch_backend()
     qApp = QApplication([])
     try:
         browser = BrowserWindow(None)

@@ -120,11 +120,17 @@ class BrowserWindow(object):
         print('[bitmask] shutting down gui')
 
 
-def launch_gui():
+def launch_backend():
     global bitmaskd
 
+    check_stale_pidfile()
     bitmaskd = Process(target=run_bitmaskd)
     bitmaskd.start()
+
+
+def launch_gui():
+
+    launch_backend()
 
     # there are some tricky movements here to synchronize
     # the different closing events:

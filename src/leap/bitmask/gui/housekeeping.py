@@ -2,6 +2,8 @@ import os
 import signal
 import time
 
+import psutil
+
 from leap.common.config import get_path_prefix
 
 
@@ -42,6 +44,21 @@ def reset_authtoken():
         os.remove(prev_auth)
     except OSError:
         pass
+
+
+def check_stale_pidfile():
+
+    def is_pid_running(pidno):
+        return 1 == len(filter(lambda p: p.pid == int(pidno), psutil.process_iter()))
+
+    pidno = None
+    pidfile = os.path.join(get_path_prefix(), 'leap', 'bitmaskd.pid')
+    if os.path.isfile(pidfile):
+        with open(pidfile, 'r') as pid_fd:
+            pidno = pid_fd.readline().strip()
+    if pidno and pidno.isdigit():
+        if not is_pid_running(pidno):
+            os.unlink(pidfile)
 
 
 def cleanup():

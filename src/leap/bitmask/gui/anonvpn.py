@@ -32,6 +32,7 @@ from multiprocessing import Process
 
 from leap.bitmask.core.launcher import run_bitmaskd, pid
 from leap.bitmask.gui.housekeeping import cleanup, terminate, reset_authtoken
+from leap.bitmask.gui.housekeeping import check_stale_pidfile
 from leap.bitmask.gui.housekeeping import NoAuthTokenError
 from leap.common.config import get_path_prefix
 
@@ -59,6 +60,7 @@ def launch_gui():
 def start_app():
     global bitmaskd
 
+    check_stale_pidfile()
     bitmaskd = Process(target=run_bitmaskd)
     bitmaskd.start()
     reset_authtoken()
