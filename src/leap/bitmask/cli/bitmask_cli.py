@@ -137,6 +137,12 @@ OPTIONAL ARGUMENTS:
         return self._send(printer=command.default_printer)
 
 
+def should_start(commands):
+    # for these commands it makes no sense to start bitmaskd
+    skip_start = ('status', 'stop')
+    return all(map(lambda item: item not in skip_start, commands))
+
+
 @defer.inlineCallbacks
 def execute():
     cfg = Configuration(".bitmaskctl")
@@ -146,13 +152,12 @@ def execute():
     cli.data = ['core', 'version']
     args = None if '--noverbose' in sys.argv else ['--verbose']
 
-    def status_timeout(args):
-        raise RuntimeError('bitmaskd is not running')
-
-    if 'status' in sys.arv:
-        timeout_fun = status_timeout
-    else:
+    if should_start(sys.argv):
         timeout_fun = cli.start
+    else:
+        def status_timeout(args):
+            raise RuntimeError('bitmaskd is not running')
+        timeout_fun = status_timeout
 
     try:
         yield cli._send(
@@ -161,7 +166,8 @@ def execute():
     except Exception, e:
         print(Fore.RED + "ERROR: " + Fore.RESET +
               "%s" % str(e))
-        defer.returnValue('')
+        yield reactor.stop()
+
 
     cli.data = []
     cli.print_json = print_json
