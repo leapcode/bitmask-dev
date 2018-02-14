@@ -138,11 +138,19 @@ bundle_headless:
 
 bundle_anonvpn:
 	pyinstaller -y pkg/pyinst/anonvpn.spec
-	cp src/leap/bitmask/core/bitmaskd.tac $(DIST)
-	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/common/cacert.pem $(DIST)/
-	echo `git describe` > $(HEADLESS_DIST)/version
-	mv $(DIST) _bundlelib && mkdir $(DIST_VERSION) && mv _bundlelib $(DIST_VERSION)lib/
-	mkdir -p $(DIST_VERSION)/apps/providers
-	cp -r src/leap/bitmask/bonafide/providers/* $(DIST_VERSION)/apps/providers/
+	cp src/leap/bitmask/core/bitmaskd.tac $(ANONVPN_DIST)
+	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/common/cacert.pem $(ANONVPN_DIST)/
+	cho `git describe` > $(ANONVPN_DIST)/version
+	mv $(ANONVPN_DIST) _bundlelib && mkdir $(ANONVPN_DIST_VERSION) && mv _bundlelib $(ANONVPN_DIST_VERSION)lib/
+	mkdir -p $(ANONVPN_DIST_VERSION)/apps/providers
+	cp -r src/leap/bitmask/bonafide/providers/* $(ANONVPN_DIST_VERSION)/apps/providers/
 
-bundle_anonvpn_linux: bundle_anonvpn bundle_linux_vpn bundle_linux_helpers
+	# openvpn
+	mkdir -p $(ANONVPN_DIST_VERSION)/apps/vpn
+	wget https://downloads.leap.se/thirdparty/linux/openvpn/openvpn-x64 -O $(ANONVPN_DIST_VERSION)/apps/vpn/openvpn.leap
+	# helpers
+	mkdir -p $(ANONVPN_DIST_VERSION)/apps/helpers
+	cp src/leap/bitmask/vpn/helpers/linux/bitmask-root $(ANONVPN_DIST_VERSION)/apps/helpers/
+	cp src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.bundle.policy $(ANONVPN_DIST_VERSION)/apps/helpers/
+
+bundle_anonvpn_linux: bundle_anonvpn 

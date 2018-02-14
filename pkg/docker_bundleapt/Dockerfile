@@ -72,4 +72,8 @@ RUN ln -s /usr/lib/python2.7/dist-packages/sipconfig.py /usr/local/lib/python2.7
 RUN ln -s /usr/lib/python2.7/dist-packages/sipconfig_nd.py /usr/local/lib/python2.7/site-packages/
 RUN ln -s /usr/lib/python2.7/dist-packages/sip.pyi /usr/local/lib/python2.7/site-packages/
 
+# get dependencies for bitmask-systray so that builds are quick
+RUN export GOPATH=/srv/go && go get 0xacab.org/leap/bitmask-systray
+
+# get ourselves a shell
 RUN apt-get install bash
