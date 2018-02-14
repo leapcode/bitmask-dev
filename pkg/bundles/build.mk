@@ -48,16 +48,12 @@ bundle_linux_helpers:
 	mkdir -p $(DIST_VERSION)/apps/helpers
 	cp src/leap/bitmask/vpn/helpers/linux/bitmask-root $(DIST_VERSION)/apps/helpers/
 	cp src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.bundle.policy $(DIST_VERSION)/apps/helpers/
+
+bundle_linux_qt_hacks:
 	# now we copy some missing qt stuff... this might be fixed by pyinstaller at some point
 	# this is "/mesa/libGL.so" in ubuntu
 	ls -la /usr/lib/x86_64-linux-gnu/libGL.so.1.2.0
 	cp /usr/lib/x86_64-linux-gnu/libGL.so.1.2.0 $(DIST_VERSION)/lib/libGL.so.1 || echo "Cannot copy libGL"
-	# workaround for https://github.com/pyinstaller/pyinstaller/issues/2737
-	#cp /usr/lib/x86_64-linux-gnu/nss/libsoftokn3.so $(DIST_VERSION)/lib/ || echo "libsoftokn3 not found"
-	#cp /usr/lib/x86_64-linux-gnu/nss/libfreeblpriv3.so $(DIST_VERSION)/lib/ || echo "libfreeblpriv3 not found"
-	#cp /usr/lib/x86_64-linux-gnu/qt5/libexec/QtWebEngineProcess $(DIST_VERSION)/lib/ || echo "QtWebEngineProcess not found"
-	#cp /usr/share/qt5/resources/icudtl.dat $(DIST_VERSION)/lib/ || echo "icudtl.dat not found"
-	#cp /usr/share/qt5/resources/qtwebengine_resources.pak $(DIST_VERSION)/lib/ || echo "qtwebengine_resources.pak not found"
 
 
 bundle_osx_helpers:
@@ -102,7 +98,7 @@ bundle_osx_pkg:
 	fi
 
 
-bundle_linux: bundle bundle_linux_gpg bundle_linux_vpn bundle_linux_helpers
+bundle_linux: bundle bundle_linux_gpg bundle_linux_vpn bundle_linux_helpers bundle_linux_qt_hacks
 
 bundle_osx: bundle bundle_osx_helpers bundle_osx_missing bundle_osx_pkg
 
@@ -139,3 +135,14 @@ bundle_headless:
 	cd pkg/launcher && make
 	cp release-notes.rst $(HEADLESS_DIST_VERSION)
 	cp pkg/launcher/bitmask $(HEADLESS_DIST_VERSION)
+
+bundle_anonvpn:
+	pyinstaller -y pkg/pyinst/anonvpn.spec
+	cp src/leap/bitmask/core/bitmaskd.tac $(DIST)
+	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/common/cacert.pem $(DIST)/
+	echo `git describe` > $(HEADLESS_DIST)/version
+	mv $(DIST) _bundlelib && mkdir $(DIST_VERSION) && mv _bundlelib $(DIST_VERSION)lib/
+	mkdir -p $(DIST_VERSION)/apps/providers
+	cp -r src/leap/bitmask/bonafide/providers/* $(DIST_VERSION)/apps/providers/
+
+bundle_anonvpn_linux: bundle_anonvpn bundle_linux_vpn bundle_linux_helpers
