@@ -8,7 +8,7 @@
 # (dependencies should already be in the base image)
 
 export GOPATH=/srv/go
-cd /src/leap && git clone https://0xacab.org/leap/bitmask-systray
+cd /src/leap && git clone --depth 1 --single-branch --branch master https://0xacab.org/leap/bitmask-systray
 cd bitmask-systray && go build .
 
 cd /src/leap/bitmask-dev
