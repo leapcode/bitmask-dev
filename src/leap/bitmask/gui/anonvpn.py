@@ -40,14 +40,6 @@ from leap.common.config import get_path_prefix
 bitmaskd = None
 
 
-def _handle_kill(*args, **kw):
-    global bitmaskd
-    bitmaskd.join()
-    terminate(pid)
-    cleanup()
-    sys.exit()
-
-
 def launch_gui():
     from leap.bitmask.util import STANDALONE
     if STANDALONE:

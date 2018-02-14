@@ -16,24 +16,23 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MAXBUFFSIZE 1024
+#define MAXBUFSIZE 1024
 
 char* const lib = "/lib";
-char* const entrypoint = "app";
+char* const entrypoint = "bitmask";
 char* const linkname = "/proc/self/exe";
 
 int main(int argc, char *argv[])
 {
-    char buf[MAXBUFFSIZE];
-    char pth[MAXBUFFSIZE];
+    char buf[MAXBUFSIZE];
+    char pth[MAXBUFSIZE];
     char *dirc, *dname;
-	const size_t bufsize = MAXBUFFSIZE + 1;
 
     argv[0] = entrypoint;
     buf[0] = 0;
     pth[0] = 0;
 
-    readlink(linkname, buf, bufsize - 1);
+    readlink(linkname, buf, MAXBUFSIZE);
 
     dirc = strdup(buf);
     dname = dirname(dirc);
