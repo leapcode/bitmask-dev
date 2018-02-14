@@ -8,27 +8,54 @@
 # (dependencies should already be in the base image)
 
 export GOPATH=/srv/go
+export CGO_CPPFLAGS="-I/usr/include"
+export CGO_LDFLAGS="-L/usr/lib -L/usr/lib/z86_64-linux-gnu -lzmq -lpthread -lsodium -lrt -lstdc++ -lm -lc -lgcc"
+
+# echo "[+] building systray deps"
+# go get -a 0xacab.org/leap/bitmask-systray
 cd /src/leap && git clone --depth 1 --single-branch --branch master https://0xacab.org/leap/bitmask-systray
+echo "[+] building systray"
 cd bitmask-systray && go build .
 
-cd /src/leap/bitmask-dev
 cd $HOME
 echo "[+] CLONING REPO from $REPO [$BRANCH]"
-git clone $REPO bitmaskbuild
+rm -rf bitmaskbuild
+git clone --depth 1 --single-branch --branch $BRANCH $REPO bitmaskbuild
 cd bitmaskbuild
 RELEASE=anonvpn-`cat pkg/next-version`
 echo "[+] RELEASE: $RELEASE"
-git checkout $BRANCH
 git fetch --tags
+# uninstall bitmask-dev from base image and install bitmask-vpn
+pip uninstall --yes leap.bitmask
+pip install -e '.[vpn]'
 mkdir -p dist/
 
-# nuke mail
+# nuke bitmask mail
 rm -rf src/leap/bitmask/mail
 
-# get anonvpn bundle
+# build anonvpn bundle
 VIRTUAL_ENV=/usr/local make bundle_anonvpn_linux
-# copy systray binary
-cp /src/leap/bitmask-systray/bitmask-systray dist/anonvpn-${RELEASE}/lib/
-# rename entrypoing
-mv dist/anonvpn-${RELEASE}/bitmask dist/anonvpn-${RELEASE}/riseupvpn
+
+# copy systray binary and libs
+echo "[+] Copy systray binary"
+cp /src/leap/bitmask-systray/bitmask-systray dist/${RELEASE}/lib/
+cp /usr/lib/x86_64-linux-gnu/libsodium.so.18 dist/${RELEASE}/lib/
+cp /usr/lib/x86_64-linux-gnu/libzmq.so.5.1.1 dist/${RELEASE}/lib/libzmq.so.5
+cp /usr/lib/x86_64-linux-gnu/libappindicator3.so.1 dist/${RELEASE}/lib/
+cp /usr/lib/x86_64-linux-gnu/libpng16.so.16 dist/${RELEASE}/lib/libpng.so.16
+cp /usr/lib/x86_64-linux-gnu/libz.so dist/${RELEASE}/lib/libz.so
+
+# trim some bytes
+rm dist/${RELEASE}/lib/pysqlcipher._sqlite.so
+rm dist/${RELEASE}/lib/libzmq-0576c57a.so.5.0.2
+rm dist/${RELEASE}/lib/libsqlite3.so.0
+
+# rename entrypoint
+echo "[+] Build and copy wrapper binary"
+cd $HOME/bitmaskbuild/pkg/launcher && make
+cd $HOME/bitmaskbuild
+cp pkg/launcher/bitmask dist/${RELEASE}/riseupVPN
+mv dist/${RELEASE}/lib/anonvpn dist/${RELEASE}/lib/bitmask
+
 cp -r dist/* /dist
+echo "[+] DONE"

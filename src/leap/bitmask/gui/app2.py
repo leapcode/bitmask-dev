@@ -46,6 +46,7 @@ from leap.bitmask.gui.systray import WithTrayIcon
 from leap.bitmask.gui.housekeeping import cleanup, terminate, reset_authtoken
 from leap.bitmask.gui.housekeeping import get_authenticated_url
 from leap.bitmask.gui.housekeeping import NoAuthTokenError
+from leap.bitmask.gui.housekeeping import check_stale_pidfile
 
 
 DEBUG = os.environ.get("DEBUG", False)

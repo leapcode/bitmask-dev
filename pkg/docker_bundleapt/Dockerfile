@@ -18,7 +18,8 @@ RUN apt install -y --no-install-recommends \
   qttranslations5-l10n libgl1-mesa-glx \
   libusb-0.1-4 patchelf wget \
   gnupg1 git libgl1-mesa-glx \
-  libappindicator3-dev libgtk-3-dev golang
+  libappindicator3-dev libgtk-3-dev golang \
+  libsodium-dev
 
 # Pyinstaller custom versions
 #ARG PYINSTALLER_TAG=v3.2
@@ -73,4 +74,7 @@ RUN ln -s /usr/lib/python2.7/dist-packages/sipconfig_nd.py /usr/local/lib/python
 RUN ln -s /usr/lib/python2.7/dist-packages/sip.pyi /usr/local/lib/python2.7/site-packages/
 
 # get dependencies for bitmask-systray so that builds are quick
-RUN export GOPATH=/srv/go && go get 0xacab.org/leap/bitmask-systray
+RUN export GOPATH=/srv/go &&  \
+   export CGO_CPPFLAGS="-I/usr/include" && \
+   export CGO_LDFLAGS="-L/usr/lib -L/usr/lib/z86_64-linux-gnu -lzmq -lpthread -lsodium -lrt -lstdc++ -lm -lc -lgcc" && \
+   go get 0xacab.org/leap/bitmask-systray

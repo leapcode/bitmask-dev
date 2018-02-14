@@ -19,6 +19,7 @@ hiddenimports = [
      'service_identity',
      'leap.common', 'leap.bitmask', 
      'leap.bitmask.core.logs',
+     'leap.bitmask.gui.housekeeping',
      'packaging', 'packaging.version', 'packaging.specifiers',
      'packaging.requirements']
 

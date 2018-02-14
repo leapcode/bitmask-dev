@@ -1,10 +1,12 @@
 DIST=dist/bitmask
-HEADLESS_DIST=dist/bitmask-nox
-ANONVPN_DIST=dist/riseupvpn
 NEXT_VERSION = $(shell cat pkg/next-version)
-DIST_VERSION = dist/bitmask-$(NEXT_VERSION)/
-HEADLESS_DIST_VERSION = dist/bitmask-nox-$(NEXT_VERSION)/
-ANONVPN_DIST_VERSION = dist/riseupvpn-$(NEXT_VERSION)/
+DIST_VERSION = $(DIST)-$(NEXT_VERSION)/
+
+HEADLESS_DIST=dist/bitmask-nox
+HEADLESS_DIST_VERSION = $(HEADLESS_DIST)-$(NEXT_VERSION)/
+
+ANONVPN_DIST=dist/anonvpn
+ANONVPN_DIST_VERSION = $(ANONVPN_DIST)-$(NEXT_VERSION)/
 
 BITMASK_ROOT = src/leap/bitmask/vpn/helpers/linux/bitmask-root
 POLKIT_POLICY = src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.policy

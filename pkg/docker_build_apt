@@ -12,6 +12,13 @@ git clone $REPO bitmaskbuild
 cd bitmaskbuild
 git checkout $BRANCH
 git fetch --tags
+
+pip uninstall --yes leap.bitmask
+pip install -e .
+
 mkdir -p dist/
+
 VIRTUAL_ENV=/usr/local make bundle_linux
 cp -r dist/* /dist
+
+echo "[+] DONE"
