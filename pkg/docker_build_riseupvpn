@@ -5,10 +5,9 @@
 : ${BRANCH:="master"}
 
 # build bitmask-systray
+# (dependencies should already be in the base image)
 
 export GOPATH=/srv/go
-echo "[+] Building deps for bitmask-systray..."
-go get 0xacab.org/leap/bitmask-systray
 cd /src/leap && git clone https://0xacab.org/leap/bitmask-systray
 cd bitmask-systray && go build .
 
@@ -17,7 +16,7 @@ cd $HOME
 echo "[+] CLONING REPO from $REPO [$BRANCH]"
 git clone $REPO bitmaskbuild
 cd bitmaskbuild
-RELEASE=bitmask-`cat pkg/next-version`
+RELEASE=anonvpn-`cat pkg/next-version`
 echo "[+] RELEASE: $RELEASE"
 git checkout $BRANCH
 git fetch --tags
@@ -29,7 +28,7 @@ rm -rf src/leap/bitmask/mail
 # get anonvpn bundle
 VIRTUAL_ENV=/usr/local make bundle_anonvpn_linux
 # copy systray binary
-cp /src/leap/bitmask-systray/bitmask-systray dist/${RELEASE}/lib/
+cp /src/leap/bitmask-systray/bitmask-systray dist/anonvpn-${RELEASE}/lib/
 # rename entrypoing
-mv dist/${RELEASE}/bitmask dist/${RELEASE}/riseupvpn
+mv dist/anonvpn-${RELEASE}/bitmask dist/anonvpn-${RELEASE}/riseupvpn
 cp -r dist/* /dist
