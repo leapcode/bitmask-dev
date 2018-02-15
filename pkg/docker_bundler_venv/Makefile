@@ -1,4 +1,4 @@
-IMAGE=bitmask-bundler
+IMAGE=bitmask-bundler-venv
 
 build:
 	docker build -t 0xacab.org:4567/leap/docker/$(IMAGE):latest .

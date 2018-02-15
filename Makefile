@@ -5,7 +5,7 @@ DIST_VERSION = $(DIST)-$(NEXT_VERSION)/
 HEADLESS_DIST=dist/bitmask-nox
 HEADLESS_DIST_VERSION = $(HEADLESS_DIST)-$(NEXT_VERSION)/
 
-ANONVPN_DIST=dist/anonvpn
+ANONVPN_DIST=dist/RiseupVPN
 ANONVPN_DIST_VERSION = $(ANONVPN_DIST)-$(NEXT_VERSION)/
 
 BITMASK_ROOT = src/leap/bitmask/vpn/helpers/linux/bitmask-root
@@ -95,29 +95,26 @@ package_in_docker:
 	gitlab-runner exec docker package:amd64_stretch
 
 bundler_image:
-	cd pkg/docker_bundleapt && make bundler
-
-bundle_in_docker_virtualenv:
-	# this runs bundles inside a virtualenv. it is kind of slow because it compiles all python extensions in dependencies each time.
-	rm -rf $(DIST_VERSION) bitmaskbuild
-	cat pkg/docker_build | docker run -i -v ~/leap/bitmask-dev:/dist -w /dist -u `id -u` -e REPO="$(REPO)" -e BRANCH="$(BRANCH)" local_bundler bash
-	mkdir -p dist/
-	cp -r bitmaskbuild/$(DIST_VERSION) dist/
-	rm -rf bitmaskbuild
+	cd pkg/docker_bundler && make bundler
 
 bundle_in_docker:
 	# needs a docker container called 'bitmask-bundler-apt', created with 'make bundler_image'
-	rm -rf $(DIST_VERSION) bitmaskbuild
 	# XXX why was it needed to specify -u `id -u` again? if it's something with gilab CI we might need
 	# to chown it first.
-	cat pkg/docker_build_apt | docker run -i -v /srv/bitmask-builds:/dist -w /dist -e REPO="$(REPO)" -e BRANCH="$(BRANCH)" bitmask-bundler-apt bash
+	cat pkg/bundle_from_docker | docker run -i -v /srv/bitmask-builds:/dist -w /dist -e REPO="$(REPO)" -e BRANCH="$(BRANCH)" bitmask-bundler-apt bash
 
-bundle_riseupvpn_in_docker:
+bundle_riseupvpn:
 	# needs a docker container called 'bitmask-bundler-apt', created with 'make bundler_image'
-	rm -rf $(DIST_VERSION) bitmaskbuild
 	# XXX why was it needed to specify -u `id -u` again? if it's something with gilab CI we might need
 	# to chown it first.
-	cat pkg/docker_build_riseupvpn | docker run -i -v /srv/bitmask-builds:/dist -w /dist -e REPO="$(REPO)" -e BRANCH="$(BRANCH)" bitmask-bundler-apt bash
+	cat pkg/bundle_riseupvpn_from_docker | docker run -i -v /srv/bitmask-builds:/dist -w /dist -e REPO="$(REPO)" -e BRANCH="$(BRANCH)" bitmask-bundler-apt bash
+
+bundle_in_docker_virtualenv:
+	# this runs bundles inside a virtualenv. it is kind of slow because it compiles all python extensions in dependencies each time.
+	cat pkg/bundle_from_docker_venv | docker run -i -v ~/leap/bitmask-dev:/dist -w /dist -u `id -u` -e REPO="$(REPO)" -e BRANCH="$(BRANCH)" bitmask-bundler-venv bash
+	mkdir -p dist/
+	cp -r bitmaskbuild/$(DIST_VERSION) dist/
+	rm -rf bitmaskbuild
 
 upload:
 	python setup.py sdist bdist_wheel --universal upload --sign -i kali@leap.se -r pypi
