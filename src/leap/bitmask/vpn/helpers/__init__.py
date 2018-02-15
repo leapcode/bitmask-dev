@@ -113,7 +113,7 @@ elif IS_MAC:
         # XXX check if bitmask-helper is running
         return True
 
-    def privcheck():
+    def privcheck(timeout=5):
         return True
 
 
