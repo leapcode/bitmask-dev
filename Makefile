@@ -5,7 +5,7 @@ DIST_VERSION = $(DIST)-$(NEXT_VERSION)/
 HEADLESS_DIST=dist/bitmask-nox
 HEADLESS_DIST_VERSION = $(HEADLESS_DIST)-$(NEXT_VERSION)/
 
-ANONVPN_DIST=dist/RiseupVPN
+ANONVPN_DIST=dist/anonvpn
 ANONVPN_DIST_VERSION = $(ANONVPN_DIST)-$(NEXT_VERSION)/
 
 BITMASK_ROOT = src/leap/bitmask/vpn/helpers/linux/bitmask-root
