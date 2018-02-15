@@ -24,6 +24,9 @@ Bugfixes
 - `#9171 <https://0xacab.org/leap/bitmask-dev/issues/9171>`_: fix a bug in bootstrap that avoided more than one user to login.
 - `#9165 <https://0xacab.org/leap/bitmask-dev/issues/9165>`_: deprecate pyqt5-webkit, use qtwebengine instead.
 - `#9137 <https://0xacab.org/leap/bitmask-dev/issues/9137>`_: fix issues with dns resolution with systemd-resolved (mostly ubuntu 17.10).
+- `#9244 <https://0xacab.org/leap/bitmask-dev/issues/9244>`_: bitmaskctl stop, status does not start bitmaskd.
+- `#9232 <https://0xacab.org/leap/bitmask-dev/issues/9232>`_: bundle wrapper is clickable again.
+- `#9163 <https://0xacab.org/leap/bitmask-dev/issues/9163>`_: bundle wrapper can be called from any path.
 - Fix dns leaks for the VPN on Qubes ProxyVMs.
 
 Misc
