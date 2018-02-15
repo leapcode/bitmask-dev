@@ -23,7 +23,7 @@ echo "[+] CLONING REPO from $REPO [$BRANCH]"
 rm -rf bitmaskbuild
 git clone --depth 1 --single-branch --branch $BRANCH $REPO bitmaskbuild
 cd bitmaskbuild
-RELEASE=anonvpn-`cat pkg/next-version`
+RELEASE=RiseupVPN-`cat pkg/next-version`
 echo "[+] RELEASE: $RELEASE"
 git fetch --tags
 # uninstall bitmask-dev from base image and install bitmask-vpn
@@ -54,7 +54,7 @@ rm dist/${RELEASE}/lib/pysqlcipher._sqlite.so
 rm dist/${RELEASE}/lib/libzmq-0576c57a.so.5.0.2
 rm dist/${RELEASE}/lib/libsqlite3.so.0
 
-# rename entrypoint
+# rename entrypoint and put wrapper in place
 echo "[+] Build and copy wrapper binary"
 cd $HOME/bitmaskbuild/pkg/launcher && make
 cd $HOME/bitmaskbuild
