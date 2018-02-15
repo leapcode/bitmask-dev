@@ -1,4 +1,5 @@
 # This script gets executed inside the docker-bundler-apt image.
+# Produces a RiseupVPN bundle inside the volume exported as /dist
 # (no virtualenv, so all the dependencies must be already installed in the image).
 
 : ${REPO:="https://github.com/leapcode/bitmask-dev"}
@@ -54,7 +55,7 @@ rm dist/${RELEASE}/lib/libsqlite3.so.0
 echo "[+] Build and copy wrapper binary"
 cd $HOME/bitmaskbuild/pkg/launcher && make
 cd $HOME/bitmaskbuild
-cp pkg/launcher/bitmask dist/${RELEASE}/riseupVPN
+cp pkg/launcher/bitmask dist/${RELEASE}/RiseupVPN
 mv dist/${RELEASE}/lib/anonvpn dist/${RELEASE}/lib/bitmask
 
 cp -r dist/* /dist
