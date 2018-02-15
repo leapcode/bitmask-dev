@@ -8,15 +8,15 @@
 # build bitmask-systray
 # (dependencies should already be in the base image)
 
+export SYSTRAY_SRC=/srv/go/src/0xacab.org/leap/bitmask-systray/
 export GOPATH=/srv/go
 export CGO_CPPFLAGS="-I/usr/include"
 export CGO_LDFLAGS="-L/usr/lib -L/usr/lib/z86_64-linux-gnu -lzmq -lpthread -lsodium -lrt -lstdc++ -lm -lc -lgcc"
 
-# echo "[+] building systray deps"
-# go get -a 0xacab.org/leap/bitmask-systray
-cd /src/leap && git clone --depth 1 --single-branch --branch master https://0xacab.org/leap/bitmask-systray
 echo "[+] building systray"
-cd bitmask-systray && go build .
+cd ${SYSTRAY_SRC}
+git pull
+go build .
 
 cd $HOME
 echo "[+] CLONING REPO from $REPO [$BRANCH]"
@@ -39,7 +39,7 @@ VIRTUAL_ENV=/usr/local make bundle_anonvpn_linux
 
 # copy systray binary and libs
 echo "[+] Copy systray binary"
-cp /src/leap/bitmask-systray/bitmask-systray dist/${RELEASE}/lib/
+cp ${SYSTRAY_SRC}/bitmask-systray dist/${RELEASE}/lib/
 cp /usr/lib/x86_64-linux-gnu/libsodium.so.18 dist/${RELEASE}/lib/
 cp /usr/lib/x86_64-linux-gnu/libzmq.so.5.1.1 dist/${RELEASE}/lib/libzmq.so.5
 cp /usr/lib/x86_64-linux-gnu/libappindicator3.so.1 dist/${RELEASE}/lib/
