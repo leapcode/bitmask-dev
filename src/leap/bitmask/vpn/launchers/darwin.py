@@ -43,7 +43,7 @@ class HelperCommand(object):
         try:
             self._sock.connect(self.SOCKET_ADDR)
         except socket.error, msg:
-            raise RuntimeError(msg)
+            raise RuntimeError('Cannot connect to helper: ' + msg)
 
     def send(self, cmd, args=''):
         self._connect()

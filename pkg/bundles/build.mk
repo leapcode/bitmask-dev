@@ -1,7 +1,9 @@
 # This makefile should be called from the topmost bitmask folder
-#
+
 OSX_RES = dist/Bitmask.app/Contents/Resources
 OSX_CON = dist/Bitmask.app/Contents/MacOS
+OSX_ANON_RES= dist/RiseupVPN.app/Contents/Resources
+OSX_ANON_CON= dist/RiseupVPN.app/Contents/MacOS
 OSX_CERT = "Developer ID Installer: LEAP Encryption Access Project"
 BUILD_RELEASE?=no
 
@@ -128,7 +130,7 @@ bundle_headless:
 	mkdir -p $(HEADLESS_DIST)/leap/soledad/client/_db
 	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/soledad/client/_db/dbschema.sql $(HEADLESS_DIST)/leap/soledad/client/_db/
 	echo `git describe` > $(HEADLESS_DIST)/version
-	mv $(HEADLESS_DIST) _bundlelib && mkdir $(HEADLESS_DIST_VERSION) && mv _bundlelib $(HEADLESS_DIST_VERSION)lib/
+	mv $(HEADLESS_DIST) _bundlelib && mkdir -p $(HEADLESS_DIST_VERSION) && mv _bundlelib $(HEADLESS_DIST_VERSION)lib/
 	ln $(HEADLESS_DIST_VERSION)lib/bitmask-nox $(HEADLESS_DIST_VERSION)lib/bitmask
 	mkdir -p $(HEADLESS_DIST_VERSION)apps/mail
 	test -f /usr/bin/gpg1 && cp /usr/bin/gpg1 $(HEADLESS_DIST_VERSION)apps/mail/gpg || cp /usr/bin/gpg $(HEADLESS_DIST_VERSION)apps/mail/gpg
@@ -136,14 +138,22 @@ bundle_headless:
 	cp release-notes.rst $(HEADLESS_DIST_VERSION)
 	cp pkg/launcher/bitmask $(HEADLESS_DIST_VERSION)
 
+icons_riseup:
+	pkg/osx/makeicons.sh pkg/branding/riseupvpn.svg
+	mv icon.icns pkg/branding/riseupvpn.icns
+
 bundle_anonvpn:
 	pyinstaller -y pkg/pyinst/anonvpn.spec
+	rm pkg/branding/riseupvpn.icns
+	rm -rf icon.iconset
 	cp src/leap/bitmask/core/bitmaskd.tac $(ANONVPN_DIST)
 	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/common/cacert.pem $(ANONVPN_DIST)/
 	echo `git describe` > $(ANONVPN_DIST)/version
-	mv $(ANONVPN_DIST) _bundlelib && mkdir $(ANONVPN_DIST_VERSION) && mv _bundlelib $(ANONVPN_DIST_VERSION)lib/
+	mv $(ANONVPN_DIST) _bundlelib && mkdir -p $(ANONVPN_DIST_VERSION) && mv _bundlelib $(ANONVPN_DIST_VERSION)lib/
 	mkdir -p $(ANONVPN_DIST_VERSION)/apps/providers
 	cp -r src/leap/bitmask/bonafide/providers/* $(ANONVPN_DIST_VERSION)/apps/providers/
+
+bundle_anonvpn_helpers_linux:
 	# openvpn
 	mkdir -p $(ANONVPN_DIST_VERSION)/apps/vpn
 	wget https://downloads.leap.se/thirdparty/linux/openvpn/openvpn-x64 -O $(ANONVPN_DIST_VERSION)/apps/vpn/openvpn.leap
@@ -153,4 +163,32 @@ bundle_anonvpn:
 	cp src/leap/bitmask/vpn/helpers/linux/bitmask-root $(ANONVPN_DIST_VERSION)/apps/helpers/
 	cp src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.bundle.policy $(ANONVPN_DIST_VERSION)/apps/helpers/
 
-bundle_anonvpn_linux: bundle_anonvpn 
+bundle_anonvpn_osx_missing:
+	mv $(OSX_ANON_CON)/anonvpn $(OSX_ANON_CON)/bitmask-app
+	cp pkg/osx/bitmask-wrapper $(OSX_ANON_CON)/anonvpn
+	mkdir -p $(OSX_ANON_RES)/bitmask-helper
+	cp -r pkg/osx/daemon $(OSX_ANON_RES)/bitmask-helper/
+	cp -r pkg/osx/openvpn $(OSX_ANON_RES)/bitmask-helper/
+	mkdir -p $(OSX_ANON_RES)/../apps/providers
+	cp -r src/leap/bitmask/bonafide/providers/* $(OSX_ANON_RES)/../apps/providers/
+	cp -r $(ANONVPN_DIST_VERSION)/apps/providers/* $(OSX_ANON_RES)/../apps/providers
+	cp src/leap/bitmask/vpn/helpers/osx/bitmask-helper $(OSX_ANON_RES)/bitmask-helper/
+	cp src/leap/bitmask/vpn/helpers/osx/bitmask.pf.conf $(OSX_ANON_RES)/bitmask-helper/
+	cp pkg/osx/scripts/se.leap.bitmask-helper.plist $(OSX_ANON_RES)/bitmask-helper/
+	wget https://downloads.leap.se/thirdparty/osx/openvpn/openvpn -O $(OSX_ANON_RES)/openvpn.leap
+	chmod +x $(OSX_ANON_RES)/openvpn.leap
+
+bundle_anonvpn_osx_pkg:
+	cp src/leap/bitmask/core/bitmaskd.tac $(OSX_ANON_CON)/
+	cp ../bitmask-systray/bitmask-systray $(OSX_ANON_CON)/bitmask-systray
+	pkg/osx/quickpkg --output dist/RiseupVPN-$(NEXT_VERSION)_pre.pkg --scripts pkg/osx/scripts/ dist/RiseupVPN.app/
+	@if [ $(BUILD_RELEASE) = no ]; then\
+		echo "[!] BUILD_RELEASE=no, skipping signature";\
+	else\
+		echo "[+] Signing the bundle";\
+		productsign --sign $(OSX_CERT) dist/RiseupVPN-$(NEXT_VERSION)_pre.pkg dist/RiseupVPN-$(NEXT_VERSION).pkg;\
+	fi
+
+bundle_anonvpn_linux: bundle_anonvpn bundle_anonvpn_helpers_linux
+
+bundle_anonvpn_osx: icons_riseup bundle_anonvpn bundle_anonvpn_osx_missing bundle_anonvpn_osx_pkg

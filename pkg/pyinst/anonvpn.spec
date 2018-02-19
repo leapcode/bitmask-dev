@@ -25,6 +25,7 @@ hiddenimports = [
 
 VENV = os.environ.get('VIRTUAL_ENV', '')
 ENTRYPOINT = ['../../src/leap/bitmask/gui/anonvpn.py']
+excludes = ['PyQt5', 'pysqlcipher', 'scrypt', 'leap.soledad', 'IPython']
 
 a = Analysis(ENTRYPOINT,
              binaries=None,
@@ -32,8 +33,7 @@ a = Analysis(ENTRYPOINT,
              hiddenimports=hiddenimports,
              hookspath=[],
              runtime_hooks=[],
-             excludes=[],
-
+             excludes=excludes,
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher)
@@ -55,3 +55,12 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                name='anonvpn')
+if IS_MAC:
+    app = BUNDLE(
+    	coll,
+        name=os.path.join(
+          'dist', 'RiseupVPN.app'),
+          appname='RiseupVPN',
+          version=BITMASK_VERSION,
+          icon='pkg/branding/riseupvpn.icns',
+	  bundle_identifier='RiseupVPN-' + BITMASK_VERSION)

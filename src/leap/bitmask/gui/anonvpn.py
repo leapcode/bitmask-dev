@@ -30,6 +30,7 @@ import sys
 from functools import partial
 from multiprocessing import Process
 
+from leap.bitmask.util import here
 from leap.bitmask.core.launcher import run_bitmaskd, pid
 from leap.bitmask.gui.housekeeping import cleanup, terminate, reset_authtoken
 from leap.bitmask.gui.housekeeping import check_stale_pidfile
@@ -43,7 +44,7 @@ bitmaskd = None
 def launch_gui():
     from leap.bitmask.util import STANDALONE
     if STANDALONE:
-        gui = './bitmask-systray'
+        gui = os.path.join(here(), 'bitmask-systray')
     else:
         gui = 'bitmask-systray'
     subprocess.call([gui])
