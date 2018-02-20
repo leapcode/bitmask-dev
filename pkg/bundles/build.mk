@@ -139,6 +139,8 @@ bundle_headless:
 	cp pkg/launcher/bitmask $(HEADLESS_DIST_VERSION)
 
 icons_riseup:
+	# if this fails, you need to install (does not work on yosemite):
+	# brew install imagemagick --with-librsvg
 	pkg/osx/makeicons.sh pkg/branding/riseupvpn.svg
 	mv icon.icns pkg/branding/riseupvpn.icns
 
@@ -191,4 +193,4 @@ bundle_anonvpn_osx_pkg:
 
 bundle_anonvpn_linux: bundle_anonvpn bundle_anonvpn_helpers_linux
 
-bundle_anonvpn_osx: icons_riseup bundle_anonvpn bundle_anonvpn_osx_missing bundle_anonvpn_osx_pkg
+bundle_anonvpn_osx: bundle_anonvpn bundle_anonvpn_osx_missing bundle_anonvpn_osx_pkg
