@@ -146,7 +146,7 @@ icons_riseup:
 
 bundle_anonvpn:
 	pyinstaller -y pkg/pyinst/anonvpn.spec
-	rm pkg/branding/riseupvpn.icns
+	# rm pkg/branding/riseupvpn.icns
 	rm -rf icon.iconset
 	cp src/leap/bitmask/core/bitmaskd.tac $(ANONVPN_DIST)
 	cp $(VIRTUAL_ENV)/lib/python2.7/site-packages/leap/common/cacert.pem $(ANONVPN_DIST)/
