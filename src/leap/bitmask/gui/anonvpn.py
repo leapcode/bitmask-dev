@@ -43,10 +43,22 @@ bitmaskd = None
 
 def launch_gui():
     from leap.bitmask.util import STANDALONE
-    if STANDALONE:
-        gui = os.path.join(here(), 'bitmask-systray')
+    systray = 'bitmask-systray'
+
+    snap = os.environ.get('SNAP')
+
+    if snap:
+        STANDALONE = True
+        _here = snap
+        systray = '/snap/bin/riseup-vpn.bitmask-systray'
     else:
-        gui = 'bitmask-systray'
+        _here = here()
+
+    if STANDALONE:
+        gui = os.path.join(_here, systray)
+    else:
+        gui = systray
+    print("trying to launch: %s" % gui)
     subprocess.call([gui])
 
 
