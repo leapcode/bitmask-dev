@@ -4,3 +4,5 @@ colorama
 zope.interface
 service-identity
 leap.common>=0.5.5
+psutil
+certifi
