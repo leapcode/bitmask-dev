@@ -17,6 +17,7 @@ if IS_MAC:
 hiddenimports = [
      'appdirs',
      'service_identity',
+     'srp',
      'leap.common', 'leap.bitmask', 
      'leap.bitmask.core.logs',
      'leap.bitmask.gui.housekeeping',
