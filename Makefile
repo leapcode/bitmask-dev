@@ -9,7 +9,7 @@ ANONVPN_DIST=dist/anonvpn
 ANONVPN_DIST_VERSION = $(ANONVPN_DIST)-$(NEXT_VERSION)/
 
 BITMASK_ROOT = src/leap/bitmask/vpn/helpers/linux/bitmask-root
-POLKIT_POLICY = src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.policy
+POLKIT_POLICY = src/leap/bitmask/vpn/helpers/linux/se.leap.bitmask.bundle.policy
 SUDO = /usr/bin/sudo
 
 include pkg/bundles/build.mk
