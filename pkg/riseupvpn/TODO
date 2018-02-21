@@ -1,0 +1,4 @@
+[ ] copy libzmq.so.5 library to the binary path (HACK, ask in forums).
+[ ] install polkit helpers
+[ ] install bitmask root in its place (can classic confinement install something in the global path? does this produce conflicts with proper debs?)
+[ ] add a desktop file entry

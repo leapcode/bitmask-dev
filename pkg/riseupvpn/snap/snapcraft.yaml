@@ -1,0 +1,60 @@
+name: riseup-vpn
+version: '0.10.3+git'
+epoch: 0
+summary: RiseupVPN, anonymous VPN. Powered by Bitmask.
+description: |
+        RiseupVPN is an anonymous VPN. It's controlled by a minimal systray
+        that communicates with the bitmask daemon.
+        Just click on it. And don't forget to donate.
+
+grade: devel # must be 'stable' to release into candidate/stable channels
+#confinement: devmode  #classic # use 'strict' once you have the right plugs and slots
+confinement: classic
+
+parts:
+         
+        bitmask:
+                plugin: python
+                python-version: python2
+                source-branch: snap 
+                # XXX change to leap/master
+                source: https://0xacab.org/kali/bitmask-dev.git
+                requirements: pkg/requirements-vpn.pip
+                stage-packages:
+                        # this seems to trigger https://bugs.launchpad.net/snapcraft/+bug/1676684
+                        - python2.7-dev
+                        - libsqlcipher-dev
+                        - libffi-dev
+                        - libsqlite3-dev
+                        - libzmq3-dev
+        openvpn:
+                plugin: nil
+                stage-packages:
+                        - openvpn
+        bitmask-systray:
+                plugin: go
+                source: https://0xacab.org/leap/bitmask-systray.git
+                build-packages:
+                        - pkg-config
+                        - libzmq5
+                        - libzmq3-dev
+                        - libsodium-dev
+                        - libappindicator3-dev
+                        - libgtk-3-dev
+                stage-packages:
+                        - libzmq5
+                        - libsodium18
+                        - libappindicator3-1
+        desktop-gtk3:
+                prime: ['*']
+
+apps:
+        bitmask-systray:
+                command: ./bin/bitmask-systray.git
+                plugs: [x11, network]
+        launcher:
+                command: ./bin/bitmask_anonvpn
+                plugs: [x11, network]
+        bitmaskd:
+                command: ./bin/bitmaskd
+                plugs: [network]
