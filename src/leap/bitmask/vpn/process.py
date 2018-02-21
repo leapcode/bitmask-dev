@@ -293,17 +293,24 @@ class _VPNProcess(protocol.ProcessProtocol):
 
         :rtype: list of str
         """
-        command = self._launcher.get_vpn_command(
-            vpnconfig=self._vpnconfig,
-            providerconfig=self._providerconfig,
-            socket_host=self._host,
-            socket_port=self._port,
-            remotes=self._remotes)
+        print("GETTING COMMAND", self._launcher)
+        try:
+            command = self._launcher.get_vpn_command(
+                vpnconfig=self._vpnconfig,
+                providerconfig=self._providerconfig,
+                socket_host=self._host,
+                socket_port=self._port,
+                remotes=self._remotes)
+            print("Command: %s", command)
+        except Exception as exc:
+            print("ERROR: %r" % exc)
 
         encoding = sys.getfilesystemencoding()
+        print("encoding", encoding)
         for i, c in enumerate(command):
             if not isinstance(c, str):
                 command[i] = c.encode(encoding)
+        print("command: %s", command)
 
         self.log.debug("Running VPN with command: ")
         self.log.debug("{0}".format(" ".join(command)))

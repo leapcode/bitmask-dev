@@ -165,21 +165,37 @@ class LinuxVPNLauncher(VPNLauncher):
         :return: A VPN command ready to be launched.
         :rtype: list
         """
+        command = []
         # we use `super` in order to send the class to use
         command = super(LinuxVPNLauncher, kls).get_vpn_command(
             vpnconfig, providerconfig, socket_host, socket_port, remotes,
             openvpn_verb)
+        print("command super %s" % command)
 
+        # XXX DEBUG local variable command referenced before assignment
+        # this was breaking the snap. re-do in a more robust way.
+
+        command = ["pkexec", "/usr/local/sbin/bitmask-root", "openvpn", "start"] + command
+
+        """
         command.insert(0, force_eval(kls.BITMASK_ROOT))
         command.insert(1, "openvpn")
         command.insert(2, "start")
+        """
 
+        print("Inserted: %s" % command)
+
+        """
         if os.getuid() != 0:
+            print("OS UID != 0")
             policyChecker = LinuxPolicyChecker()
+            print("checker %s", policyChecker)
             pkexec = policyChecker.get_usable_pkexec()
             if pkexec:
                 command.insert(0, first(pkexec))
+        """
 
+        print("Final: %s" % command)
         return command
 
     def terminate_or_kill(self, terminatefun, killfun, proc):
