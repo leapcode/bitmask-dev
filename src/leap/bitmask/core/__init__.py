@@ -19,9 +19,7 @@ def dummy_imports():
 APPNAME = "bitmask.core"
 if platform.system() == 'Windows':
     ENDPOINT = "tcp://127.0.0.1:5001"
-elif os.getenv('SNAP'):
-    ENDPOINT = "ipc://%s/%s.sock" % (os.getenv('SNAP'), APPNAME)
 else:
-    ENDPOINT = "ipc:///tmp/%s.sock" % APPNAME
+    ENDPOINT = "ipc:///var/tmp/%s.sock" % APPNAME
 
 dummy_imports()
