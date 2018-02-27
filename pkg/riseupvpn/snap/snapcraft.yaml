@@ -55,7 +55,15 @@ parts:
                   ln -s "../usr/lib/$(gcc -print-multiarch)/$LIBSOD" $SNAPCRAFT_PART_INSTALL/bin/libsodium.so.18
                   patchelf --set-rpath /snap/riseup-vpn/current/bin/ $SNAPCRAFT_PART_INSTALL/bin/bitmask-systray.git
         desktop-gtk3:
-                prime: ['*']
+                prime: 
+                    - -usr/include
+                    - -usr/lib/locale
+                    - -usr/share/X11/locale
+                    - -usr/share/doc
+                    - -usr/share/locale
+                    - -usr/share/man
+                    - -usr/share/icons
+                    - '*'
 
 apps:
         bitmask-systray:
