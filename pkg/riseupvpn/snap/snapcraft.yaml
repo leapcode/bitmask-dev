@@ -8,8 +8,8 @@ description: |
         Just click on it. And don't forget to donate.
 
 grade: devel # must be 'stable' to release into candidate/stable channels
-#confinement: devmode  #classic # use 'strict' once you have the right plugs and slots
 confinement: classic
+icon: snap/gui/riseupvpn.svg
 
 parts:
          
@@ -17,7 +17,7 @@ parts:
                 plugin: python
                 python-version: python2
                 source-branch: snap 
-                # XXX change to leap/master
+                # XXX change to leap/master when merged
                 source: https://0xacab.org/kali/bitmask-dev.git
                 requirements: pkg/requirements-vpn.pip
                 stage-packages:
@@ -31,11 +31,13 @@ parts:
                 plugin: nil
                 stage-packages:
                         - openvpn
+                # TODO copy openvpn to /usr/local/sbin
         bitmask-systray:
                 plugin: go
                 source: https://0xacab.org/leap/bitmask-systray.git
                 build-packages:
                         - pkg-config
+                        - patchelf
                         - libzmq5
                         - libzmq3-dev
                         - libsodium-dev
@@ -45,16 +47,20 @@ parts:
                         - libzmq5
                         - libsodium18
                         - libappindicator3-1
+                install: |
+                  TRIPLET_PATH="$SNAPCRAFT_PART_INSTALL/usr/lib/$(gcc -print-multiarch)"
+                  LIBZMQ=$(readlink -n $TRIPLET_PATH/libzmq.so.5)
+                  LIBSOD=$(readlink -n $TRIPLET_PATH/libsodium.so.18)
+                  ln -s "../usr/lib/$(gcc -print-multiarch)/$LIBZMQ" $SNAPCRAFT_PART_INSTALL/bin/libzmq.so.5
+                  ln -s "../usr/lib/$(gcc -print-multiarch)/$LIBSOD" $SNAPCRAFT_PART_INSTALL/bin/libsodium.so.18
+                  patchelf --set-rpath /snap/riseup-vpn/current/bin/ $SNAPCRAFT_PART_INSTALL/bin/bitmask-systray.git
         desktop-gtk3:
                 prime: ['*']
 
 apps:
         bitmask-systray:
                 command: ./bin/bitmask-systray.git
-                plugs: [x11, network]
         launcher:
                 command: ./bin/bitmask_anonvpn
-                plugs: [x11, network]
         bitmaskd:
                 command: ./bin/bitmaskd
-                plugs: [network]

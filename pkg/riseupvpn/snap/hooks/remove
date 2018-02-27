@@ -1,0 +1,7 @@
+#!/bin/sh
+set -e
+
+echo "Executing remove hook for RiseupVPN"
+rm "/usr/local/sbin/bitmask-root"
+rm "/usr/share/polkit-1/actions/se.leap.bitmask.bundle.policy"
+echo "done"

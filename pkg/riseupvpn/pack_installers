@@ -1,0 +1,35 @@
+#!/usr/bin/env python
+import os
+import subprocess
+from base64 import encodestring as encode
+HELPDIR = '../../src/leap/bitmask/vpn/helpers/linux/'
+INSTALL = './snap/hooks/install'
+
+with open(os.path.join(HELPDIR, 'bitmask-root')) as bmroot:
+    b64_bmroot = encode(bmroot.read())
+
+with open(os.path.join(HELPDIR, 'se.leap.bitmask.bundle.policy')) as polkit:
+    b64_polkit = encode(polkit.read())
+
+with open(INSTALL, 'w') as install:
+    install.write('#!/usr/bin/env python\n')
+    install.write('# This helper installs bitmask-root and polkit policy file\n')
+    install.write('import subprocess\n')
+    install.write('from base64 import decodestring as decode\n')
+    install.write("""
+BMROOT = \"\"\"{bmroot}\"\"\"
+POLKIT = \"\"\"{polkit}\"\"\"
+BMROOT_DEST = "/usr/local/sbin/bitmask-root"
+with open(BMROOT_DEST, "w") as bmroot:
+    lines = str(decode(BMROOT)).split("\\n")
+    for line in lines:
+        bmroot.write(line + "\\n")
+with open('/usr/share/polkit-1/actions/se.leap.bitmask.bundle.policy', 'w') as polkit:
+    lines = str(decode(POLKIT)).split("\\n")
+    for line in lines:
+        polkit.write(line + "\\n")
+""".format(bmroot=b64_bmroot, polkit=b64_polkit))
+    install.write('subprocess.Popen(["chmod", "+x", BMROOT_DEST])\n')
+
+subprocess.Popen(["chmod", "+x", INSTALL])
+print("done packing installers")

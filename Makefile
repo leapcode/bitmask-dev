@@ -73,7 +73,7 @@ test_functional_graphical_wip:
 install_helpers:
 	# if there's no sudo, assumming this is running as root by the CI
 	test -f $(SUDO) && sudo cp $(BITMASK_ROOT) /usr/local/sbin/ || cp $(BITMASK_ROOT) /usr/local/sbin/
-	test -f $(SUDO) && sudo cp $(POLKIT_POLICY) /usr/share/polkit-1/actions/se.bitmask.bundle.policy || cp $(POLKIT_POLICY) /usr/share/polkit-1/actions/se.bitmask.bundle.policy
+	test -f $(SUDO) && sudo cp $(POLKIT_POLICY) /usr/share/polkit-1/actions/se.leap.bitmask.bundle.policy || cp $(POLKIT_POLICY) /usr/share/polkit-1/actions/se.leap.bitmask.bundle.policy
 
 install_pixelated:
 	pip install leap.pixelated leap.pixelated-www
