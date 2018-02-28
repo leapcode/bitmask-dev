@@ -35,6 +35,7 @@ from leap.bitmask.vpn.privilege import LinuxPolicyChecker
 from leap.bitmask.vpn.management import ManagementProtocol
 from leap.bitmask.vpn.launcher import VPNLauncher
 
+IS_SNAP = os.environ.get('SNAP')
 
 TERMINATE_MAXTRIES = 10
 TERMINATE_WAIT = 1  # secs
@@ -86,15 +87,19 @@ class LinuxVPNLauncher(VPNLauncher):
 
     class BITMASK_ROOT(object):
         def __call__(self):
-            current_version = self._version(_config.get_bitmask_helper_path())
 
+            current_version = self._version(_config.get_bitmask_helper_path())
             _sys = constants.BITMASK_ROOT_SYSTEM
             _sys_version = 0
+            _local = constants.BITMASK_ROOT_LOCAL
+            _local_version = 0
+
+            if IS_SNAP:
+                return _local
+
             if os.path.isfile(_sys):
                 _sys_version = self._version(_sys)
 
-            _local = constants.BITMASK_ROOT_LOCAL
-            _local_version = 0
             if os.path.isfile(_local):
                 _local_version = self._version(_local)
 
@@ -120,6 +125,12 @@ class LinuxVPNLauncher(VPNLauncher):
 
     class OPENVPN_BIN_PATH(object):
         def __call__(self):
+
+            #if IS_SNAP:
+            # this should change when bitmask is also a snap. for now,
+            # snap means RiseupVPN
+            #    return '/snap/bin/riseup-vpn/bin/riseup-vpn.openvpn'
+
             _sys = constants.OPENVPN_SYSTEM
             _local = constants.OPENVPN_LOCAL
             # XXX this implies that, for the time being, we prefer the system
@@ -165,37 +176,31 @@ class LinuxVPNLauncher(VPNLauncher):
         :return: A VPN command ready to be launched.
         :rtype: list
         """
+        print ">>> GET VPN COMMAND"
+
         command = []
         # we use `super` in order to send the class to use
         command = super(LinuxVPNLauncher, kls).get_vpn_command(
             vpnconfig, providerconfig, socket_host, socket_port, remotes,
             openvpn_verb)
-        print("command super %s" % command)
+        #print(">>>command super %s" % str(command))
 
         # XXX DEBUG local variable command referenced before assignment
         # this was breaking the snap. re-do in a more robust way.
 
-        command = ["pkexec", "/usr/local/sbin/bitmask-root", "openvpn", "start"] + command
+        #command = ["pkexec", "/usr/local/sbin/bitmask-root", "openvpn", "start"] + command
 
-        """
         command.insert(0, force_eval(kls.BITMASK_ROOT))
         command.insert(1, "openvpn")
         command.insert(2, "start")
-        """
 
-        print("Inserted: %s" % command)
+        print(">>>Inserted: %s" % str(command))
 
-        """
         if os.getuid() != 0:
-            print("OS UID != 0")
             policyChecker = LinuxPolicyChecker()
-            print("checker %s", policyChecker)
             pkexec = policyChecker.get_usable_pkexec()
             if pkexec:
                 command.insert(0, first(pkexec))
-        """
-
-        print("Final: %s" % command)
         return command
 
     def terminate_or_kill(self, terminatefun, killfun, proc):

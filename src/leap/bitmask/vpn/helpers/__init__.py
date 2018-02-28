@@ -4,10 +4,14 @@ from hashlib import sha512
 import os.path
 import sys
 
+from twisted.logger import Logger
+
 from leap.bitmask.vpn.constants import IS_LINUX, IS_MAC
 from leap.bitmask.vpn import _config
 
 from leap.bitmask.util import STANDALONE
+
+log = Logger()
 
 if IS_LINUX:
 
@@ -60,18 +64,25 @@ if IS_LINUX:
             _check_openvpn())
 
     def _check_helper():
+        log.debug('Checking whether helper exists')
         helper_path = _config.get_bitmask_helper_path()
         if not _exists_and_can_read(helper_path):
+            log.debug('Cannot read helpers')
             return True
 
         helper_path_digest = digest(helper_path)
         if (_exists_and_can_read(BITMASK_ROOT_SYSTEM) and
                 helper_path_digest == digest(BITMASK_ROOT_SYSTEM)):
+            log.debug('global bitmask-root: %s' % os.path.isfile(BITMASK_ROOT_SYSTEM))
+            log.debug('global bitmask-root: %s' % digest(BITMASK_ROOT_SYSTEM))
             return True
         if (_exists_and_can_read(BITMASK_ROOT_LOCAL) and
                 helper_path_digest == digest(BITMASK_ROOT_LOCAL)):
+            log.debug('local bitmask-root: %s' % os.path.isfile(BITMASK_ROOT_LOCAL))
+            log.debug('local bitmask-root: %s' % digest(BITMASK_ROOT_LOCAL))
             return True
 
+        log.debug('No valid bitmask-root found')
         return False
 
     def _check_openvpn():

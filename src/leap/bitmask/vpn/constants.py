@@ -18,6 +18,7 @@
 """
 System constants
 """
+import os
 import platform
 
 _system = platform.system()
@@ -26,6 +27,7 @@ IS_LINUX = _system == "Linux"
 IS_MAC = _system == "Darwin"
 IS_UNIX = IS_MAC or IS_LINUX
 IS_WIN = _system == "Windows"
+IS_SNAP = os.environ.get('SNAP')
 
 if IS_LINUX:
     BITMASK_ROOT_SYSTEM = '/usr/sbin/bitmask-root'

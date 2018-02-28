@@ -29,7 +29,7 @@ from twisted.logger import Logger
 from twisted.python.procutils import which
 
 from leap.bitmask.util import STANDALONE, here
-from .constants import IS_LINUX
+from .constants import IS_LINUX, IS_SNAP
 from . import polkit
 
 log = Logger()
@@ -52,6 +52,9 @@ def _helper_installer(action):
         raise Exception('Wrong action: %s' % action)
 
     if IS_LINUX:
+        if IS_SNAP:
+            log.debug('Skipping install of helpers, snap should have done that')
+            return
         cmd = 'bitmask_helpers ' + action
         if STANDALONE:
             binary_path = os.path.join(here(), "bitmask")
