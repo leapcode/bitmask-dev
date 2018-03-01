@@ -168,7 +168,6 @@ def execute():
               "%s" % str(e))
         yield reactor.stop()
 
-
     cli.data = []
     cli.print_json = print_json
     args = sys.argv[1:]

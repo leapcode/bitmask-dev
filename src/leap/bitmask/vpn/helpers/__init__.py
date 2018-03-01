@@ -81,9 +81,9 @@ if IS_LINUX:
         openvpn_path = _config.get_bitmask_openvpn_path()
         if openvpn_path is None:
             # If Bitmask does not provide any openvpn binary
-            # (we are not in a bundle: either running from debian packages, git or pip)
-            # reporting an error on check will trigger an attempt to install
-            # helpers that can not be successful.
+            # (we are not in a bundle: either running from debian packages, git
+            # or pip) reporting an error on check will trigger an attempt to
+            # install helpers that can not be successful.
             # XXX: we need a better way to flag errors that can not be solved
             # by installing helpers
             return True
