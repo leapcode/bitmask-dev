@@ -5,7 +5,7 @@ summary: RiseupVPN, anonymous VPN. Powered by Bitmask.
 description: |
         RiseupVPN is an anonymous VPN. It's controlled by a minimal systray
         that communicates with the bitmask daemon.
-        Just click on it. And don't forget to donate.
+        Don't forget to donate!
 
 grade: devel # must be 'stable' to release into candidate/stable channels
 confinement: classic
@@ -65,9 +65,11 @@ parts:
                     - '*'
 
 apps:
-        bitmask-systray:
-                command: ./bin/bitmask-systray.git
         launcher:
                 command: ./bin/bitmask_anonvpn
         bitmaskd:
                 command: ./bin/bitmaskd
+        bitmask-systray:
+                command: ./bin/bitmask-systray.git
+        openvpn:
+                command: ./usr/sbin/openvpn

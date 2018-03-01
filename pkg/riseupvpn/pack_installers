@@ -32,4 +32,4 @@ with open('/usr/share/polkit-1/actions/se.leap.bitmask.bundle.policy', 'w') as p
     install.write('subprocess.Popen(["chmod", "+x", BMROOT_DEST])\n')
 
 subprocess.Popen(["chmod", "+x", INSTALL])
-print("done packing installers")
+print("done packing installers into the snap install hook...")
