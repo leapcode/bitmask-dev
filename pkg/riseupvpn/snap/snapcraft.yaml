@@ -31,7 +31,6 @@ parts:
                 plugin: nil
                 stage-packages:
                         - openvpn
-                # TODO copy openvpn to /usr/local/sbin
         bitmask-systray:
                 plugin: go
                 source: https://0xacab.org/leap/bitmask-systray.git
