@@ -27,10 +27,21 @@ parts:
                         - libffi-dev
                         - libsqlite3-dev
                         - libzmq3-dev
+                prime: 
+                    - -usr/include
+                    - -usr/lib/locale
+                    - -usr/share/X11/locale
+                    - -usr/share/doc
+                    - -usr/share/locale
+                    - -usr/share/man
+                    #- -usr/share/icons
         openvpn:
                 plugin: nil
                 stage-packages:
                         - openvpn
+                prime:
+                    - -usr/share/doc
+                    - -usr/share/man
         bitmask-systray:
                 plugin: go
                 source: https://0xacab.org/leap/bitmask-systray.git
@@ -53,6 +64,14 @@ parts:
                   ln -s "../usr/lib/$(gcc -print-multiarch)/$LIBZMQ" $SNAPCRAFT_PART_INSTALL/bin/libzmq.so.5
                   ln -s "../usr/lib/$(gcc -print-multiarch)/$LIBSOD" $SNAPCRAFT_PART_INSTALL/bin/libsodium.so.18
                   patchelf --set-rpath /snap/riseup-vpn/current/bin/ $SNAPCRAFT_PART_INSTALL/bin/bitmask-systray.git
+                prime: 
+                    - -usr/include
+                    - -usr/lib/locale
+                    - -usr/share/X11/locale
+                    - -usr/share/doc
+                    - -usr/share/locale
+                    - -usr/share/man
+                    #- -usr/share/icons
         desktop-gtk3:
                 prime: 
                     - -usr/include
@@ -61,7 +80,7 @@ parts:
                     - -usr/share/doc
                     - -usr/share/locale
                     - -usr/share/man
-                    - -usr/share/icons
+                    #- -usr/share/icons
                     - '*'
 
 apps:
