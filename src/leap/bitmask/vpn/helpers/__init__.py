@@ -1,8 +1,9 @@
+import os.path
+import sys
+
 from os import remove, chmod, access, R_OK
 from shutil import copyfile
 from hashlib import sha512
-import os.path
-import sys
 
 from twisted.logger import Logger
 
@@ -12,6 +13,8 @@ from leap.bitmask.vpn import _config
 from leap.bitmask.util import STANDALONE
 
 log = Logger()
+
+IS_SNAP = os.environ.get('SNAP')
 
 if IS_LINUX:
 
@@ -69,6 +72,12 @@ if IS_LINUX:
         if not _exists_and_can_read(helper_path):
             log.debug('Cannot read helpers')
             return True
+
+        if IS_SNAP:
+            if os.path.isfile(BITMASK_ROOT_LOCAL):
+                return True
+            log.error('cannot find bitmask-root in snap')
+            return False
 
         helper_path_digest = digest(helper_path)
         if (_exists_and_can_read(BITMASK_ROOT_SYSTEM) and
