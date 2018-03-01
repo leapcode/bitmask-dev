@@ -34,5 +34,8 @@ if IS_LINUX:
     BITMASK_ROOT_LOCAL = '/usr/local/sbin/bitmask-root'
     OPENVPN_SYSTEM = '/usr/sbin/openvpn'
     OPENVPN_LOCAL = '/usr/local/sbin/leap-openvpn'
-    POLKIT_LOCAL = '/usr/share/polkit-1/actions/se.leap.bitmask-bundle.policy'
+    # this should change when bitmask is also a snap. for now,
+    # snap means RiseupVPN
+    OPENVPN_SNAP = '/snap/bin/riseup-vpn.openvpn'
+    POLKIT_LOCAL = '/usr/share/polkit-1/actions/se.leap.bitmask.bundle.policy'
     POLKIT_SYSTEM = '/usr/share/polkit-1/actions/se.leap.bitmask.policy'

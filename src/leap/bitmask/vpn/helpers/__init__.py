@@ -20,7 +20,7 @@ if IS_LINUX:
 
     from leap.bitmask.vpn.constants import BITMASK_ROOT_SYSTEM
     from leap.bitmask.vpn.constants import BITMASK_ROOT_LOCAL
-    from leap.bitmask.vpn.constants import OPENVPN_SYSTEM, OPENVPN_LOCAL
+    from leap.bitmask.vpn.constants import OPENVPN_SYSTEM, OPENVPN_LOCAL, OPENVPN_SNAP
     from leap.bitmask.vpn.constants import POLKIT_SYSTEM, POLKIT_LOCAL
     from leap.bitmask.vpn.privilege import is_pkexec_in_system
     from leap.bitmask.vpn.privilege import LinuxPolicyChecker
@@ -83,18 +83,19 @@ if IS_LINUX:
         if (_exists_and_can_read(BITMASK_ROOT_SYSTEM) and
                 helper_path_digest == digest(BITMASK_ROOT_SYSTEM)):
             log.debug('global bitmask-root: %s' % os.path.isfile(BITMASK_ROOT_SYSTEM))
-            log.debug('global bitmask-root: %s' % digest(BITMASK_ROOT_SYSTEM))
             return True
         if (_exists_and_can_read(BITMASK_ROOT_LOCAL) and
                 helper_path_digest == digest(BITMASK_ROOT_LOCAL)):
             log.debug('local bitmask-root: %s' % os.path.isfile(BITMASK_ROOT_LOCAL))
-            log.debug('local bitmask-root: %s' % digest(BITMASK_ROOT_LOCAL))
             return True
 
         log.debug('No valid bitmask-root found')
         return False
 
     def _check_openvpn():
+        if IS_SNAP:
+            return os.path.exists(OPENVPN_SNAP)
+
         if os.path.exists(OPENVPN_SYSTEM):
             return True
 

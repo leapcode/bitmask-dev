@@ -129,7 +129,7 @@ class LinuxVPNLauncher(VPNLauncher):
             if IS_SNAP:
                 # this should change when bitmask is also a snap. for now,
                 # snap means RiseupVPN
-                return '/snap/bin/riseup-vpn/bin/riseup-vpn.openvpn'
+                return constants.OPENVPN_SNAP
 
             _sys = constants.OPENVPN_SYSTEM
             _local = constants.OPENVPN_LOCAL
