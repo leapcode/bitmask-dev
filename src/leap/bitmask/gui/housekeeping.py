@@ -49,16 +49,20 @@ def reset_authtoken():
 def check_stale_pidfile():
 
     def is_pid_running(pidno):
-        return 1 == len(filter(lambda p: p.pid == int(pidno), psutil.process_iter()))
+        return 1 == len(
+            filter(lambda p: p.pid == int(pidno), psutil.process_iter()))
 
     pidno = None
     pidfile = os.path.join(get_path_prefix(), 'leap', 'bitmaskd.pid')
-    if os.path.isfile(pidfile):
-        with open(pidfile, 'r') as pid_fd:
-            pidno = pid_fd.readline().strip()
-    if pidno and pidno.isdigit():
-        if not is_pid_running(pidno):
-            os.unlink(pidfile)
+    try:
+        if os.path.isfile(pidfile):
+            with open(pidfile, 'r') as pid_fd:
+                pidno = pid_fd.readline().strip()
+        if pidno and pidno.isdigit():
+            if not is_pid_running(pidno):
+                os.unlink(pidfile)
+    except Exception as exc:
+        print('[bitmask] Error while removing stale file: %r' % exc)
 
 
 def cleanup():
@@ -68,4 +72,7 @@ def cleanup():
     pid = os.path.join(base, 'bitmaskd.pid')
     for _f in [token, pid]:
         if os.path.isfile(_f):
-            os.unlink(_f)
+            try:
+                os.unlink(_f)
+            except Exception:
+                pass
