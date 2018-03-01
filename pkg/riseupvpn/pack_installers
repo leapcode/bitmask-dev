@@ -22,8 +22,10 @@ POLKIT = \"\"\"{polkit}\"\"\"
 BMROOT_DEST = "/usr/local/sbin/bitmask-root"
 with open(BMROOT_DEST, "w") as bmroot:
     lines = str(decode(BMROOT)).split("\\n")
-    for line in lines:
-        bmroot.write(line + "\\n")
+    for i, line in enumerate(lines):
+        bmroot.write(line)
+        if i + 1 != len(lines):
+            bmroot.write("\\n")
 with open('/usr/share/polkit-1/actions/se.leap.bitmask.bundle.policy', 'w') as polkit:
     lines = str(decode(POLKIT)).split("\\n")
     for line in lines:
