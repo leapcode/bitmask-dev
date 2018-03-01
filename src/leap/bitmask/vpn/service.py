@@ -116,6 +116,7 @@ class VPNService(HookableService):
 
     @defer.inlineCallbacks
     def start_vpn(self, domain=None):
+        self.log.debug('Starting VPN')
         self._cfg.set('autostart', True)
         autostart.autostart_app('on')
 
@@ -234,6 +235,7 @@ class VPNService(HookableService):
             if expiry:
                 expiry_ts = expiry.strftime('%Y-%m-%dT%H:%M:%SZ')
                 ret['cert_expires'] = expiry_ts
+        self.log.debug('VPN check: %s' % str(ret))
         return ret
 
     @defer.inlineCallbacks

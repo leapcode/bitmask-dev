@@ -57,14 +57,27 @@ if IS_LINUX:
                 running = LinuxPolicyChecker.is_up()
             except Exception:
                 running = False
-        return has_pkexec and running
+        result = has_pkexec and running
+        log.debug('Privilege check: %s' % result)
+        return result
 
     def check():
-        return (
-            is_pkexec_in_system() and
-            _check_helper() and
-            _check_polkit_file_exist() and
-            _check_openvpn())
+        pkexec = is_pkexec_in_system()
+        helper = _check_helper()
+        polkit = _check_polkit_file_exist()
+        openvpn = _check_openvpn()
+        if not pkexec:
+            log.error('No pkexec in system!')
+        if not helper:
+            log.error('No bitmask-root in system!')
+        if not polkit:
+            log.error('No polkit file in system!')
+        if not openvpn:
+            log.error('No openvpn in system!')
+        result = all([pkexec, helper, polkit, openvpn])
+        if result is True:
+            log.debug('All checks passed')
+        return result
 
     def _check_helper():
         log.debug('Checking whether helper exists')
@@ -76,17 +89,17 @@ if IS_LINUX:
         if IS_SNAP:
             if os.path.isfile(BITMASK_ROOT_LOCAL):
                 return True
-            log.error('cannot find bitmask-root in snap')
+            log.error('Cannot find bitmask-root in snap')
             return False
 
         helper_path_digest = digest(helper_path)
         if (_exists_and_can_read(BITMASK_ROOT_SYSTEM) and
                 helper_path_digest == digest(BITMASK_ROOT_SYSTEM)):
-            log.debug('global bitmask-root: %s' % os.path.isfile(BITMASK_ROOT_SYSTEM))
+            log.debug('Global bitmask-root: %s' % os.path.isfile(BITMASK_ROOT_SYSTEM))
             return True
         if (_exists_and_can_read(BITMASK_ROOT_LOCAL) and
                 helper_path_digest == digest(BITMASK_ROOT_LOCAL)):
-            log.debug('local bitmask-root: %s' % os.path.isfile(BITMASK_ROOT_LOCAL))
+            log.debug('Local bitmask-root: %s' % os.path.isfile(BITMASK_ROOT_LOCAL))
             return True
 
         log.debug('No valid bitmask-root found')
