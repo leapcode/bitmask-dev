@@ -29,8 +29,10 @@ from twisted.logger import Logger
 from twisted.python.procutils import which
 
 from leap.bitmask.util import STANDALONE, here
-from .constants import IS_LINUX, IS_SNAP
+from .constants import IS_LINUX
 from . import polkit
+
+IS_SNAP = os.environ.get('SNAP')
 
 log = Logger()
 

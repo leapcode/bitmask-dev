@@ -126,10 +126,10 @@ class LinuxVPNLauncher(VPNLauncher):
     class OPENVPN_BIN_PATH(object):
         def __call__(self):
 
-            #if IS_SNAP:
-            # this should change when bitmask is also a snap. for now,
-            # snap means RiseupVPN
-            #    return '/snap/bin/riseup-vpn/bin/riseup-vpn.openvpn'
+            if IS_SNAP:
+                # this should change when bitmask is also a snap. for now,
+                # snap means RiseupVPN
+                return '/snap/bin/riseup-vpn/bin/riseup-vpn.openvpn'
 
             _sys = constants.OPENVPN_SYSTEM
             _local = constants.OPENVPN_LOCAL
@@ -176,25 +176,19 @@ class LinuxVPNLauncher(VPNLauncher):
         :return: A VPN command ready to be launched.
         :rtype: list
         """
-        print ">>> GET VPN COMMAND"
-
         command = []
         # we use `super` in order to send the class to use
         command = super(LinuxVPNLauncher, kls).get_vpn_command(
             vpnconfig, providerconfig, socket_host, socket_port, remotes,
             openvpn_verb)
-        #print(">>>command super %s" % str(command))
 
-        # XXX DEBUG local variable command referenced before assignment
-        # this was breaking the snap. re-do in a more robust way.
-
-        #command = ["pkexec", "/usr/local/sbin/bitmask-root", "openvpn", "start"] + command
+        if IS_SNAP:
+            return ["pkexec", "/usr/local/sbin/bitmask-root",
+                    "openvpn", "start"] + command
 
         command.insert(0, force_eval(kls.BITMASK_ROOT))
         command.insert(1, "openvpn")
         command.insert(2, "start")
-
-        print(">>>Inserted: %s" % str(command))
 
         if os.getuid() != 0:
             policyChecker = LinuxPolicyChecker()
