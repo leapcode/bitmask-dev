@@ -1,3 +1,9 @@
+bitmask (0.10.4) unstable; urgency=medium
+
+  * Update to 0.10.4 release.
+
+ -- Kali Kaneko <kali@leap.se>  Fri, 02 Mar 2018 04:07:26 +0100
+
 bitmask (0.10.3) unstable; urgency=medium
 
   * Update to 0.10.3 release.
