@@ -1,13 +1,13 @@
 name: riseup-vpn
-version: '0.10.3+git'
+version: '0.10.4'
 epoch: 0
 summary: RiseupVPN, anonymous VPN. Powered by Bitmask.
 description: |
         RiseupVPN is an anonymous VPN. It's controlled by a minimal systray
-        that communicates with the bitmask daemon.
+        that communicates with the bitmaskd daemon.
         Don't forget to donate!
 
-grade: devel # must be 'stable' to release into candidate/stable channels
+grade: stable # must be 'stable' to release into candidate/stable channels. switch to devel in snap branch.
 confinement: classic
 icon: snap/gui/riseupvpn.svg
 
@@ -16,9 +16,8 @@ parts:
         bitmask:
                 plugin: python
                 python-version: python2
-                source-branch: snap 
-                # XXX change to leap/master when merged
-                source: https://0xacab.org/kali/bitmask-dev.git
+                source-branch: master
+                source: https://0xacab.org/leap/bitmask-dev.git
                 requirements: pkg/requirements-vpn.pip
                 stage-packages:
                         # this seems to trigger https://bugs.launchpad.net/snapcraft/+bug/1676684
@@ -86,9 +85,9 @@ parts:
 apps:
         launcher:
                 command: ./bin/bitmask_anonvpn
+        openvpn:
+                command: ./usr/sbin/openvpn
         bitmaskd:
                 command: ./bin/bitmaskd
         bitmask-systray:
                 command: ./bin/bitmask-systray.git
-        openvpn:
-                command: ./usr/sbin/openvpn
