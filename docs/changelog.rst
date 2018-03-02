@@ -1,7 +1,7 @@
 Changelog
 =====================
 
-0.10.4 -  `master`_ 
+0.10.5 -  `master`_ 
 -------------------------------
 .. note:: This version is not yet released and is under active development.
 
@@ -13,6 +13,19 @@ Bugfixes
 
 Misc
 ~~~~
+
+0.10.4
+-------------------------------
+
+Bugfixes
+~~~~~~~~
+- Make check for stale pidfiles fail gracefully.
+
+Misc
+~~~~
+- `#9259 <https://0xacab.org/leap/bitmask-dev/issues/9259>`_: Initial snappification of RiseupVPN.
+- `#9260 <https://0xacab.org/leap/bitmask-dev/issues/9259>`_: Install of helpers with classic confinement.
+
 
 0.10.3
 ------------------------------
