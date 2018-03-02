@@ -33,8 +33,7 @@ from leap.bitmask.vpn.utils import force_eval
 
 log = Logger()
 
-
-flags_STANDALONE = False
+IS_SNAP = os.environ.get('SNAP')
 
 
 class VPNLauncherException(Exception):
@@ -153,8 +152,12 @@ class VPNLauncher(object):
         gateways = remotes
 
         for ip, port in gateways:
-            # we're hardcoding tcpv4 for now
-            args += ['--remote', ip, port, 'tcp4']
+            # we're hardcoding tcpv4 for now, but that seems to break in
+            # the version of openvpn shipped with the snaps.
+            if IS_SNAP:
+                args += ['--remote', ip, port, 'tcp']
+            else:
+                args += ['--remote', ip, port, 'tcp4']
 
         args += [
             '--client',
