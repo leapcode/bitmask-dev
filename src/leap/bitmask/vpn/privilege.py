@@ -55,7 +55,8 @@ def _helper_installer(action):
 
     if IS_LINUX:
         if IS_SNAP:
-            log.debug('Skipping install of helpers, snap should have done that')
+            log.debug('Skipping install of helpers, '
+                      'snap should have done that')
             return
         cmd = 'bitmask_helpers ' + action
         if STANDALONE:
