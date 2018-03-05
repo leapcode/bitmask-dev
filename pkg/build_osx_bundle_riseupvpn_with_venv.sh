@@ -20,8 +20,7 @@ echo "[+] Using venv in" $VIRTUAL_ENV
 
 $VIRTUAL_ENV/bin/pip install -U pyinstaller
 $VIRTUAL_ENV/bin/pip install zope.interface zope.proxy
-
-$VIRTUAL_ENV/bin/pip install -r pkg/requirements-osx.pip
+$VIRTUAL_ENV/bin/pip install -r pkg/requirements-vpn.pip
 
 # Get the bundled libzmq
 $VIRTUAL_ENV/bin/pip install -I pyzmq --install-option="--zmq=bundled"

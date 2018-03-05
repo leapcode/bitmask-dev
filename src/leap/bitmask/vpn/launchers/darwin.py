@@ -73,28 +73,22 @@ class DarwinVPNLauncher(VPNLauncher):
 
     # Hardcode the installation path for OSX for security, openvpn is
     # run as root
-    INSTALL_PATH = "/Applications/Bitmask.app/"
+    if os.path.isdir('/Applications/RiseupVPN.app'):
+        INSTALL_PATH = '/Applications/RiseupVPN.app'
+    else:
+        INSTALL_PATH = '/Applications/Bitmask.app'
+
     OPENVPN_BIN = 'openvpn.leap'
-    OPENVPN_PATH = "%s/Contents/Resources/openvpn" % (INSTALL_PATH,)
-    try:
-        INSTALL_PATH_ESCAPED = os.path.realpath(os.getcwd() + "/../../")
-    except OSError as exc:
-        # this might happen if os.getcwd() was deleted under our feet. We do
-        # not want to raise the Exception at import time.
-        logger.error('Error while setting openvpn paths: %r' % exc)
-        INSTALL_PATH_ESCAPED = "/Applications/Bitmask.app/"
-    OPENVPN_PATH_ESCAPED = "%s/Contents/Resources/openvpn" % (
-        INSTALL_PATH_ESCAPED,)
+    OPENVPN_PATH = "%s/Contents/Resources/" % (INSTALL_PATH,)
 
-    OTHER_FILES = []
-
-    _openvpn_bin_path = "%s/Contents/Resources/%s" % (
-        INSTALL_PATH, OPENVPN_BIN)
+    _openvpn_bin_path = os.path.join(OPENVPN_PATH, OPENVPN_BIN)
     if os.path.isfile(_openvpn_bin_path):
         OPENVPN_BIN_PATH = _openvpn_bin_path
     else:
         # let's try with the homebrew path
         OPENVPN_BIN_PATH = '/usr/local/sbin/openvpn'
+
+    OTHER_FILES = []
 
     def kill_previous_openvpn():
         pass

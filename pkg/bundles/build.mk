@@ -169,16 +169,16 @@ bundle_anonvpn_osx_missing:
 	mv $(OSX_ANON_CON)/anonvpn $(OSX_ANON_CON)/bitmask-app
 	cp pkg/osx/bitmask-wrapper $(OSX_ANON_CON)/anonvpn
 	mkdir -p $(OSX_ANON_RES)/bitmask-helper
-	cp -r pkg/osx/daemon $(OSX_ANON_RES)/bitmask-helper/
-	cp -r pkg/osx/openvpn $(OSX_ANON_RES)/bitmask-helper/
+	cp -r pkg/osx/openvpn/* $(OSX_ANON_RES)/
+	cp -r pkg/osx/daemon/* $(OSX_ANON_RES)/bitmask-helper/
 	mkdir -p $(OSX_ANON_RES)/../apps/providers
 	cp -r src/leap/bitmask/bonafide/providers/* $(OSX_ANON_RES)/../apps/providers/
 	cp -r $(ANONVPN_DIST_VERSION)/apps/providers/* $(OSX_ANON_RES)/../apps/providers
 	cp src/leap/bitmask/vpn/helpers/osx/bitmask-helper $(OSX_ANON_RES)/bitmask-helper/
-	sed "s/.*Bitmask.app.*/APP_PATH='\/Applications\/RiseupVPN\.app\/'/" $(OSX_ANON_RES)/bitmask-helper/bitmask-helper2
-	mv $(OSX_ANON_RES)/bitmask-helper/bitmask-helper2 $(OSX_ANON_RES)/bitmask-helper/bitmask-helper
+	chmod +x $(OSX_ANON_RES)/bitmask-helper/bitmask-helper
+	sed "s/.*Bitmask.app.*/APP_PATH='\/Applications\/RiseupVPN\.app\/'/" $(OSX_ANON_RES)/bitmask-helper/bitmask-helper > $(OSX_ANON_RES)/bitmask-helper/bitmask-helper2 && mv $(OSX_ANON_RES)/bitmask-helper/bitmask-helper2 $(OSX_ANON_RES)/bitmask-helper/bitmask-helper
 	cp src/leap/bitmask/vpn/helpers/osx/bitmask.pf.conf $(OSX_ANON_RES)/bitmask-helper/
-	cp pkg/osx/scripts/se.leap.bitmask-helper.plist $(OSX_ANON_RES)/bitmask-helper/
+	cp pkg/osx/scripts-riseupvpn/se.leap.bitmask-helper.plist $(OSX_ANON_RES)/bitmask-helper/
 	wget https://downloads.leap.se/thirdparty/osx/openvpn/openvpn -O $(OSX_ANON_RES)/openvpn.leap
 	chmod +x $(OSX_ANON_RES)/openvpn.leap
 
@@ -187,7 +187,7 @@ bundle_anonvpn_osx_pkg:
 	cp ../bitmask-systray/bitmask-systray $(OSX_ANON_CON)/bitmask-systray
 	cp /usr/local/opt/zeromq/lib/libzmq.5.dylib $(OSX_ANON_CON)/libzmq.5.dylib
 	install_name_tool -change /usr/local/opt/zeromq/lib/libzmq.5.dylib "@loader_path/libzmq.5.dylib" $(OSX_ANON_CON)/bitmask-systray
-	pkg/osx/quickpkg --output dist/RiseupVPN-$(NEXT_VERSION)_pre.pkg --scripts pkg/osx/scripts/ dist/RiseupVPN.app/
+	pkg/osx/quickpkg --output dist/RiseupVPN-$(NEXT_VERSION)_pre.pkg --scripts pkg/osx/scripts-riseupvpn/ dist/RiseupVPN.app/
 	@if [ $(BUILD_RELEASE) = no ]; then\
 		echo "[!] BUILD_RELEASE=no, skipping signature";\
 	else\
