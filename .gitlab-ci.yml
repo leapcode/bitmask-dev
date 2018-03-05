@@ -32,19 +32,21 @@ osx_test:
     - yosemite
     - osx
 
-bitmask_latest_bundle:
-  image: 0xacab.org:4567/leap/docker/bitmask-bundler:latest
-  stage: publish
-  script:
-    - pkg/build_bundle_with_venv.sh
-    - mv "dist/bitmask-`cat pkg/next-version`" .
-  artifacts:
-    paths:
-      - "bitmask-`cat pkg/next-version`"
-    name: "Bitmask_linux64_latest_${CI_BUILD_REF}"
-    expire_in: 1 month
-  tags:
-    - linux
+# disabling latest builds for now. should enable them when I can test
+# the new docker builder w/o virtualenvs.
+# bitmask_latest_bundle:
+# image: 0xacab.org:4567/leap/docker/bitmask-bundler:latest
+#  stage: publish
+#  script:
+#    - pkg/build_bundle_with_venv.sh
+#    - mv "dist/bitmask-`cat pkg/next-version`" .
+#  artifacts:
+#    paths:
+#      - "bitmask-`cat pkg/next-version`"
+#    name: "Bitmask_linux64_latest_${CI_BUILD_REF}"
+#    expire_in: 1 month
+#  tags:
+#    - linux
 
 e2e_test_mail:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
