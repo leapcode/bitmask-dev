@@ -183,6 +183,7 @@ bundle_anonvpn_osx_missing:
 bundle_anonvpn_osx_pkg:
 	cp src/leap/bitmask/core/bitmaskd.tac $(OSX_ANON_CON)/
 	cp ../bitmask-systray/bitmask-systray $(OSX_ANON_CON)/bitmask-systray
+	install_name_tool -change /usr/local/opt/zeromq/lib/libzmq.5.dylib "@loader_path/libzmq.5.dylib" $(OSX_ANON_CON)/bitmask-systray
 	pkg/osx/quickpkg --output dist/RiseupVPN-$(NEXT_VERSION)_pre.pkg --scripts pkg/osx/scripts/ dist/RiseupVPN.app/
 	@if [ $(BUILD_RELEASE) = no ]; then\
 		echo "[!] BUILD_RELEASE=no, skipping signature";\
