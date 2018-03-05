@@ -109,6 +109,9 @@ bundle_riseupvpn:
 	# to chown it first.
 	cat pkg/bundle_riseupvpn_from_docker | docker run -i -v /srv/bitmask-builds:/dist -w /dist -e REPO="$(REPO)" -e BRANCH="$(BRANCH)" bitmask-bundler-apt bash
 
+bundle_riseupvpn_osx_in_virtualenv:
+	pkg/build_osx_bundle_riseupvpn_with_venv.sh
+
 bundle_in_docker_virtualenv:
 	# this runs bundles inside a virtualenv. it is kind of slow because it compiles all python extensions in dependencies each time.
 	cat pkg/bundle_from_docker_venv | docker run -i -v ~/leap/bitmask-dev:/dist -w /dist -u `id -u` -e REPO="$(REPO)" -e BRANCH="$(BRANCH)" bitmask-bundler-venv bash
