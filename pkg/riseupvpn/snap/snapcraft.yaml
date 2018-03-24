@@ -3,9 +3,10 @@ version: '0.10.4'
 epoch: 0
 summary: RiseupVPN, anonymous VPN. Powered by Bitmask.
 description: |
-        RiseupVPN is an anonymous VPN. It's controlled by a minimal systray
-        that communicates with the bitmaskd daemon.
-        Don't forget to donate!
+        RiseupVPN is an easy, fast, and secure VPN service from riseup.net.
+        RiseupVPN does not require a user account, keep logs, or track you in
+        any way. The service is paid for entirely by donations from users like
+        you.
 
 grade: stable # must be 'stable' to release into candidate/stable channels. switch to devel in snap branch.
 confinement: classic
