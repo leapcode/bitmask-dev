@@ -20,7 +20,7 @@ Autostart bitmask on user login
 import os
 import os.path
 
-from leap.bitmask.system import IS_LINUX, IS_MAC
+from leap.bitmask.system import IS_LINUX, IS_MAC, IS_WIN
 from leap.common.config import get_path_prefix
 from leap.bitmask.core import flags
 
@@ -32,41 +32,57 @@ Exec=%(exec)s
 Path=%(path)s
 Terminal=false
 """
+    config = get_path_prefix(standalone=False)
+    autostart_pattern = os.path.join(config, 'autostart', '%s.desktop')
 
-    def autostart_app(status):
-        """
-        Leave an autostart file in the user's autostart path.
+elif IS_MAC:
+    AUTOSTART = r"""<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+          "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>%(name)s</string>
+    <key>ProgramArguments</key>
+      <array>
+        <string>%(exec)s</string>
+      </array>
+    <key>RunAtLoad</key>
+    <true/>
+  </dict>
+</plist>
+"""
+    autostart_pattern = os.path.join(os.getenv("HOME"), "Library",
+                                     "LaunchAgents", "%s.plist")
 
-        The bundle could in principle find its own path and add
-        the path to the bitmaskd binary in the Exec entry.
-        But for now it's simpler to do autostart only for the debian packages
-        or any other method that puts bitmask in the path.
-        On the other hand, we want to reduce the modifications that the bundle
-        leaves behind.
-        """
-        if not flags.APP_NAME or not flags.EXEC_PATH:
-            return
 
-        config = get_path_prefix(standalone=False)
-        autostart_file = os.path.join(config, 'autostart',
-                                      '%s.desktop' % flags.APP_NAME)
-        if status == 'on':
-            _dir = os.path.split(autostart_file)[0]
-            if not os.path.isdir(_dir):
-                os.makedirs(_dir)
-            with open(autostart_file, 'w') as f:
-                f.write(AUTOSTART % {
-                        'name': flags.APP_NAME,
-                        'exec': flags.EXEC_PATH,
-                        'path': os.getcwd()
-                        })
-        elif status == 'off':
-            try:
-                os.unlink(autostart_file)
-            except OSError:
-                pass
+def autostart_app(status):
+    """
+    Leave an autostart file in the user's autostart path.
 
-if IS_MAC:
+    The bundle could in principle find its own path and add
+    the path to the bitmaskd binary in the Exec entry.
+    But for now it's simpler to do autostart only for the debian packages
+    or any other method that puts bitmask in the path.
+    On the other hand, we want to reduce the modifications that the bundle
+    leaves behind.
+    """
+    if IS_WIN or not flags.APP_NAME or not flags.EXEC_PATH:
+        return
 
-    def autostart_app(status):
-        pass
+    autostart_file = autostart_pattern % (flags.APP_NAME,)
+    if status == 'on':
+        _dir = os.path.split(autostart_file)[0]
+        if not os.path.isdir(_dir):
+            os.makedirs(_dir)
+        with open(autostart_file, 'w') as f:
+            f.write(AUTOSTART % {
+                    'name': flags.APP_NAME,
+                    'exec': flags.EXEC_PATH,
+                    'path': os.getcwd()
+                    })
+    elif status == 'off':
+        try:
+            os.unlink(autostart_file)
+        except OSError:
+            pass
