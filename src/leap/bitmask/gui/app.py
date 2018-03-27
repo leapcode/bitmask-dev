@@ -32,13 +32,11 @@ from multiprocessing import Process
 
 from leap.bitmask.system import IS_WIN
 from leap.bitmask.core.launcher import run_bitmaskd, pid
-from leap.bitmask.gui import app_rc
 from leap.bitmask.gui.systray import WithTrayIcon
 from leap.bitmask.gui.housekeeping import cleanup, terminate, reset_authtoken
 from leap.bitmask.gui.housekeeping import get_authenticated_url
 from leap.bitmask.gui.housekeeping import NoAuthTokenError
 from leap.bitmask.gui.housekeeping import check_stale_pidfile
-from leap.common.config import get_path_prefix
 
 
 HAS_WEBENGINE = False

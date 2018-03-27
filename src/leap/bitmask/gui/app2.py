@@ -23,15 +23,9 @@ For the moment, it requires also qt5 for the systray, but we should move to a
 native solution on each platform.
 """
 
-import getpass
 import os
-import platform
-import signal
 import sys
-import time
-import webbrowser
 
-from functools import partial
 from multiprocessing import Process
 
 import webview
@@ -40,7 +34,6 @@ import psutil
 from PyQt5.QtWidgets import QApplication
 
 from leap.bitmask.core.launcher import run_bitmaskd, pid
-from leap.common.config import get_path_prefix
 
 from leap.bitmask.gui.systray import WithTrayIcon
 from leap.bitmask.gui.housekeeping import cleanup, terminate, reset_authtoken

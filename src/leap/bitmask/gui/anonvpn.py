@@ -23,19 +23,13 @@ Launches bitmaskd and then launches the systray.
 
 import subprocess
 import os
-import platform
-import signal
-import sys
 
-from functools import partial
 from multiprocessing import Process
 
 from leap.bitmask.util import here
 from leap.bitmask.core.launcher import run_bitmaskd, pid
 from leap.bitmask.gui.housekeeping import cleanup, terminate, reset_authtoken
 from leap.bitmask.gui.housekeeping import check_stale_pidfile
-from leap.bitmask.gui.housekeeping import NoAuthTokenError
-from leap.common.config import get_path_prefix
 
 
 bitmaskd = None
