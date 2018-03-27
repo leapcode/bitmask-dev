@@ -40,7 +40,6 @@ from leap.bitmask.vpn._checks import (
 
 from leap.bitmask.system import IS_LINUX
 from leap.bitmask.vpn import privilege, helpers
-from leap.bitmask.vpn import autostart
 from leap.common.config import get_path_prefix
 from leap.common.files import check_and_fix_urw_only
 from leap.common.events import catalog, emit_async
@@ -118,7 +117,6 @@ class VPNService(HookableService):
     def start_vpn(self, domain=None):
         self.log.debug('Starting VPN')
         self._cfg.set('autostart', True)
-        autostart.autostart_app('on')
 
         if self.do_status()['status'] == 'on':
             exc = Exception('VPN already started')
@@ -162,11 +160,11 @@ class VPNService(HookableService):
     def stop_vpn(self, shutdown=False):
         if shutdown:
             if self._tunnel and self._tunnel.status.get('status') == 'on':
-                self._set_autostart('on')
+                self._cfg.set('autostart', True)
             else:
-                self._set_autostart('off')
+                self._cfg.set('autostart', False)
         else:
-            self._set_autostart('off')
+            self._cfg.set('autostart', False)
 
         if self._firewall.is_up():
             fw_ok = self._firewall.stop()
@@ -183,14 +181,6 @@ class VPNService(HookableService):
         if self.watchdog.running:
             self.watchdog.stop()
         return {'result': 'vpn stopped'}
-
-    def _set_autostart(self, status):
-        if status.lower() == 'on':
-            self._cfg.set('autostart', True)
-            autostart.autostart_app('on')
-        elif status.lower() == 'off':
-            self._cfg.set('autostart', False)
-            autostart.autostart_app('off')
 
     def push_status(self):
         try:

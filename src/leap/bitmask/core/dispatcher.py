@@ -33,6 +33,7 @@ from leap.common.events import unregister_async as unregister
 from leap.common.events import catalog
 
 from .api import APICommand, register_method
+from .autostart import autostart_app
 
 
 log = Logger()
@@ -196,11 +197,13 @@ class VPNCmd(SubCommand):
         except IndexError:
             provider = None
         d = vpn.start_vpn(provider)
+        autostart_app('on')
         return d
 
     @register_method('dict')
     def do_STOP(self, vpn, *parts):
         d = vpn.stop_vpn()
+        autostart_app('off')
         return d
 
     @register_method('dict')
