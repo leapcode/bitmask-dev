@@ -30,6 +30,7 @@ import webbrowser
 from functools import partial
 from multiprocessing import Process
 
+from leap.bitmask.system import IS_WIN
 from leap.bitmask.core.launcher import run_bitmaskd, pid
 from leap.bitmask.gui import app_rc
 from leap.bitmask.gui.systray import WithTrayIcon
@@ -69,7 +70,6 @@ else:
         from PyQt5.QtWebKit import QWebSettings
 
 
-IS_WIN = platform.system() == "Windows"
 DEBUG = os.environ.get("DEBUG", False)
 
 BITMASK_URI = 'http://localhost:7070/'

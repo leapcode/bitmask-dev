@@ -57,7 +57,7 @@ def get_vpn_launcher():
     """
     Return the VPN launcher for the current platform.
     """
-    from leap.bitmask.vpn.constants import IS_LINUX, IS_MAC, IS_WIN
+    from leap.bitmask.system import IS_LINUX, IS_MAC, IS_WIN
 
     if not (IS_LINUX or IS_MAC or IS_WIN):
         error_msg = "VPN Launcher not implemented for this platform."

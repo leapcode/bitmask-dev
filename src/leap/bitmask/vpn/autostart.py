@@ -1,7 +1,7 @@
 import os
 import os.path
 
-from leap.bitmask.vpn.constants import IS_LINUX, IS_MAC
+from leap.bitmask.system import IS_LINUX, IS_MAC
 from leap.bitmask.util import STANDALONE
 from leap.common.config import get_path_prefix
 

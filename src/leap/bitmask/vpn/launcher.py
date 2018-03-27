@@ -27,13 +27,11 @@ from twisted.logger import Logger
 
 from abc import ABCMeta, abstractmethod
 
-from leap.bitmask.vpn.constants import IS_MAC
+from leap.bitmask.system import IS_MAC, IS_SNAP
 from leap.bitmask.vpn.utils import force_eval
 
 
 log = Logger()
-
-IS_SNAP = os.environ.get('SNAP')
 
 
 class VPNLauncherException(Exception):

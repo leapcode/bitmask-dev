@@ -38,9 +38,9 @@ from leap.bitmask.vpn._checks import (
     cert_expires
 )
 
+from leap.bitmask.system import IS_LINUX
 from leap.bitmask.vpn import privilege, helpers
 from leap.bitmask.vpn import autostart
-from leap.bitmask.vpn.constants import IS_LINUX
 from leap.common.config import get_path_prefix
 from leap.common.files import check_and_fix_urw_only
 from leap.common.events import catalog, emit_async

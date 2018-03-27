@@ -7,14 +7,12 @@ from hashlib import sha512
 
 from twisted.logger import Logger
 
-from leap.bitmask.vpn.constants import IS_LINUX, IS_MAC
 from leap.bitmask.vpn import _config
 
+from leap.bitmask.system import IS_LINUX, IS_MAC, IS_SNAP
 from leap.bitmask.util import STANDALONE
 
 log = Logger()
-
-IS_SNAP = os.environ.get('SNAP')
 
 if IS_LINUX:
 

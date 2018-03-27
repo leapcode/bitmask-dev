@@ -4,11 +4,10 @@ from datetime import datetime
 from time import mktime
 from twisted.logger import Logger
 
+from leap.bitmask.system import IS_LINUX
 from leap.bitmask.vpn.privilege import is_pkexec_in_system, NoPkexecAvailable
 from leap.common.certs import get_cert_time_boundaries
 from leap.common.config import get_path_prefix
-
-from .constants import IS_LINUX
 
 log = Logger()
 

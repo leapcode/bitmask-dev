@@ -1,7 +1,7 @@
 import os.path
 import pkg_resources
 
-from .constants import IS_LINUX
+from leap.bitmask.system import IS_LINUX
 from leap.bitmask.util import STANDALONE, here
 
 if IS_LINUX:

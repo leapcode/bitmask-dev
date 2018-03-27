@@ -25,7 +25,7 @@ import subprocess
 
 from twisted.logger import Logger
 
-from leap.bitmask.vpn.constants import IS_MAC, IS_LINUX
+from leap.bitmask.system import IS_MAC, IS_LINUX
 from leap.common.events import catalog, emit_async
 
 from leap.bitmask.vpn.launchers import darwin

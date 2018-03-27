@@ -21,13 +21,10 @@ UUID Map: a persistent mapping between user-ids and uuids.
 import base64
 import os
 import re
-import platform
-
 import scrypt
 
 from leap.common.config import get_path_prefix
-
-IS_WIN = platform.system() == "Windows"
+from leap.bitmask.system import IS_WIN
 
 if IS_WIN:
 

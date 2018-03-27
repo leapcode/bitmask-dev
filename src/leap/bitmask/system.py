@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# constants.py
-# Copyright (C) 2015-2018 LEAP
+# platform.py
+# Copyright (C) 2018 LEAP
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,15 +18,13 @@
 """
 System constants
 """
-from leap.bitmask.system import IS_LINUX
+import os
+import platform
 
-if IS_LINUX:
-    BITMASK_ROOT_SYSTEM = '/usr/sbin/bitmask-root'
-    BITMASK_ROOT_LOCAL = '/usr/local/sbin/bitmask-root'
-    OPENVPN_SYSTEM = '/usr/sbin/openvpn'
-    OPENVPN_LOCAL = '/usr/local/sbin/leap-openvpn'
-    # this should change when bitmask is also a snap. for now,
-    # snap means RiseupVPN
-    OPENVPN_SNAP = '/snap/bin/riseup-vpn.openvpn'
-    POLKIT_LOCAL = '/usr/share/polkit-1/actions/se.leap.bitmask.bundle.policy'
-    POLKIT_SYSTEM = '/usr/share/polkit-1/actions/se.leap.bitmask.policy'
+_system = platform.system()
+
+IS_LINUX = _system == "Linux"
+IS_MAC = _system == "Darwin"
+IS_UNIX = IS_MAC or IS_LINUX
+IS_WIN = _system == "Windows"
+IS_SNAP = os.environ.get('SNAP')

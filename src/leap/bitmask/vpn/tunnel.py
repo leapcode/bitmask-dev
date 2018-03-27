@@ -25,8 +25,8 @@ import tempfile
 from twisted.internet import reactor, defer
 from twisted.logger import Logger
 
+from leap.bitmask.system import IS_WIN
 from ._config import _TempVPNConfig, _TempProviderConfig
-from .constants import IS_WIN
 from .process import VPNProcess
 
 

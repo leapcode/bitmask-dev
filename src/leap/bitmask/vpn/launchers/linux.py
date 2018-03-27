@@ -28,14 +28,13 @@ from twisted.internet import defer, reactor
 from twisted.internet.endpoints import clientFromString, connectProtocol
 from twisted.logger import Logger
 
+from leap.bitmask.system import IS_SNAP
 from leap.bitmask.vpn.utils import first, force_eval
 from leap.bitmask.vpn import constants
 from leap.bitmask.vpn import _config
 from leap.bitmask.vpn.privilege import LinuxPolicyChecker
 from leap.bitmask.vpn.management import ManagementProtocol
 from leap.bitmask.vpn.launcher import VPNLauncher
-
-IS_SNAP = os.environ.get('SNAP')
 
 TERMINATE_MAXTRIES = 10
 TERMINATE_WAIT = 1  # secs

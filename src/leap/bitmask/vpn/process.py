@@ -37,7 +37,7 @@ from zope.interface import implementer
 from leap.bitmask.vpn.utils import get_vpn_launcher
 from leap.bitmask.vpn.management import ManagementProtocol
 from leap.bitmask.vpn.launchers import darwin
-from leap.bitmask.vpn.constants import IS_MAC, IS_LINUX
+from leap.bitmask.system import IS_MAC, IS_LINUX
 from leap.common.events import catalog, emit_async
 
 from zope.interface import Interface
