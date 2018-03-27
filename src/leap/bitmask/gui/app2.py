@@ -118,7 +118,9 @@ def launch_backend():
     global bitmaskd
 
     check_stale_pidfile()
-    bitmaskd = Process(target=run_bitmaskd)
+    bitmaskd = Process(target=run_bitmaskd,
+                       kwargs={'app_name': 'Bitmask',
+                               'exec_path': sys.argv[0]})
     bitmaskd.start()
 
 

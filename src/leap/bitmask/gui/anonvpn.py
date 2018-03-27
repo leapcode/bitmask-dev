@@ -22,6 +22,7 @@ Launches bitmaskd and then launches the systray.
 """
 
 import subprocess
+import sys
 import os
 
 from multiprocessing import Process
@@ -60,7 +61,9 @@ def start_app():
     global bitmaskd
 
     check_stale_pidfile()
-    bitmaskd = Process(target=run_bitmaskd)
+    bitmaskd = Process(target=run_bitmaskd,
+                       kwargs={'app_name': 'RiseupVPN',
+                               'exec_path': sys.argv[0]})
     bitmaskd.start()
     reset_authtoken()
     launch_gui()

@@ -44,7 +44,7 @@ def here(module=None):
             return dirname(__file__)
 
 
-def run_bitmaskd():
+def run_bitmaskd(app_name=None, exec_path=None):
 
     # TODO --- configure where to put the logs... (get --logfile, --logdir
     # from bitmaskctl
@@ -55,6 +55,9 @@ def run_bitmaskd():
             flags.VERBOSE = True
         if STANDALONE:
             flags.VERBOSE = True
+    flags.APP_NAME = app_name
+    flags.EXEC_PATH = exec_path
+
     args = [
         '-y', join(here(core), "bitmaskd.tac"),
         '--logfile', getLogPath(),

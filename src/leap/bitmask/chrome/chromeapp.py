@@ -64,7 +64,9 @@ def start_app():
         print('[!] Cannot find chromium installed in the system!')
         sys.exit(1)
     delete_old_authtoken()
-    bitmaskd = Process(target=run_bitmaskd)
+    bitmaskd = Process(target=run_bitmaskd,
+                       kwargs={'app_name': 'Bitmask',
+                               'exec_path': sys.argv[0]})
     bitmaskd.start()
 
     cmd = 'chromium -app=%s' % get_url()
