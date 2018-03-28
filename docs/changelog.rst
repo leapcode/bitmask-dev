@@ -1,18 +1,17 @@
 Changelog
 =====================
 
-0.10.5 -  `master`_ 
+0.10.6 -  `master`_ 
 -------------------------------
 .. note:: This version is not yet released and is under active development.
 
-Features
-~~~~~~~~
-
-Bugfixes
-~~~~~~~~
+0.10.5
+-------------------------------
 
 Misc
 ~~~~
+
+- OSX packaging fixes.
 
 0.10.4
 -------------------------------
