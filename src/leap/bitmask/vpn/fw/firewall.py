@@ -25,6 +25,7 @@ import subprocess
 
 from twisted.logger import Logger
 
+from leap.bitmask.util import STANDALONE
 from leap.bitmask.system import IS_MAC, IS_LINUX, IS_SNAP
 from leap.bitmask.vpn.constants import BITMASK_ROOT_SYSTEM
 from leap.bitmask.vpn.constants import BITMASK_ROOT_LOCAL
@@ -96,7 +97,7 @@ class _LinuxFirewallManager(object):
     if IS_SNAP:
         # snap has its own version under /snap
         BITMASK_ROOT = BITMASK_ROOT_SNAP
-    elif IS_STANDALONE and os.path.isfile(BITMASK_ROOT_LOCAL):
+    elif STANDALONE and os.path.isfile(BITMASK_ROOT_LOCAL):
         # if this is a bundle, we pick local. bundles ask to install it there.
         BITMASK_ROOT = BITMASK_ROOT_LOCAL
     else:

@@ -26,6 +26,7 @@ from twisted.logger import Logger
 from leap.common.files import which
 
 
+# TODO move to bitmask.system?
 STANDALONE = getattr(sys, 'frozen', False)
 
 log = Logger()
@@ -45,6 +46,7 @@ def here(module=None):
             return dirname(__file__)
 
 
+# TODO move to service?
 def merge_status(children):
 
     def key(service):
@@ -72,6 +74,7 @@ def merge_status(children):
     return res
 
 
+# TODO move to mail
 def get_gpg_bin_path():
     """
     Return the path to gpg binary.
