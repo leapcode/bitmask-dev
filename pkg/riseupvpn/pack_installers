@@ -1,37 +1,27 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os
 import subprocess
 from base64 import encodestring as encode
 HELPDIR = '../../src/leap/bitmask/vpn/helpers/linux/'
-INSTALL = './snap/hooks/install'
+INSTALL = '../../snap/hooks/install'
+POLKIT_FILE = 'se.leap.bitmask.riseupvpn.policy'
 
-with open(os.path.join(HELPDIR, 'bitmask-root')) as bmroot:
-    b64_bmroot = encode(bmroot.read())
-
-with open(os.path.join(HELPDIR, 'se.leap.bitmask.bundle.policy')) as polkit:
-    b64_polkit = encode(polkit.read())
+with open(os.path.join(HELPDIR, POLKIT_FILE)) as polkit:
+    b64_polkit = encode(polkit.read().encode())
 
 with open(INSTALL, 'w') as install:
-    install.write('#!/usr/bin/env python\n')
+    install.write('#!/usr/bin/env python3\n')
     install.write('# This helper installs bitmask-root and polkit policy file\n')
     install.write('import subprocess\n')
     install.write('from base64 import decodestring as decode\n')
     install.write("""
-BMROOT = \"\"\"{bmroot}\"\"\"
-POLKIT = \"\"\"{polkit}\"\"\"
-BMROOT_DEST = "/usr/local/sbin/bitmask-root"
-with open(BMROOT_DEST, "w") as bmroot:
-    lines = str(decode(BMROOT)).split("\\n")
-    for i, line in enumerate(lines):
-        bmroot.write(line)
-        if i + 1 != len(lines):
-            bmroot.write("\\n")
-with open('/usr/share/polkit-1/actions/se.leap.bitmask.bundle.policy', 'w') as polkit:
-    lines = str(decode(POLKIT)).split("\\n")
+POLKIT = {polkit}
+
+with open('/usr/share/polkit-1/actions/{polkit_file}', 'w') as polkit:
+    lines = decode(POLKIT).split(b"\\n")
     for line in lines:
-        polkit.write(line + "\\n")
-""".format(bmroot=b64_bmroot, polkit=b64_polkit))
-    install.write('subprocess.Popen(["chmod", "+x", BMROOT_DEST])\n')
+        polkit.write(line.decode() + "\\n")
+""".format(polkit=b64_polkit, polkit_file=POLKIT_FILE))
 
 subprocess.Popen(["chmod", "+x", INSTALL])
 print("done packing installers into the snap install hook...")

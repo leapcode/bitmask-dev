@@ -18,13 +18,15 @@ if IS_LINUX:
 
     from leap.bitmask.vpn.constants import BITMASK_ROOT_SYSTEM
     from leap.bitmask.vpn.constants import BITMASK_ROOT_LOCAL
+    from leap.bitmask.vpn.constants import BITMASK_ROOT_SNAP
     from leap.bitmask.vpn.constants import OPENVPN_SYSTEM, OPENVPN_LOCAL
     from leap.bitmask.vpn.constants import OPENVPN_SNAP
-    from leap.bitmask.vpn.constants import POLKIT_SYSTEM, POLKIT_LOCAL
+    from leap.bitmask.vpn.constants import POLKIT_SYSTEM, POLKIT_LOCAL, POLKIT_SNAP
     from leap.bitmask.vpn.privilege import is_pkexec_in_system
     from leap.bitmask.vpn.privilege import LinuxPolicyChecker
 
     def install():
+        print('installing bitmask helpers...')
         helper_from = _config.get_bitmask_helper_path()
         polkit_from = _config.get_bitmask_polkit_policy_path()
         openvpn_from = _config.get_bitmask_openvpn_path()
@@ -86,7 +88,7 @@ if IS_LINUX:
             return True
 
         if IS_SNAP:
-            if os.path.isfile(BITMASK_ROOT_LOCAL):
+            if os.path.isfile(BITMASK_ROOT_SNAP):
                 return True
             log.error('Cannot find bitmask-root in snap')
             return False
@@ -131,12 +133,17 @@ if IS_LINUX:
         return False
 
     def _check_polkit_file_exist():
-        # XXX: we are just checking if there is any policy file installed not
-        # if it's valid or if it's the correct one that will be used.
-        # (if LOCAL is used if /usr/local/sbin/bitmask-root is used and SYSTEM
-        # if /usr/sbin/bitmask-root)
+        """
+        We are just checking if there is any policy file installed not
+        if it's valid or if it's the correct one that will be used.
+
+        If LOCAL: we use /usr/local/sbin/bitmask-root
+        If SYSTEM: we use /usr/sbin/bitmask-root, and
+        if SNAP:   we use /snap/bin/riseup-vpn.bitmask-root
+        """
         return (os.path.exists(POLKIT_LOCAL) or
-                os.path.exists(POLKIT_SYSTEM))
+                os.path.exists(POLKIT_SYSTEM) or
+                os.path.exists(POLKIT_SNAP))
 
     def _exists_and_can_read(file_path):
         return access(file_path, R_OK)

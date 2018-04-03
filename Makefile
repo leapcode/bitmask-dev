@@ -119,6 +119,13 @@ bundle_in_docker_virtualenv:
 	cp -r bitmaskbuild/$(DIST_VERSION) dist/
 	rm -rf bitmaskbuild
 
+snap_in_docker:
+	cd pkg/riseupvpn && ./pack_installers && cd ..
+	sudo docker run -v $(PWD):$(PWD) -w $(PWD) snapcore/snapcraft snapcraft
+
+snap_clean:
+	sudo rm -rf stage prime parts
+
 upload:
 	python setup.py sdist bdist_wheel --universal upload --sign -i kali@leap.se -r pypi
 

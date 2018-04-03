@@ -86,15 +86,16 @@ class LinuxVPNLauncher(VPNLauncher):
 
     class BITMASK_ROOT(object):
         def __call__(self):
-
             current_version = self._version(_config.get_bitmask_helper_path())
             _sys = constants.BITMASK_ROOT_SYSTEM
             _sys_version = 0
             _local = constants.BITMASK_ROOT_LOCAL
             _local_version = 0
+            _snap = constants.BITMASK_ROOT_SNAP
+            _snap_version = 0
 
             if IS_SNAP:
-                return _local
+                return _snap
 
             if os.path.isfile(_sys):
                 _sys_version = self._version(_sys)
@@ -182,13 +183,22 @@ class LinuxVPNLauncher(VPNLauncher):
             openvpn_verb)
 
         if IS_SNAP:
-            return ["pkexec", "/usr/local/sbin/bitmask-root",
+            # cannot reference bitmask_root because 'local variable command
+            # referenced before assignment' XXX bug!
+            # this should change when bitmask is also a snap. for now,
+            # snap means RiseupVPN
+            return ["pkexec", constants.BITMASK_ROOT_SNAP,
                     "openvpn", "start"] + command
 
-        command.insert(0, force_eval(kls.BITMASK_ROOT))
+        bitmask_root = force_eval(kls.BITMASK_ROOT)
+        command.insert(0, bitmask_root)
         command.insert(1, "openvpn")
         command.insert(2, "start")
 
+        # this is a workaround for integration tests, since it's not
+        # trivial to run polkit inside docker containers.
+        # however, you might want to run bitmask as root under certain
+        # environments, like embedded devices.
         if os.getuid() != 0:
             policyChecker = LinuxPolicyChecker()
             pkexec = policyChecker.get_usable_pkexec()

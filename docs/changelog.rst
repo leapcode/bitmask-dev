@@ -5,6 +5,15 @@ Changelog
 -------------------------------
 .. note:: This version is not yet released and is under active development.
 
+Misc
+~~~~
+- Fix snap bug in install hook when python2 was not installed.
+- Install only the polkit file outside of classic confinement snap.
+- Document algorithm for picking bitmask-root.
+- Use LD_LIBRARY_PATH for bitmask_systray in RiseupVPN snap (makes snap run fine in bionic).
+- Move snap folder to topmost folder.
+
+
 0.10.5
 -------------------------------
 

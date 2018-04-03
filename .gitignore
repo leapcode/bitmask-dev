@@ -56,3 +56,11 @@ NOTES
 
 # temporary home folders for functional tests
 /tmp/
+
+# snaps
+parts
+prime
+stage
+*.snap
+*.tar.bz2
+snap/.snapcraft

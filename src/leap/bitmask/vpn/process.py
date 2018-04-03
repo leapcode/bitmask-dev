@@ -293,7 +293,6 @@ class _VPNProcess(protocol.ProcessProtocol):
 
         :rtype: list of str
         """
-        print("GETTING COMMAND", self._launcher)
         try:
             command = self._launcher.get_vpn_command(
                 vpnconfig=self._vpnconfig,
