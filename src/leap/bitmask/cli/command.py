@@ -181,5 +181,5 @@ class Command(object):
             if callable(errb):
                 errb()
             else:
-                print (Fore.RED + "[ERROR] Timeout contacting the bitmask "
-                       "daemon. Is it running?" + Fore.RESET)
+                print(Fore.RED + "[ERROR] Timeout contacting the bitmask "
+                      "daemon. Is it running?" + Fore.RESET)

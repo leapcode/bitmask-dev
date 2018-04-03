@@ -65,8 +65,8 @@ SUBCOMMANDS:
                 yield line
 
         _file = open(_log_path, 'r')
-        print (Fore.GREEN + '[bitmask] ' +
-               Fore.RESET + 'Watching log file %s' % _log_path)
+        print(Fore.GREEN + '[bitmask] ' +
+              Fore.RESET + 'Watching log file %s' % _log_path)
         for line in _file.readlines():
             print line,
         for line in tail(_file):

@@ -102,10 +102,12 @@ class _LinuxFirewallManager(object):
     else:
         if os.path.isfile(BITMASK_ROOT_SYSTEM):
             # we can be running from the debian package,
-            # or some other distro. it's the maintainer responsibility to put bitmask-root there.
+            # or some other distro. it's the maintainer responsibility to put
+            # bitmask-root there.
             BITMASK_ROOT = BITMASK_ROOT_SYSTEM
         else:
-            # as a last case, we fall back to installing into the /usr/local/sbin version.
+            # as a last case, we fall back to installing into the
+            # /usr/local/sbin version.
             BITMASK_ROOT = BITMASK_ROOT_LOCAL
 
     def __init__(self, remotes):

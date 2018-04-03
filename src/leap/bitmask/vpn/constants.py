@@ -34,4 +34,5 @@ if IS_LINUX:
     OPENVPN_SNAP = '/snap/bin/riseup-vpn.openvpn'
     POLKIT_LOCAL = '/usr/share/polkit-1/actions/se.leap.bitmask.bundle.policy'
     POLKIT_SYSTEM = '/usr/share/polkit-1/actions/se.leap.bitmask.policy'
-    POLKIT_SNAP = '/usr/share/polkit-1/actions/se.leap.bitmask.riseupvpn.policy'
+    POLKIT_SNAP = ('/usr/share/polkit-1/actions/'
+                   'se.leap.bitmask.riseupvpn.policy')
