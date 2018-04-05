@@ -43,10 +43,11 @@ SUBCOMMANDS:
    get_cert   Get VPN Certificate from provider
    install    Install helpers (needs root)
    uninstall  Uninstall helpers (needs root)
+   fw_reload  Reload firewall rules
 
 '''.format(name=command.appname)
 
-    commands = ['stop', 'install', 'uninstall',
+    commands = ['stop', 'install', 'uninstall', 'fw_reload',
                 'enable', 'disable', 'locations', 'countries']
 
     def start(self, raw_args):

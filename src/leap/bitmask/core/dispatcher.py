@@ -207,6 +207,11 @@ class VPNCmd(SubCommand):
         return d
 
     @register_method('dict')
+    def do_FW_RELOAD(self, vpn, *parts):
+        d = vpn.fw_reload()
+        return d
+
+    @register_method('dict')
     def do_CHECK(self, vpn, *parts):
         try:
             provider = parts[2]

@@ -182,6 +182,21 @@ class VPNService(HookableService):
             self.watchdog.stop()
         return {'result': 'vpn stopped'}
 
+    def fw_reload(self):
+        if not self._tunnel:
+            return {'result': 'VPN was not running'}
+
+        if self._firewall.is_up():
+            fw_ok = self._firewall.stop()
+            if not fw_ok:
+                self.log.error('Firewall: error stopping')
+
+        fw_ok = self._firewall.start()
+        if not fw_ok:
+            raise Exception('Could not start firewall')
+
+        return {'result': 'fw reloaded'}
+
     def push_status(self):
         try:
             statusdict = self.do_status()
