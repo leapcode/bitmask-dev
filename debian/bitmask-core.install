@@ -5,7 +5,8 @@
 /usr/lib/python2.7/dist-packages/leap/bitmask/bonafide/
 /usr/lib/python2.7/dist-packages/leap/bitmask/__init__.py
 /usr/lib/python2.7/dist-packages/leap/bitmask/_version.py
-/usr/lib/python2.7/dist-packages/leap/bitmask/util.py
-/usr/lib/python2.7/dist-packages/leap/bitmask/hooks.py
 /usr/lib/python2.7/dist-packages/leap/bitmask/config.py
+/usr/lib/python2.7/dist-packages/leap/bitmask/hooks.py
+/usr/lib/python2.7/dist-packages/leap/bitmask/system.py
+/usr/lib/python2.7/dist-packages/leap/bitmask/util.py
 /usr/lib/python2.7/dist-packages/leap.bitmask-*.egg-info
