@@ -11,8 +11,11 @@ with open(os.path.join(HELPDIR, POLKIT_FILE)) as polkit:
 
 with open(INSTALL, 'w') as install:
     install.write('#!/usr/bin/env python3\n')
-    install.write('# This helper installs bitmask-root and polkit policy file\n')
-    install.write('import subprocess\n')
+    install.write('# DO NOT MODIFY MANUALLY\n')
+    install.write('# This helper installs the polkit policy file\n')
+    install.write('# for the RiseupVPN snap.\n')
+    install.write('# It is generated automatically\n')
+    install.write('# by the script at "pkg/riseupvpn/pack_installers" \n')
     install.write('from base64 import decodestring as decode\n')
     install.write("""
 POLKIT = {polkit}
