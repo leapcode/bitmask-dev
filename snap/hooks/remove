@@ -2,5 +2,5 @@
 set -e
 
 echo "Executing remove hook for RiseupVPN"
-rm "/usr/share/polkit-1/actions/se.leap.bitmask.snap.policy"
+rm "/usr/share/polkit-1/actions/se.leap.bitmask.riseupvpn.policy"
 echo "done"
