@@ -5,6 +5,10 @@ Changelog
 -------------------------------
 .. note:: This version is not yet released and is under active development.
 
+Bugfixes
+~~~~~~~~
+- `#9278 <https://0xacab.org/leap/bitmask-dev/issues/9278>`_: Workaround for QtWebview bug causing a crash.
+
 Misc
 ~~~~
 - Fix snap bug in install hook when python2 was not installed.

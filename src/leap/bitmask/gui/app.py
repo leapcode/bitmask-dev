@@ -21,12 +21,14 @@ It just launches a wekbit browser that runs the local web-ui served by bitmaskd
 when the web service is running.
 """
 
+import ctypes
 import os
 import platform
 import signal
 import sys
 import webbrowser
 
+from ctypes import import util
 from functools import partial
 from multiprocessing import Process
 
@@ -40,6 +42,12 @@ from leap.bitmask.gui.housekeeping import check_stale_pidfile
 
 
 HAS_WEBENGINE = False
+
+
+# This is a workaround for #9278.
+# See https://bugs.launchpad.net/ubuntu/+source/
+# qtbase-opensource-src/+bug/1761708
+ctypes.CDLL(util.find_library('GL'), ctypes.RTLD_GLOBAL)
 
 if platform.system() == 'Windows':
     from multiprocessing import freeze_support
