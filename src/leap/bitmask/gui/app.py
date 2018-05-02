@@ -28,7 +28,7 @@ import signal
 import sys
 import webbrowser
 
-from ctypes import import util
+from ctypes import util
 from functools import partial
 from multiprocessing import Process
 
