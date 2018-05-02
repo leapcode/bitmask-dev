@@ -1,0 +1,37 @@
+########################################################################
+# Playbook to bootstrap a bitmask development environment in
+# a windows base image (install virtualenv)
+#
+# Make sure to follow the instructions in
+# https://docs.ansible.com/ansible/devel/user_guide/windows_setup.html
+# before running this playbook.
+# You also need to install win_git plugin:
+# https://github.com/tivrobo/ansible-win_git
+########################################################################
+
+- hosts: all
+  gather_facts: false
+  tasks:
+
+    # XXX this will fail the first time! need to reboot windows so thatthe PATH variable gets updated
+    # https://github.com/ansible/ansible/issues/24333
+
+    - name: git clone bitmask
+      win_git:
+        repo: "https://github.com/leapcode/bitmask-dev.git"
+        dest: "c:\\leap\\bitmask-dev"
+        branch: master
+        update: yes
+        replace_dest: no
+        accept_hostkey: yes
+
+    - name: install virtualenv
+      win_command: pip install -U virtualenvwrapper-win
+
+    - name: create bitmask virtualenv (with vpn deps)
+      win_command: mkvirtualenv.bat bitmask -r c:\leap\bitmask-dev\pkg\requirements-vpn.pip
+      ignore_errors: yes
+
+    - name: install bitmask in devmode 
+      win_command: pip install -e c:\leap\bitmask-dev
+      ignore_errors: yes

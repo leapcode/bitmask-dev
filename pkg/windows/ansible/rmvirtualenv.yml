@@ -1,0 +1,9 @@
+########################################################################
+# Remove the bitmask virtualenv.
+########################################################################
+
+- hosts: all
+  gather_facts: false
+  tasks:
+    - name: remove bitmask virtualenv
+      win_command: rmvirtualenv bitmask

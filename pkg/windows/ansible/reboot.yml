@@ -1,0 +1,9 @@
+########################################################################
+# Reboot a a windows host.
+########################################################################
+
+- hosts: all
+  gather_facts: false
+  tasks:
+    - name: reboot host unconditionally
+      win_reboot:

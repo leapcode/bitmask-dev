@@ -1,0 +1,23 @@
+Bootstrapping a windows environment for Bitmask development
+===========================================================
+
+Create a windows virtual machine. Give it a minimum of 25GB.
+
+Install ansible:
+
+  https://docs.ansible.com/ansible/devel/user_guide/windows_setup.html
+
+TODO: add instructions for configuring inventory in a file in this folder - see hosts.sample
+      the other option is to configure it in /etc/ansible/hosts
+
+Install bitmask deps and some tools for development:
+
+  make deps
+
+Reboot the windows machine so that some installed tools get in the PATH for the new session:
+
+  make reboot
+
+Bootstrap a bitmask virtualenv:
+
+  make bootstrap

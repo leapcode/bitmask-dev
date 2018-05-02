@@ -1,0 +1,58 @@
+########################################################################
+# Playbook to bootstrap a bitmask development environment in
+# a windows base image (install system dependencies).
+#
+# Make sure to follow the instructions in
+# https://docs.ansible.com/ansible/devel/user_guide/windows_setup.html
+# before running this playbook.
+# You also need to install win_git plugin:
+# https://github.com/tivrobo/ansible-win_git
+########################################################################
+
+- hosts: all
+  gather_facts: false
+  tasks:
+    - name: create leap directory
+      win_file:
+        path: C:\leap
+        state: directory
+
+    - name: create ssh folder
+      win_file:
+        path: C:\Users\admin\.ssh\
+        state: directory
+
+    - name: touch ssh hosts file
+      win_file:
+        path: C:\Users\admin\.ssh\known_hosts
+        state: file
+
+    - name: install dev requirements
+      win_chocolatey:
+        name: '{{ item }}'
+        state: present
+      with_items:
+        - git
+        - poshgit
+        - wget
+        - curl
+        - 7zip
+        - python2
+        - nssm
+        - nsis
+        - mingw
+        - nim
+        - golang
+
+    - name: install developer tools
+      win_chocolatey:
+        name: '{{ item }}'
+        state: present
+      with_items:
+        - vim
+        - openssh
+
+    - name: upgrade all the packages
+      win_chocolatey:
+        name: all
+        state: latest
