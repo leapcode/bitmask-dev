@@ -260,3 +260,14 @@ package:amd64_artful:
     # unless all lintian warnings are fixed (#9033)
     LINTIAN_OPTS: "-X filename-length, --suppress-tags newer-standards-version"
   <<: *job_definition
+
+package:amd64_bionic:
+  variables:
+    ARCH: "amd64"
+    DIST: "bionic"
+    REPONAMES: "client"
+    # Default is to fail on warnings, we disable it here
+    # unless all lintian warnings are fixed (#9033)
+    LINTIAN_OPTS: "-X filename-length, --suppress-tags newer-standards-version"
+  <<: *job_definition
+
