@@ -1,9 +1,12 @@
 Changelog
 =====================
 
-0.10.6 -  `master`_ 
+0.10.7 -  `master`_ 
 -------------------------------
 .. note:: This version is not yet released and is under active development.
+
+0.10.6
+-------------------------------
 
 Bugfixes
 ~~~~~~~~
