@@ -1,5 +1,5 @@
 name: riseup-vpn
-version: '0.10.6'
+version: '0.10.6+git'
 epoch: 2
 summary: RiseupVPN, secure VPN. Powered by Bitmask.
 description: |
@@ -68,7 +68,7 @@ parts:
                     - libgtk-3-dev
                 stage-packages:
                     - libzmq5
-                    - libsodium18
+                    - libsodium23  # for bionic, previously it was libsodium18
                     - libpcre3
                     - libappindicator3-1
                 # prime: 
