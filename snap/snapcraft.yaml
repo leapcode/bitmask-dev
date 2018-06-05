@@ -14,6 +14,8 @@ icon: snap/gui/riseupvpn.svg
 
 parts:
         desktop-gtk3:
+                stage-packages:
+                    - libc6
                 prime:
                     - '*'
                     - -usr/include
