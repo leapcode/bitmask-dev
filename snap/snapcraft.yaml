@@ -34,6 +34,7 @@ parts:
                 requirements: pkg/requirements-vpn.pip
                 stage-packages:
                     # this seems to trigger https://bugs.launchpad.net/snapcraft/+bug/1676684
+                    - libc6
                     - python2.7-dev
                     - libsqlcipher-dev
                     - libffi-dev
@@ -51,6 +52,7 @@ parts:
                 plugin: nil
                 stage-packages:
                     - openvpn
+                    - libc6
                 prime:
                     - -usr/share/doc
                     - -usr/share/man
