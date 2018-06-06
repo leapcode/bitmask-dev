@@ -76,6 +76,7 @@ parts:
                     - libsodium23  # for bionic, previously it was libsodium18
                     - libpcre3
                     - libappindicator3-1
+                    - zlib1g
                 # prime: 
                      # prime:-etc/fonts
                      # prime:-usr/include
