@@ -121,7 +121,9 @@ bundle_in_docker_virtualenv:
 
 snap_in_docker:
 	cd pkg/riseupvpn && ./pack_installers && cd ..
-	sudo docker run -v $(PWD):$(PWD) -w $(PWD) snapcore/snapcraft snapcraft
+	cp snap/snapcraft.yaml snap/snapcraft.yaml.orig && cd snap && sed -i s/"#PRAGMA:XENIAL "// snapcraft.yaml && cd ..
+	echo "apt update && apt -f install && snapcraft" | sudo docker run -i -v $(PWD):$(PWD) -w $(PWD) snapcore/snapcraft bash
+	mv snap/snapcraft.yaml.orig snap/snapcraft.yaml
 
 snap_clean:
 	sudo rm -rf stage prime parts

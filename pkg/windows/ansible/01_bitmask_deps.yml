@@ -41,8 +41,9 @@
         - nssm
         - nsis
         - mingw
-        - nim
         - golang
+        - visualstudio2017buildtools
+        # missing: libzmq
 
     - name: install developer tools
       win_chocolatey:
