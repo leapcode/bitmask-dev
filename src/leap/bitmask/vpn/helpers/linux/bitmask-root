@@ -130,7 +130,7 @@ ALLOWED_FLAGS = {
     "--tls-cipher": ["CIPHER"],
     "--cipher": ["CIPHER"],
     "--auth": ["CIPHER"],
-    "--management": ["DIR", "UNIXSOCKET"],
+    "--management": ["DIR||IP", "UNIXSOCKET||NUMBER"],
     "--management-client-user": ["USER"],
     "--cert": ["FILE"],
     "--key": ["FILE"],
@@ -138,6 +138,7 @@ ALLOWED_FLAGS = {
     "--fragment": ["NUMBER"],
     "--keepalive": ["NUMBER", "NUMBER"],
     "--verb": ["NUMBER"],
+    "--management-client": [],
 }
 
 PARAM_FORMATS = {
@@ -392,8 +393,10 @@ def parse_openvpn_flags(args):
                             (SCRIPT, flag_name))
                         return None
                     for param, param_type in zip(flag_params, required_params):
-                        if PARAM_FORMATS[param_type](param):
-                            result.append(param)
+                        for tpe in param_type.split("||"):
+                            if PARAM_FORMATS[tpe](param):
+                                result.append(param)
+                                break
                         else:
                             log("%s: ERROR: Bad argument %s" %
                                 (SCRIPT, param))
