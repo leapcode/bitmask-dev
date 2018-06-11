@@ -1,6 +1,7 @@
 ---
 stages:
   - test
+  - e2e
   - publish
 
 variables:
@@ -8,6 +9,7 @@ variables:
 
 # Cache gems in between stages for this pipeline only
 cache:
+  key: "$CI_RUNNER_TAGS-$CI_COMMIT_REF_SLUG"
   paths:
     - .tox/py27-dev
 
@@ -50,7 +52,7 @@ osx_test:
 
 e2e_test_mail:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
-  stage: test
+  stage: e2e
   script:
     - dpkg -l tox gnupg1 haveged  > /dev/null || apt-get -y --no-install-recommends install tox gnupg1 haveged
     - tox -e py27-dev --notest
@@ -64,7 +66,7 @@ e2e_test_mail:
 
 e2e_test_vpn:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
-  stage: test
+  stage: e2e
   script:
     - dpkg -l tox gnupg1 haveged  > /dev/null || apt-get -y --no-install-recommends install tox gnupg1 haveged
     - tox -e py27-dev --notest
@@ -78,7 +80,7 @@ e2e_test_vpn:
 
 e2e_test_conditional_downloads:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
-  stage: test
+  stage: e2e
   allow_failure: true
   script:
     - dpkg -l tox gnupg1 haveged  > /dev/null || apt-get -y --no-install-recommends install tox gnupg1 haveged
@@ -93,7 +95,7 @@ e2e_test_conditional_downloads:
 
 functional_tests:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
-  stage: test
+  stage: e2e
   before_script:
     - dpkg -l tox > /dev/null || apt-get -y --no-install-recommends install tox
     - tox -e py27-dev --notest
@@ -129,7 +131,7 @@ functional_tests:
 
 build_ui:
   image: 0xacab.org:4567/leap/bitmask-dev:latest
-  stage: test
+  stage: e2e
   script:
     - cd ui && make dev-build
   tags:
