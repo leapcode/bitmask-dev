@@ -60,6 +60,11 @@ And, to load it again::
 
   sudo launchctl load /Library/LaunchDaemons/se.leap.bitmask-helper.plist
 
+For convenience while developing, you can find a Makefile to install and load
+the helpers in ``pkg/tools/osx``. Be aware that, for the time being, Bitmask
+and RiseupVPN share the same bitmask-helper, so you should have installed only
+one of them at the same time.
+
 
 Debugging bitmask-helper
 ------------------------
@@ -69,7 +74,7 @@ socket. If you need to debug the privileged helper (for instance, if you need to
 tear down the firewall after a crash), you can do it like this with
 ``socat``::
 
-  echo 'firewall_stop/CMD' | socat - UNIX-CONNECT:/tmp/bitmask-helper.socket
+  echo 'firewall_stop/CMD' | socat - UNIX-CONNECT:/var/run/bitmask-helper.socket
 
 
 Other helpers
