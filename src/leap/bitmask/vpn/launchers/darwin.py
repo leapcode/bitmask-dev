@@ -42,8 +42,8 @@ class HelperCommand(object):
         self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         try:
             self._sock.connect(self.SOCKET_ADDR)
-        except socket.error, msg:
-            raise RuntimeError('Cannot connect to helper: ' + msg)
+        except socket.error as exc:
+            raise RuntimeError('Cannot connect to helper: %r' % exc)
 
     def send(self, cmd, args=''):
         self._connect()

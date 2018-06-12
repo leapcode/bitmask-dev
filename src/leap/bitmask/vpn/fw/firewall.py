@@ -27,12 +27,15 @@ from twisted.logger import Logger
 
 from leap.bitmask.util import STANDALONE
 from leap.bitmask.system import IS_MAC, IS_LINUX, IS_SNAP
-from leap.bitmask.vpn.constants import BITMASK_ROOT_SYSTEM
-from leap.bitmask.vpn.constants import BITMASK_ROOT_LOCAL
-from leap.bitmask.vpn.constants import BITMASK_ROOT_SNAP
 from leap.common.events import catalog, emit_async
 
 from leap.bitmask.vpn.launchers import darwin
+
+if IS_LINUX:
+    from leap.bitmask.vpn.constants import BITMASK_ROOT_SYSTEM
+    from leap.bitmask.vpn.constants import BITMASK_ROOT_LOCAL
+    from leap.bitmask.vpn.constants import BITMASK_ROOT_SNAP
+
 
 log = Logger()
 
@@ -90,7 +93,6 @@ class _LinuxFirewallManager(object):
     exceptions.
     This allows us to achieve fail close on a vpn connection.
     """
-
     # TODO factor out choosing a version of bitmask-root.
     # together with linux vpnlauncher.
 
@@ -101,15 +103,19 @@ class _LinuxFirewallManager(object):
         # if this is a bundle, we pick local. bundles ask to install it there.
         BITMASK_ROOT = BITMASK_ROOT_LOCAL
     else:
-        if os.path.isfile(BITMASK_ROOT_SYSTEM):
-            # we can be running from the debian package,
-            # or some other distro. it's the maintainer responsibility to put
-            # bitmask-root there.
-            BITMASK_ROOT = BITMASK_ROOT_SYSTEM
-        else:
-            # as a last case, we fall back to installing into the
-            # /usr/local/sbin version.
-            BITMASK_ROOT = BITMASK_ROOT_LOCAL
+        try:
+            if os.path.isfile(BITMASK_ROOT_SYSTEM):
+                # we can be running from the debian package,
+                # or some other distro. it's the maintainer responsibility to
+                # put bitmask-root there.
+                BITMASK_ROOT = BITMASK_ROOT_SYSTEM
+            else:
+                # as a last case, we fall back to installing into the
+                # /usr/local/sbin version.
+                BITMASK_ROOT = BITMASK_ROOT_LOCAL
+        except NameError:
+            # not defined for other platforms
+            pass
 
     def __init__(self, remotes):
         """

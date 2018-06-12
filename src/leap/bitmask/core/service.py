@@ -40,6 +40,9 @@ try:
     from leap.bitmask.vpn.service import VPNService
     HAS_VPN = True
 except ImportError as exc:
+    print "[!] Could not import VPN: %r" % exc
+    # graceful fail for mail-only builds.
+    # set a raise to investigate the full traceback
     HAS_VPN = False
 
 
