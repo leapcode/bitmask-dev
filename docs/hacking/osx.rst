@@ -12,11 +12,14 @@ However, for compatibility reasons, we choose an older release for shipping bund
 
 * You will need to install xcode and the command line developer tools (``xcode-select --install``).
 
-* Use ``brew`` to install ``OpenSSL``: ``brew install openssl``
+* Use ``brew`` to install ``OpenSSL`` and some other dependencies::
+   
+  brew install openssl
+  brew install zeromq  # needed for shipping the libs for riseupvpn for the moment.
 
 * Install ``wget``: ``brew install wget`` (interestingly, this installs openssl 1.1, which we might want in order not to use the python scrypt extension).
 
-* Install a recent python: ``brew install python``
+* Install a recent python: ``brew install python2``
 
 * Put the installed python in your path: ``echo 'export PATH="/usr/local/opt/python/libexec/bin:$PATH"' >> ~/.bash_profile``
 
