@@ -5,6 +5,11 @@ Setting up a development environment in OSX™
 
 .. note: work in progress. send a MR if you spot any mistake or missing info!
 
+This is a small tutorial to get you started setting a development environment in OSX.
+For developing on a mac, and testing and debugging in a native environment, we tend to focus on the last two releases (Sierra and High Sierra at the time of writing this).
+
+However, for compatibility reasons, we choose an older release for shipping bundles with the maximum compatibility. See the :ref:`OSX Virtualization <osx-vms>` page for tips on getting a virtualized Yosemite inside virtualbox.
+
 * You will need to install xcode and the command line developer tools (``xcode-select --install``).
 
 * Use ``brew`` to install ``OpenSSL``: ``brew install openssl``
@@ -96,10 +101,37 @@ installed to the same path mentioned in the previous section.
 Uninstalling
 ===================================
 
-There's an uninstall script in `pkg/osx/uninstall.sh`.
+There's an uninstall script in `pkg/osx/uninstall.sh`. This is bundled with Bitmask.app
+
+Troubleshooting
+===================================
+
+Debug logs
+----------
+
+Bitmask rotates logs. The latest one can be found at::
+
+  /Users/<youruser>/Library/Preferences/leap/bitmaskd.log
+
+Conflicting python versions
+---------------------------
+From time to time, you will find issues regarding conflicting python versions in your machine.
+
+The best you can do for this is to tell explicitely which python to use when creating a virtualenv::
+
+  virtualenv --python=/usr/local/Cellar/python@2/2.7.15/bin/python venv
+
+In general, to fix some issues, it's a good idea to update also openssl::
+
+  brew update
+  brew reinstall openssl
+  brew reinstall python2
+
 
 Installing the bundle with homebrew
 ===================================
+
+**unused at the moment, but it can be interesting to bring it back**
 
 For testing purposes, `homebrew`_ can be used to distribute and install
 experimental versions of the bundle. This should download and install the
@@ -114,13 +146,6 @@ After that, you should be able to launch the bundle::
 
 .. _`homebrew`: https://brew.sh/
 
-
-Debug logs
-----------
-
-Bitmask rotates logs. The latest one can be found at::
-
-  /Users/<youruser>/Library/Preferences/leap/bitmaskd.log
 
 
 Known Issues
