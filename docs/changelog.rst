@@ -1,9 +1,21 @@
 Changelog
 =====================
 
-0.10.7 -  `master`_ 
+0.10.8 -  `master`_ 
 -------------------------------
 .. note:: This version is not yet released and is under active development.
+
+0.10.6
+-------------------------------
+
+Bugfixes
+~~~~~~~~
+- Various systray fixes
+
+Features
+~~~~~~~~
+- Add support for tcp management on openvpn
+
 
 0.10.6
 -------------------------------
