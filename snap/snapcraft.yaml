@@ -1,6 +1,5 @@
 name: riseup-vpn
 version: '0.10.6+git'
-epoch: 2
 summary: RiseupVPN, secure VPN. Powered by Bitmask.
 description: |
         RiseupVPN is an easy, fast, and secure VPN service from riseup.net.
