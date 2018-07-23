@@ -250,19 +250,13 @@ class _VPNProcess(protocol.ProcessProtocol):
     def status(self):
         if self.failed:
             return {'status': 'failed', 'error': self.errmsg}
-        try:
-            state = self.getState()
-            if state:
-                _status = state.simple.lower()
-            status = {'status': _status, 'error': None}
-        except AttributeError:
-            raise
-            # BUG -- glitch due to proto.state transition?
-            # still needed?
-            # state = self.getState()
-            # if state:
-            #    _status = state.simple.lower()
-            # status = {'status': _status, 'error': None}
+
+        state = self.getState()
+        if state:
+            _status = state.simple.lower()
+        else:
+            _status = None
+        status = {'status': _status, 'error': None}
 
         if self.proto and self.proto.traffic:
             remote = self.proto.remote

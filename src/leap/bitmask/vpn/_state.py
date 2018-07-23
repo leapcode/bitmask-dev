@@ -20,6 +20,7 @@ VPN State.
 """
 
 import time
+from twisted.logger import Logger
 
 
 class State(object):
@@ -28,6 +29,8 @@ class State(object):
     Possible States in an OpenVPN connection, according to the
     OpenVPN Management documentation.
     """
+
+    log = Logger()
 
     CONNECTING = 'CONNECTING'
     WAIT = 'WAIT'
@@ -54,6 +57,7 @@ class State(object):
         'ADD_ROUTES': 'Adding routes to system',
         'CONNECTED': 'Initialization Sequence Completed',
         'RECONNECTING': 'A restart has occurred',
+        'TCP_CONNECT': 'Stablishing tcp connection',
         'EXITING': 'A graceful exit is in progress',
         'OFF': 'Disconnected',
         'FAILED': 'A failure has occurred',
@@ -68,6 +72,7 @@ class State(object):
         'ADD_ROUTES': STARTING,
         'CONNECTED': ON,
         'RECONNECTING': STARTING,
+        'TCP_CONNECT': STARTING,
         'EXITING': STOPPING,
         'OFF': OFF,
         'FAILED': OFF
@@ -79,11 +84,15 @@ class State(object):
 
     @classmethod
     def get_legend(cls, state):
-        return cls._legend.get(state)
+        return cls._legend.get(state, '')
 
     @classmethod
     def get_simple(cls, state):
-        return cls._simple.get(state)
+        simple = cls._simple.get(state)
+        if not simple:
+            cls.log.warn('Unkown openvpn state: %s' % state)
+            simple = cls.FAILED
+        return simple
 
     @property
     def simple(self):
