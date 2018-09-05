@@ -441,9 +441,8 @@ def openvpn_stop(args):
     :type args: list
     """
     plist = get_process_list()
-    OPENVPN_BIN = get_openvpn_bin()
     found_leap_openvpn = filter(
-        lambda (p, s): s.startswith(OPENVPN_BIN) and LEAPOPENVPN in s,
+        lambda (p, s): "openvpn" in s and LEAPOPENVPN in s,
         plist)
 
     if found_leap_openvpn:
