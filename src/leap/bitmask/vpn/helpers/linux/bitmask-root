@@ -28,6 +28,9 @@ Expected paths:
   When installed by bundle or from git:
     /usr/local/sbin/bitmask-root
 
+  When installed by snap:
+    /snap/bin/riseup-vpn.bitmask-root
+
 USAGE:
   bitmask-root firewall stop
   bitmask-root firewall start [restart] GATEWAY1 GATEWAY2 ...
@@ -58,7 +61,7 @@ cmdcheck = subprocess.check_output
 
 #
 # CONSTANTS
-#
+
 
 
 def get_no_group_name():
@@ -100,6 +103,7 @@ SMTP_PORT = "2013"
 IP = "/sbin/ip"
 IPTABLES = "/sbin/iptables"
 IP6TABLES = "/sbin/ip6tables"
+SYSCTL = "/sbin/sysctl"
 
 OPENVPN_USER = "nobody"
 OPENVPN_GROUP = get_no_group_name()
@@ -561,6 +565,17 @@ def ip6tables(*args, **options):
     """
     run_iptable_with_check(IP6TABLES, *args, **options)
 
+
+def toggle_ipv6(status='disable'):
+    if status == 'disable':
+        arg = 1
+    elif status == 'enable':
+        arg = 0
+    else:
+        return
+    cmdcheck([SYSCTL, '-w', 'net.ipv6.conf.all.disable_ipv6=%s' % arg])
+
+
 #
 # NOTE: these tests to see if a chain exists might incorrectly return false.
 # This happens when there is an error in calling `iptables --list bitmask`.
@@ -761,6 +776,8 @@ def firewall_start(args):
         elif QUBES_VER == 3:
             run("systemctl", "restart", "qubes-firewall.service")
 
+    toggle_ipv6('disable')
+
 
 def firewall_stop():
     """
@@ -838,6 +855,8 @@ def firewall_stop():
         debug("INFO: not able to flush and delete bitmask ipv6 firewall "
               "chain (maybe it is already destroyed?)", exc)
         ok = False
+
+    toggle_ipv6('enable')
 
     if not (ok or ipv4_chain_exists or ipv6_chain_exists):
         raise Exception("firewall might still be left up. "
