@@ -364,12 +364,12 @@ def get_openvpn_bin():
     Return the path for either the system openvpn or the one the
     bundle has put there.
     """
+    if os.environ.get('SNAP') and if os.path.isfile(OPENVPN_SNAP_BIN):
+        # the snap option should be removed from the debian package.
+        return OPENVPN_SNAP_BIN
+
     if os.path.isfile(OPENVPN_SYSTEM_BIN):
         return OPENVPN_SYSTEM_BIN
-
-    # the snap option should be removed from the debian package.
-    if os.path.isfile(OPENVPN_SNAP_BIN):
-        return OPENVPN_SNAP_BIN
 
     # the bundle option should also be removed from the debian.
     if os.path.isfile(OPENVPN_LEAP_BIN):
@@ -780,7 +780,7 @@ def firewall_start(args):
         elif QUBES_VER == 3:
             run("systemctl", "restart", "qubes-firewall.service")
 
-    toggle_ipv6('disable')
+    # toggle_ipv6('disable')
 
 
 def firewall_stop():
@@ -860,7 +860,7 @@ def firewall_stop():
               "chain (maybe it is already destroyed?)", exc)
         ok = False
 
-    toggle_ipv6('enable')
+    # toggle_ipv6('enable')
 
     if not (ok or ipv4_chain_exists or ipv6_chain_exists):
         raise Exception("firewall might still be left up. "
