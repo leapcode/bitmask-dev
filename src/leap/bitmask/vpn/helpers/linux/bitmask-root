@@ -124,6 +124,8 @@ FIXED_FLAGS = [
     "--user", "nobody",
     "--persist-key",
     "--persist-local-ip",
+    "--pull-filter", "ignore", "ifconfig_ipv6",
+    "--pull-filter", "ignore", "route_ipv6"
 ]
 
 if OPENVPN_GROUP is not None:
@@ -567,6 +569,8 @@ def ip6tables(*args, **options):
 
 
 def toggle_ipv6(status='disable'):
+    # XXX this has to be called after openvpn has been launched,
+    # otherwise openvpn fails on ip -6 addr step
     if status == 'disable':
         arg = 1
     elif status == 'enable':
