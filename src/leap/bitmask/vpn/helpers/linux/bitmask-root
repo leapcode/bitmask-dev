@@ -63,7 +63,6 @@ cmdcheck = subprocess.check_output
 # CONSTANTS
 
 
-
 def get_no_group_name():
     """
     Return the right group name to use for the current OS.
@@ -670,9 +669,11 @@ def firewall_start(args):
         # rewrite DNS packets for VPN DNS; Qubes preconfigures masquerade
         ip4tables("-t", "nat", "--flush", "PR-QBS")
         ip4tables("-t", "nat", "--append", "PR-QBS", "-p", "udp",
-                  "--dport", "53", "--jump", "DNAT", "--to", NAMESERVER+":53")
+                  "--dport", "53", "--jump", "DNAT", "--to",
+                  NAMESERVER + ":53")
         ip4tables("-t", "nat", "--append", "PR-QBS", "-p", "tcp",
-                  "--dport", "53", "--jump", "DNAT", "--to", NAMESERVER+":53")
+                  "--dport", "53", "--jump", "DNAT", "--to",
+                  NAMESERVER + ":53")
     else:
         # allow dns to localhost
         ip4tables("-t", "nat", "--append", BITMASK_CHAIN, "--protocol", "udp",
@@ -681,9 +682,11 @@ def firewall_start(args):
         # rewrite all outgoing packets to use VPN DNS server
         # (DNS does sometimes use TCP!)
         ip4tables("-t", "nat", "--append", BITMASK_CHAIN_NAT_OUT, "-p", "udp",
-                  "--dport", "53", "--jump", "DNAT", "--to", NAMESERVER+":53")
+                  "--dport", "53", "--jump", "DNAT", "--to",
+                  NAMESERVER + ":53")
         ip4tables("-t", "nat", "--append", BITMASK_CHAIN_NAT_OUT, "-p", "tcp",
-                  "--dport", "53", "--jump", "DNAT", "--to", NAMESERVER+":53")
+                  "--dport", "53", "--jump", "DNAT", "--to",
+                  NAMESERVER + ":53")
         # enable masquerading, so that DNS packets rewritten by DNAT will
         # have the correct source IPs. Apply masquerade only to the NAMESERVER,
         # we don't want to apply it to the localhost dns resolver.
@@ -756,18 +759,19 @@ def firewall_start(args):
 
     # On Qubes OS, add anti-leak rules for proxyVM qubes-firewall.service
     # Must stay on 'top' of chain!
-    if QUBES_PROXY and QUBES_VER >= 3 and run("grep", \
-        "installed\ by\ " + SCRIPT, QUBES_FW_SCRIPT, exitcode=True) != 0:
+    if QUBES_PROXY and QUBES_VER >= 3 and run("grep", "installed\ by\ " +
+                                              SCRIPT, QUBES_FW_SCRIPT,
+                                              exitcode=True) != 0:
         with open(QUBES_FW_SCRIPT, mode="w") as qfile:
-            qfile.write("#!/bin/sh\n")
-            qfile.write("# Anti-leak rules installed by " + SCRIPT + " " \
-            + VERSION + "\n")
-            qfile.write("iptables --insert FORWARD -i eth0 -j DROP\n")
-            qfile.write("iptables --insert FORWARD -o eth0 -j DROP\n")
-            qfile.write("ip6tables --insert FORWARD -i eth0 -j DROP\n")
-            qfile.write("ip6tables --insert FORWARD -o eth0 -j DROP\n")
-            qfile.write("iptables --insert INPUT -i tun+ -j DROP\n")
-            qfile.write("ip6tables --insert INPUT -i tun+ -j DROP\n")
+                qfile.write("#!/bin/sh\n")
+                qfile.write("# Anti-leak rules installed by " + SCRIPT + " " +
+                            + VERSION + "\n")
+                qfile.write("iptables --insert FORWARD -i eth0 -j DROP\n")
+                qfile.write("iptables --insert FORWARD -o eth0 -j DROP\n")
+                qfile.write("ip6tables --insert FORWARD -i eth0 -j DROP\n")
+                qfile.write("ip6tables --insert FORWARD -o eth0 -j DROP\n")
+                qfile.write("iptables --insert INPUT -i tun+ -j DROP\n")
+                qfile.write("ip6tables --insert INPUT -i tun+ -j DROP\n")
         os.chmod(QUBES_FW_SCRIPT, stat.S_IRWXU)
         if not os.path.exists(QUBES_IPHOOK):
             os.symlink(QUBES_FW_SCRIPT, QUBES_IPHOOK)
@@ -980,19 +984,29 @@ def fw_email_stop():
 # MAIN
 #
 
+USAGE = """
+bitmask-root version
+bitmask-root
+"""
+
 
 def main():
     """
     Entry point for cmdline execution.
     """
-    # TODO use argparse instead.
+    # TODO use argparse instead please.
 
     if len(sys.argv) >= 2:
         command = "_".join(sys.argv[1:3])
         args = sys.argv[3:]
 
         is_restart = False
-        if args and args[0] == "restart":
+
+        if args and (args[0] == 'help' or args[0] == '-h'):
+            print(USAGE)
+            exit(0)
+
+        if args and args[0] == 'restart':
             is_restart = True
             args.remove('restart')
 
@@ -1051,9 +1065,9 @@ def main():
                 bail("INFO: bitmask email firewall is down")
 
         else:
-            bail("ERROR: No such command")
+            bail("ERROR: No such command. Try bitmask-root -h")
     else:
-        bail("ERROR: No such command")
+        bail("ERROR: No such command. Try bitmask-root -h")
 
 
 if __name__ == "__main__":
