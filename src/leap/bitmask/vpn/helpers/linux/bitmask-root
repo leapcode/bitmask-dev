@@ -84,7 +84,7 @@ def get_no_group_name():
             return None
 
 
-VERSION = "9"
+VERSION = "10"
 SCRIPT = "bitmask-root"
 NAMESERVER_TCP = "10.41.0.1"
 NAMESERVER_UDP = "10.42.0.1"
@@ -985,9 +985,24 @@ def fw_email_stop():
 #
 
 USAGE = """
-bitmask-root version
-bitmask-root
-"""
+This is bitmask-root version {VERSION}
+
+This program manipulates the Bitmask firewall. It is *not* intented to be used
+manually.
+
+Commands:
+
+{SCRIPT} version
+{SCRIPT} restart
+{SCRIPT} openvpn start <args>
+{SCRIPT} openvpn stop
+{SCRIPT} firewall start <args>
+{SCRIPT} firewall stop
+{SCRIPT} firewall isup
+{SCRIPT} fw-email start
+{SCRIPT} fw-email stop
+{SCRIPT} fw-email isup
+""".format(SCRIPT=SCRIPT, VERSION=VERSION)
 
 
 def main():
@@ -1002,7 +1017,7 @@ def main():
 
         is_restart = False
 
-        if args and (args[0] == 'help' or args[0] == '-h'):
+        if command == 'help' or command == '-h':
             print(USAGE)
             exit(0)
 
@@ -1065,9 +1080,9 @@ def main():
                 bail("INFO: bitmask email firewall is down")
 
         else:
-            bail("ERROR: No such command. Try bitmask-root -h")
+            bail("ERROR: No such command. Try bitmask-root help")
     else:
-        bail("ERROR: No such command. Try bitmask-root -h")
+        bail("ERROR: No such command. Try bitmask-root help")
 
 
 if __name__ == "__main__":
