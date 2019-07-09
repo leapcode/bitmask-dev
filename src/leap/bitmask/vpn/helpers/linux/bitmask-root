@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2014 LEAP
@@ -45,8 +45,6 @@ The `openvpn start` action is special: it calls exec on openvpn and replaces
 the current process. If the `restart` parameter is passed, the firewall will
 not be teared down in the case of an error during launch.
 """
-# TODO should be tested with python3, which can be the default on some distro.
-from __future__ import print_function
 import os
 import re
 import signal
