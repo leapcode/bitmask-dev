@@ -448,7 +448,7 @@ def openvpn_stop(args):
     """
     plist = get_process_list()
     for pid, proc in plist:
-        if bytes("openvpn", encoding='utf-8') in proc and LEAPOPENVPN in proc:
+        if bytes("openvpn", 'utf-8') in proc and bytes(LEAPOPENVPN, 'utf-8') in proc:
             os.kill(int(pid), signal.SIGTERM)
             break
 
