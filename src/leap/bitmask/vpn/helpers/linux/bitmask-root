@@ -1,7 +1,7 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014 LEAP
+# Copyright (C) 2014-2019 LEAP
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -81,6 +81,9 @@ def get_no_group_name():
         except KeyError:
             return None
 
+
+def tostr(s):
+    return s.decode('utf-8')
 
 VERSION = "11"
 SCRIPT = "bitmask-root"
@@ -444,13 +447,10 @@ def openvpn_stop(args):
     :type args: list
     """
     plist = get_process_list()
-    found_leap_openvpn = filter(
-        lambda (p, s): "openvpn" in s and LEAPOPENVPN in s,
-        plist)
-
-    if found_leap_openvpn:
-        pid = found_leap_openvpn[0][0]
-        os.kill(int(pid), signal.SIGTERM)
+    for pid, proc in plist:
+        if bytes("openvpn", encoding='utf-8') in proc and LEAPOPENVPN in proc:
+            os.kill(int(pid), signal.SIGTERM)
+            break
 
 #
 # FIREWALL
@@ -479,9 +479,9 @@ def get_default_device():
     :rtype: str
     """
     routes = subprocess.check_output([IP, "route", "show"])
-    match = re.search("^default .*dev ([^\s]*) .*$", routes, flags=re.M)
+    match = re.search(rb"^default .*dev ([^\s]*) .*$", routes, flags=re.M)
     if match and match.groups():
-        return match.group(1)
+        return tostr(match.group(1))
     else:
         bail("Could not find default device")
 
@@ -494,9 +494,9 @@ def get_local_network_ipv4(device):
     :type device: str
     """
     addresses = cmdcheck([IP, "-o", "address", "show", "dev", device])
-    match = re.search("^.*inet ([^ ]*) .*$", addresses, flags=re.M)
+    match = re.search(rb"^.*inet ([^ ]*) .*$", addresses, flags=re.M)
     if match and match.groups():
-        return match.group(1)
+        return tostr(match.group(1))
     else:
         return None
 
@@ -509,9 +509,9 @@ def get_local_network_ipv6(device):
     :type device: str
     """
     addresses = cmdcheck([IP, "-o", "address", "show", "dev", device])
-    match = re.search("^.*inet6 ([^ ]*) .*$", addresses, flags=re.M)
+    match = re.search(rb"^.*inet6 ([^ ]*) .*$", addresses, flags=re.M)
     if match and match.groups():
-        return match.group(1)
+        return tostr(match.group(1))
     else:
         return None
 
